@@ -2,9 +2,9 @@
 id = "fl-zdqr"
 title = "flume agent: only flume options before --, claude options must follow --"
 kind = "fix"
-state = "open"
+state = "planned"
 created_at = "2026-11-17T13:35:49.970Z"
-updated_at = "2026-11-17T13:39:20.279442872Z"
+updated_at = "2026-11-17T13:45:22.191082258Z"
 created_by = "external:advisor"
 watchers = ["external:advisor"]
 ticket = "zdqr"
