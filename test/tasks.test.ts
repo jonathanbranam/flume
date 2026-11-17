@@ -169,7 +169,10 @@ describe("flume check", () => {
   it("s-d5a6 a hand edit breaks the ID", () => {
     const e = createTask(root, { title: "one", kind: "chore" });
     const p = join(root, e.path);
-    writeFileSync(p, readFileSync(p, "utf8").replace(`id: ${e.nameId}`, "id: zzzz"));
+    writeFileSync(
+      p,
+      readFileSync(p, "utf8").replace(new RegExp(`id: "?${e.nameId}"?`), "id: zzzz"),
+    );
     const r = runCheck();
     expect(r.code).toBe(1);
     expect(r.out).toHaveLength(1);

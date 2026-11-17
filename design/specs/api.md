@@ -46,7 +46,7 @@ When GET /api/status is requested, the daemon SHALL answer 200 with the fields v
 - **THEN** the status is 200 and the body has a non-empty version and the project root as root
 
 ### Requirement: Create a task  {#r-4b3f}
-When POST /api/tasks is requested with title (required), kind (default feature), parent (optional) and body (optional), the daemon SHALL create the task per the task-files spec and answer 201 with the task object; for an invalid request it SHALL answer 400 and write nothing.
+When POST /api/tasks is requested with title (required), kind (default feature), parent (optional), blocked_by (optional list of task IDs), related (optional list of task IDs) and body (optional), the daemon SHALL create the task per the task-files spec, with the links in the same file, and answer 201 with the task object; for an invalid request, including a blocked_by or related entry that names no task, it SHALL answer 400 and write and commit nothing.
 
 #### Scenario: Create  {#s-301e}
 *Verification*: **executable**
@@ -194,6 +194,18 @@ When a request creates or changes a task (create, update, note, close, reopen), 
 - **GIVEN** a running daemon whose task root is a git repository with a clean working tree
 - **WHEN** POST /api/tasks is requested with title Fix redirect
 - **THEN** the repository has one new commit that holds only the new task file, its message contains the task ID, and the working tree is clean
+
+#### Scenario: A create with links is one commit  {#s-fc8d}
+*Verification*: **executable**
+- **GIVEN** open tasks k7tm and q3rp and a clean working tree
+- **WHEN** POST /api/tasks is requested with title Follow up, blocked_by k7tm and related q3rp
+- **THEN** exactly one new commit exists, it holds only the new task file, the task has blocked_by k7tm and related q3rp, and the working tree is clean
+
+#### Scenario: A create with an unknown link writes nothing  {#s-88ac}
+*Verification*: **executable**
+- **GIVEN** a clean working tree and no task zzzz
+- **WHEN** POST /api/tasks is requested with title Follow up and blocked_by zzzz
+- **THEN** the status is 400, no new commit exists, and the working tree is clean
 
 #### Scenario: A close commits both paths  {#s-9a4e}
 *Verification*: **executable**

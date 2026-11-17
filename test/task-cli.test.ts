@@ -161,8 +161,8 @@ describe("flume task commands", () => {
       "Details here",
     );
     const text = read(repo, c.path);
-    expect(text).toMatch(new RegExp(`blocked_by:\\n  - ${a.id}`));
-    expect(text).toMatch(new RegExp(`related:\\n  - ${b.id}`));
+    expect(text).toMatch(new RegExp(`blocked_by:\\n  - "?${a.id}"?`));
+    expect(text).toMatch(new RegExp(`related:\\n  - "?${b.id}"?`));
     expect(text.trim().endsWith("Details here")).toBe(true);
     flume(repo, ["stop"]);
   });
@@ -254,7 +254,7 @@ describe("flume task commands", () => {
     const r = flume(repo, ["task", "update", b.id, "blocked-by", a.id]);
     expect(r.status).toBe(0);
     expect(r.stdout).toBe("");
-    expect(read(repo, b.path)).toMatch(new RegExp(`blocked_by:\\n  - ${a.id}`));
+    expect(read(repo, b.path)).toMatch(new RegExp(`blocked_by:\\n  - "?${a.id}"?`));
     flume(repo, ["stop"]);
   });
 

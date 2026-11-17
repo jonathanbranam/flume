@@ -4,6 +4,7 @@
 
 ### Fixed
 
+- `flume task new` with `--blocked-by` or `--related` is one commit, not two: `POST /api/tasks` accepts `blocked_by` and `related` (unknown IDs refused with 400, nothing written); spec in design/specs/api.md (fl-8vw7).
 - Daemon refuses (403) requests with a foreign Host header (DNS rebinding) and POST/PATCH/DELETE with a foreign Origin header (CSRF); the CLI is unaffected; specs in design/specs/api.md (fl-gnef).
 
 ### Added

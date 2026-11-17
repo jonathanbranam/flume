@@ -4,9 +4,11 @@ import {
   readdirSync,
   readFileSync,
   renameSync,
+  unlinkSync,
   writeFileSync,
 } from "node:fs";
 import { join } from "node:path";
+import { checkProject } from "./check.ts";
 import { isValidId, mintId } from "./ids.ts";
 import { slugify } from "./slug.ts";
 import {
@@ -116,7 +118,17 @@ export function createTask(root: string, t: NewTask): TaskEntry {
     );
   const name = `${slugify(t.title)}-${id}.md`;
   mkdirSync(join(root, OPEN_DIR), { recursive: true });
-  writeFileSync(join(root, OPEN_DIR, name), serializeTaskFile(file));
+  const path = join(root, OPEN_DIR, name);
+  const linked = Boolean(t.blockedBy?.length || t.related?.length);
+  const before = linked ? new Set(checkProject(root).map((p) => `${p.path}: ${p.message}`)) : null;
+  writeFileSync(path, serializeTaskFile(file));
+  if (before) {
+    const added = checkProject(root).filter((p) => !before.has(`${p.path}: ${p.message}`));
+    if (added.length > 0) {
+      unlinkSync(path);
+      throw new Error(added[0]?.message ?? "the change breaks a rule");
+    }
+  }
   return listTaskFiles(root).find((e) => e.nameId === id) as TaskEntry;
 }
 

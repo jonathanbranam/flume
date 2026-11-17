@@ -103,7 +103,7 @@ export function startDaemon(opts: {
     if (parts.length === 2) {
       allow("GET", "POST");
       if (method === "POST") {
-        const { title, kind, parent, body: text, ...rest } = body;
+        const { title, kind, parent, body: text, blocked_by, related, ...rest } = body;
         const unknown = Object.keys(rest);
         if (unknown.length) throw new HttpError(400, `unknown field ${unknown[0]}`);
         if (typeof title !== "string" || title.trim() === "")
@@ -114,12 +114,20 @@ export function startDaemon(opts: {
           throw new HttpError(400, "parent must be a task ID");
         if (text !== undefined && typeof text !== "string")
           throw new HttpError(400, "body must be a string");
+        for (const [k, v] of [
+          ["blocked_by", blocked_by],
+          ["related", related],
+        ] as const)
+          if (v !== undefined && (!Array.isArray(v) || v.some((x) => typeof x !== "string")))
+            throw new HttpError(400, `${k} must be a list of task IDs`);
         const e = bad(() =>
           createTask(root, {
             title,
             kind: (kind as string | undefined) ?? "feature",
             parent: (parent as string | null | undefined) ?? undefined,
             body: text as string | undefined,
+            blockedBy: blocked_by as string[] | undefined,
+            related: related as string[] | undefined,
           }),
         );
         commit(e.nameId, `create ${title}`, [e.path]);

@@ -244,7 +244,7 @@ describe("daemon api", () => {
   it("s-9f87 check finds a problem", async () => {
     const t = await create("Fine");
     const p = join(root, t.path);
-    writeFileSync(p, readFileSync(p, "utf8").replace(`id: ${t.id}`, "id: zzzz"));
+    writeFileSync(p, readFileSync(p, "utf8").replace(new RegExp(`id: "?${t.id}"?`), "id: zzzz"));
     const r = await call("GET", "/api/check");
     expect(r.status).toBe(200);
     expect(r.body.ok).toBe(false);
@@ -299,6 +299,27 @@ describe("daemon api", () => {
       git(root, "show", "--name-only", "--format=%s", "HEAD").split("\n").filter(Boolean),
     ).toEqual([expect.stringContaining(t.id), t.path]);
     expect(clean()).toBe("");
+  });
+
+  it("s-fc8d a create with links is one commit", async () => {
+    const a = await create("Blocker");
+    const b = await create("Other");
+    const before = head();
+    const t = await create("Follow up", { blocked_by: [a.id], related: [b.id] });
+    expect(commitsSince(before)).toHaveLength(1);
+    expect(git(root, "show", "--name-only", "--format=", "HEAD").trim()).toBe(t.path);
+    expect(t.blocked_by).toEqual([a.id]);
+    expect(t.related).toEqual([b.id]);
+    expect(clean()).toBe("");
+  });
+
+  it("s-88ac a create with an unknown link writes nothing", async () => {
+    const before = head();
+    const r = await call("POST", "/api/tasks", { title: "Follow up", blocked_by: ["zzzz"] });
+    expect(r.status).toBe(400);
+    expect(commitsSince(before)).toHaveLength(0);
+    expect(clean()).toBe("");
+    expect(files("open")).toHaveLength(0);
   });
 
   it("s-9a4e a close commits both paths", async () => {

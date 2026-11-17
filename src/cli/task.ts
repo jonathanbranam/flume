@@ -152,19 +152,9 @@ export async function task(cwd: string, args: string[]): Promise<number> {
       };
       if (opt["--parent"] !== undefined) payload.parent = opt["--parent"];
       if (body !== undefined) payload.body = body;
-      let t = await call("POST", "/api/tasks", payload);
-      const links: Record<string, string[]> = {};
-      if (opt["--blocked-by"] !== undefined) links.blocked_by = ids(opt["--blocked-by"]);
-      if (opt["--related"] !== undefined) links.related = ids(opt["--related"]);
-      if (Object.keys(links).length) {
-        try {
-          t = await call("PATCH", `/api/tasks/${t.id}`, links);
-        } catch (e) {
-          if (e instanceof Failure)
-            e.message += `\nflume: the task ${t.id} was created (${t.path}) without those links`;
-          throw e;
-        }
-      }
+      if (opt["--blocked-by"] !== undefined) payload.blocked_by = ids(opt["--blocked-by"]);
+      if (opt["--related"] !== undefined) payload.related = ids(opt["--related"]);
+      const t = await call("POST", "/api/tasks", payload);
       show(t, `${t.id} ${t.path}`);
     } else if (sub === "show") {
       const t = await call("GET", `/api/tasks/${enc(pos[0] as string)}`);
