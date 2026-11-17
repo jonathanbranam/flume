@@ -31,6 +31,8 @@ The human, 2026-11-17 (verbatim excerpts):
 
 ## Layout
 
+The area folder is NOT a git repo; every folder inside it is. The human, 2026-11-17: "area-1 is NOT a git repo, but all other folders ARE git repos. Nesting git repos causees eternal problems in my experience." Flume must never require the area folder to be a repo, never `git init` anything, and never create a repo inside another.
+
 ```
 area-1/
   .flume/          flume's files for this area
