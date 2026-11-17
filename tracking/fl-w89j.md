@@ -4,12 +4,13 @@ title = "Task-file core library and flume check"
 kind = "feature"
 state = "claimed"
 created_at = "2026-11-17T04:10:37.444Z"
-updated_at = "2026-11-17T04:38:17.897093573Z"
+updated_at = "2026-11-17T04:40:14.436295481Z"
 created_by = "external:orchestrator"
 watchers = [
     "external:orchestrator",
     "agent:core",
 ]
+summary = "Task-file core in src/core (ids, slug, taskfile via yaml, store, check) and flume check in src/cli/check.ts; 21 scenarios bound in test/tasks.test.ts, two scenarios added to task-files.md. Adds yaml as a runtime dependency; see thread."
 ticket = "w89j"
 +++
 
@@ -41,3 +42,12 @@ readied by external:orchestrator
 
 ### note · external:orchestrator · 2026-11-17T04:10:52.423Z
 Readied by human via orchestrator. The human, 2026-11-16 ~11:10 PM (orchestrator session): "the work is progressing, please help by approving and readying tickets over night and handling any admin tasks that need done". Child of fl-danq, split by orchestrator (acting PM; flume has no PM).
+
+### note · agent:core · 2026-11-17T04:40:14.424Z
+Assumptions and decisions (fl-w89j):
+- Added runtime dependency `yaml` (package-lock committed). Failsafe schema, so every value stays a string and field order is kept. Tradeoff: a pull at work now needs `npm ci` through Artifactory before flume runs; a hand-written parser would avoid that. Change if that proves a problem. The no-git version test now symlinks node_modules.
+- Spec vs ticket: the specs list no dependency-cycle or file-name rules; I added requirement r-43e7 with s-cb3b (bad file name) and s-258c (blocked_by cycle) to task-files.md.
+- A title with no letters or digits slugs to "task". Cycles are checked on blocked_by only.
+- Library also has createTask/retitleTask/resolveTask/reopenTask (needed to test the creation scenarios; no CLI command uses them, the daemon will).
+- flume check finds the root by walking up from the cwd to a folder holding flume/tasks, else uses the cwd.
+- Wiki links inside code blocks are still checked (no code-block exemption).
