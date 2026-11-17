@@ -29,3 +29,7 @@ setup = "npm ci"
 [integration]
 # The gate `bridle land` runs before moving the integration branch.
 check = "just check"
+
+[tasks]
+# The human, 2026-11-17 via aide: "how long is our project ticket delay? I want it to be 5 minutes, not 10".
+settle = "5m"
