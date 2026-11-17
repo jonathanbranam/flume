@@ -1,2 +1,5 @@
 [[tier]]
-tasks = ["fl-28pa"]
+tasks = [
+    "fl-28pa",
+    "fl-47b8",
+]
