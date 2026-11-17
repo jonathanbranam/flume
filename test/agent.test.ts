@@ -176,6 +176,15 @@ describe("flume agent specs", () => {
     expect(claudeRuns()[0]).toContain("AGENT_NAME=alpha");
   });
 
+  it("s-a3c2 name outside the pattern is refused", () => {
+    const r = flume(["agent", "--name", "../evil"]);
+    expect(r.code).toBe(2);
+    expect(r.err).toContain("../evil");
+    expect(r.err).toContain("[a-z0-9][a-z0-9-]*");
+    expect(claudeRuns()).toHaveLength(0);
+    expect(existsSync(join(dir, "home", ".flume"))).toBe(false);
+  });
+
   it("s-a2c3 a bare argument is not a name", () => {
     const r = flume(["agent", "alpha"]);
     expect(r.code).toBe(2);

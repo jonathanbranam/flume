@@ -200,6 +200,12 @@ function primeText(name: string, project: string): string {
   return text;
 }
 
+/** Refuse a name outside NAME_RE before anything is read or written; undefined when it is fine. */
+function badName(name: string): string | undefined {
+  if (NAME_RE.test(name)) return undefined;
+  return `agent name '${name}' is not allowed; use lowercase letters, digits and dashes, starting with a letter or digit (pattern ${NAME_RE.source})`;
+}
+
 function paneName(): string | undefined {
   const pane = process.env.TMUX_PANE;
   if (!pane) return undefined;
@@ -266,6 +272,11 @@ export function prime(args: string[]): number {
     );
     return 2;
   }
+  const bad = badName(name);
+  if (bad) {
+    process.stderr.write(`flume: ${bad}\n`);
+    return 2;
+  }
   process.stdout.write(primeText(name, p.project ?? readEntry(name)?.project ?? ""));
   return 0;
 }
@@ -289,6 +300,11 @@ export function agent(args: string[]): number {
     process.stderr.write(
       `flume: this agent has no name; start again with --name <name>\n\n${["flume", "agent", ...args].map(shq).join(" ")}\n`,
     );
+    return 2;
+  }
+  const bad = badName(name);
+  if (bad) {
+    process.stderr.write(`flume: ${bad}\n`);
     return 2;
   }
   const old = readEntry(name);

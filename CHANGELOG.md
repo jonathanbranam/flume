@@ -8,6 +8,7 @@
 
 ### Fixed
 
+- `flume agent` and `flume prime` refuse a name outside `[a-z0-9][a-z0-9-]*` (from `--name`, `--name=` or the tmux pane) with exit 2, before writing or launching anything, so `--name ../x` can't write outside `~/.flume/agents` (fl-wryg).
 - `flume agent alice --model opus` passes `opus` to claude as the flag's value instead of taking it as the prompt or name; covers claude's value-taking flags (fl-ttmw).
 - `flume task new` with `--blocked-by` or `--related` is one commit, not two: `POST /api/tasks` accepts `blocked_by` and `related` (unknown IDs refused with 400, nothing written); spec in design/specs/api.md (fl-8vw7).
 - Daemon refuses (403) requests with a foreign Host header (DNS rebinding) and POST/PATCH/DELETE with a foreign Origin header (CSRF); the CLI is unaffected; specs in design/specs/api.md (fl-gnef).
