@@ -160,6 +160,9 @@ describe("flume agent specs", () => {
     expect(prime).toContain("You are agent alpha");
     expect(prime).toContain("Use the flume CLI to work with tasks; run flume --help to learn it.");
     expect(prime).toContain(
+      "Never start flume serve yourself; only the human does. If flume says the server is not running, ask the human to start it.",
+    );
+    expect(prime).toContain(
       "You are working on the web project. Read that project's CLAUDE.md and follow its instructions.",
     );
     expect(a[a.indexOf("--name") + 1]).toBe("alpha");

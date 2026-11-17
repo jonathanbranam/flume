@@ -11,6 +11,26 @@ describe("flume cli", () => {
   it("prints help", () => {
     expect(run("--help")).toContain("Usage: flume");
   });
+  it("s-7eb6 top-level help says agents never run serve", () => {
+    expect(run("--help")).toContain(
+      "  serve      run the daemon in the foreground [--port N] (the human runs this; agents never do)\n",
+    );
+  });
+  it("s-0396 serve --help prints the serve usage and the human-only line, exit 0", () => {
+    const r = spawnSync("node", [bin, "serve", "--help"], { encoding: "utf8" });
+    expect(r.status).toBe(0);
+    expect(r.stdout).toContain("usage: flume serve [--port N]");
+    expect(r.stdout).toContain(
+      "Only the human runs flume serve, in its own pane. Agents never start it.",
+    );
+  });
+  it("s-f885 serve usage error carries the human-only line, exit 2", () => {
+    const r = spawnSync("node", [bin, "serve", "--bogus"], { encoding: "utf8" });
+    expect(r.status).toBe(2);
+    expect(r.stderr).toContain(
+      "Only the human runs flume serve, in its own pane. Agents never start it.",
+    );
+  });
   it("prints the package version and a git commit", () => {
     expect(run("--version")).toMatch(/^0\.0\.1 \(([0-9a-f]{7,40}|unknown)\)\n$/);
   });

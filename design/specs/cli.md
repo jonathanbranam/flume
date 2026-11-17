@@ -84,6 +84,27 @@ When flume serve is run in a folder that has no .flume folder, flume SHALL print
 - **WHEN** flume serve --root x is run
 - **THEN** the exit code is 2
 
+### Requirement: Help says agents never start serve  {#r-49f3}
+flume SHALL say, in its top-level help, that the serve command is for the human and that agents never run it; flume serve --help SHALL print the serve usage and the line "Only the human runs flume serve, in its own pane. Agents never start it." and exit with code 0; and a serve usage error SHALL print that same line after its usage message.
+
+#### Scenario: Top-level help serve line  {#s-7eb6}
+*Verification*: **executable**
+- **GIVEN** any folder
+- **WHEN** flume --help is run
+- **THEN** standard output holds the line "  serve      run the daemon in the foreground [--port N] (the human runs this; agents never do)" and the exit code is 0
+
+#### Scenario: Serve help  {#s-0396}
+*Verification*: **executable**
+- **GIVEN** any folder
+- **WHEN** flume serve --help is run
+- **THEN** standard output holds "usage: flume serve [--port N]" and the line "Only the human runs flume serve, in its own pane. Agents never start it.", and the exit code is 0
+
+#### Scenario: Serve usage error  {#s-f885}
+*Verification*: **executable**
+- **GIVEN** any folder
+- **WHEN** flume serve --bogus is run
+- **THEN** standard error holds the line "Only the human runs flume serve, in its own pane. Agents never start it." and the exit code is 2
+
 ### Requirement: Serve chooses the task root  {#r-fe03}
 When flume serve is run, it SHALL use as the task root, in this order: the root in .flume/config.toml of the workspace folder; the current folder's git repository (main checkout). A relative path in config.toml is relative to the workspace folder, and an absolute path also works. When the task root is not a git repository, or there is none, flume SHALL print a message to standard error and exit with code 1.
 

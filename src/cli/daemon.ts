@@ -15,8 +15,11 @@ import {
 
 const err = (s: string) => process.stderr.write(`${s}\n`);
 
+/** The line every serve usage text carries: agents must not start the server. */
+const HUMAN_ONLY = "Only the human runs flume serve, in its own pane. Agents never start it.";
+
 function usage(msg: string): number {
-  err(`flume: ${msg}\nusage: flume serve [--port N] | flume status | flume stop`);
+  err(`flume: ${msg}\nusage: flume serve [--port N] | flume status | flume stop\n${HUMAN_ONLY}`);
   return 2;
 }
 
@@ -25,6 +28,10 @@ export async function serve(cwd: string, args: string[]): Promise<number> {
   let port = 0;
   for (let i = 0; i < args.length; i++) {
     const a = args[i];
+    if (a === "--help") {
+      process.stdout.write(`usage: flume serve [--port N]\n${HUMAN_ONLY}\n`);
+      return 0;
+    }
     if (a === "--port") {
       const v = args[++i];
       if (v === undefined || !/^\d+$/.test(v) || Number(v) > 65535)

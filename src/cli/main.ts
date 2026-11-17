@@ -13,7 +13,7 @@ Usage: flume <command>
 
 Commands:
   init       set up this workspace folder [--root PATH] [--force]
-  serve      run the daemon in the foreground [--port N]
+  serve      run the daemon in the foreground [--port N] (the human runs this; agents never do)
   status     show whether the daemon runs, its address and root
   stop       ask the daemon to exit
   task       new, show, list, update, comment, close, reopen (flume task --help)

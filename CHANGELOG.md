@@ -8,6 +8,7 @@
 
 ### Changed
 
+- `flume --help` and `flume serve --help` say the human runs `flume serve` and agents never do; a serve usage error says it too, and the built-in prime tells agents never to start it and to ask the human when the server is not running (fl-xxym).
 - `flume serve` now needs `flume init` first (it fails with "run flume init first" when the folder has no `.flume/`), no longer takes `--root` (set it with `flume init --root`), and no longer creates `.flume/` (fl-7sme).
 - The not-running message (`flume task`, `flume roadmap show`) now says "the flume daemon is not running for this workspace." instead of "for this project", since the server is per workspace (fl-k9pk).
 - `flume agent` and `flume prime` no longer read `~/.flume/templates/` (base.md, project.md): the prime is always the built-in base text, plus the built-in project text when there is a project. `~/.flume/agents/` is unchanged; no workspace overrides yet (fl-hh6x).
