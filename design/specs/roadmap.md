@@ -16,7 +16,7 @@ When the file flume/roadmap.md exists under the project root, flume SHALL read i
 - **THEN** the sections are Now then Later, and the entries are A, B in Now and C in Later
 
 ### Requirement: Roadmap show prints the roadmap with task states  {#r-9a1e}
-When flume roadmap show is run, it SHALL print each section heading followed by one line per entry holding the task's ID, its state, its title and its note, separated by tabs, with state missing and the link in place of the title for a link that names no task, and exit 0; with --json it SHALL print the daemon's JSON; when no daemon answers it SHALL print an error naming flume serve and exit 1; when the roadmap file does not exist it SHALL print an error and exit 1.
+When flume roadmap show is run, it SHALL print each section heading followed by one line per entry holding the task's ID, its state, its title and its note, separated by tabs, with state missing and the link in place of the title for a link that names no task, and exit 0; with --json it SHALL print the daemon's JSON; when no daemon answers it SHALL print to standard error the same two not-running lines as the cli spec (r-67a9) and exit 1; when the roadmap file does not exist it SHALL print an error and exit 1.
 
 #### Scenario: Show  {#s-7e41}
 *Verification*: **executable**
@@ -34,7 +34,7 @@ When flume roadmap show is run, it SHALL print each section heading followed by 
 *Verification*: **executable**
 - **GIVEN** no daemon running and a roadmap file
 - **WHEN** flume roadmap show is run
-- **THEN** the error names flume serve and the exit code is 1
+- **THEN** standard error is the two not-running lines ("flume: the flume daemon is not running for this project." and "Ask the human to start it: flume serve (in its own pane).") and the exit code is 1
 
 #### Scenario: Show without a roadmap  {#s-a870}
 *Verification*: **executable**

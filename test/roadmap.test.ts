@@ -134,7 +134,9 @@ describe("roadmap", () => {
   it("s-c4b8 show without a daemon", () => {
     const r = flume(project(BASIC), ["roadmap", "show"]);
     expect(r.status).toBe(1);
-    expect(r.stderr).toContain("flume serve");
+    expect(r.stderr).toBe(
+      "flume: the flume daemon is not running for this project.\nAsk the human to start it: flume serve (in its own pane).\n",
+    );
   });
 
   it("s-3d2c clean roadmap", () => {

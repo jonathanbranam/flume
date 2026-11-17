@@ -83,8 +83,9 @@ describe("flume task commands", () => {
     const repo = tempRepo();
     const r = flume(repo, ["task", "list"]);
     expect(r.status).toBe(1);
-    expect(r.stderr).toContain("not running");
-    expect(r.stderr).toContain("flume serve");
+    expect(r.stderr).toBe(
+      "flume: the flume daemon is not running for this project.\nAsk the human to start it: flume serve (in its own pane).\n",
+    );
   });
 
   it("s-2c86 unknown command", () => {

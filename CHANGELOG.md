@@ -4,6 +4,7 @@
 
 ### Changed
 
+- Without a daemon, `flume task` and `flume roadmap show` print two lines to stderr: "flume: the flume daemon is not running for this project." and "Ask the human to start it: flume serve (in its own pane)."; exit 1 as before, and flume never starts a daemon (fl-qgr7).
 - `flume agent`: before `--` only flume's own options (`--name`, `--project`, `--force`, `-h`/`--help`) and the prompt are accepted; any other option exits 2 with `flume: unknown option <arg>` and a hint to put Claude options after `--` (fl-zdqr).
 - `flume agent`: the name is only `--name <n>` (or the tmux pane); one bare argument is the prompt, sent exactly (a short default when none); the prime text goes in `--append-system-prompt`, `--system` is gone, and claude gets `--name <agent>`. Claude's options are parsed by its own rules, also after `--`, and conflicts (two prompts, -n/--name, --append-system-prompt, a repeated single-value option, a missing value) exit 2 (fl-xv3z).
 
