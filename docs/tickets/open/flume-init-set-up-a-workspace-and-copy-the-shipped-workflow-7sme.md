@@ -27,6 +27,19 @@ On advisor's proposal: "1. yes flume init is the right name 2. yes 3. no, it fai
 
 > I'll send my agent workflow over when I have a chance; it will say things like "coding work always happens in a claude worktree; enter/exit etc; merge main before exit..." and specific things for work like "agents don't push" and "avoid these commands they trigger a permissions prompt"
 
+## Revision (supersedes the workflow location below)
+
+The human, 2026-11-17: "workspace level rules should live in the --root repo and git versioned; sorry just realizing that oversight. project level rules live in each projects git repo. Neither should use hidden folders."
+
+- **Nothing workflow-related goes in `.flume/`.** `.flume/` keeps only `config.toml`, `daemon.json` and `.gitignore` (machine-local).
+- **Base workflow (shipped with flume):** `flume init` copies it to `<root>/flume/workflow/base/` in the task repo (beside `flume/tasks/`), and commits it there (one commit, never pushes). `flume init --force` overwrites only `flume/workflow/base/` and commits.
+- **Workspace rules:** the human's own files in `<root>/flume/workflow/` (outside `base/`), versioned in the task repo. Flume never writes them.
+- **Project rules:** each project's own files in `<repo>/flume/workflow/` in that project's repo. Flume never writes them.
+- **Reading order in the prime:** `<root>/flume/workflow/base/*.md`, then `<root>/flume/workflow/*.md`, then the project's `flume/workflow/*.md` and its CLAUDE.md; each in name order; later layers override earlier ones (project over workspace over base). Flume merges nothing.
+- Item 1's "copies the workflow to `.flume/workflow/`", item 2's overwrite target and item 5's file path are replaced by the above (placeholder becomes `<root>/flume/workflow/base/workflow.md`).
+
+Assumed (advisor): folder names `flume/workflow/` and `base/` mirror `flume/tasks/`; change if the human wants other names. In same-repo mode the task repo is the project repo, so workspace and project folders are the same; read once.
+
 ## Design (agreed)
 
 1. **`flume init [--root <path>] [--force]`**, run in the workspace folder (not a git repo; fl-4dgp):
