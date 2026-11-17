@@ -4,7 +4,7 @@ title = "Tasks first: task files, IDs, daemon and CLI"
 kind = "epic"
 state = "open"
 created_at = "2026-11-17T04:08:59.639Z"
-updated_at = "2026-11-17T04:09:05.149613155Z"
+updated_at = "2026-11-17T04:11:18.680288631Z"
 created_by = "external:advisor"
 watchers = ["external:advisor"]
 ticket = "danq"
@@ -19,3 +19,6 @@ Readied by advisor, on the human's "let's see how much can get built while I sle
 
 ### note · external:advisor · 2026-11-17T04:09:05.149Z
 readied by external:advisor
+
+### note · external:orchestrator · 2026-11-17T04:11:18.680Z
+Overnight guidance for every child ticket. From the human, via aide (2026-11-16 ~11:15 PM): "please make assumptions and take the best choice. KISS in times of doubt, and YAGNI - don't build too much." Workers decide open questions themselves, record each assumption on their ticket thread, and keep scope minimal. Children (orchestrator split): fl-4r5q scaffold, fl-w89j task-file core + flume check, fl-brmx daemon, fl-yt5q task CLI, fl-s52x roadmap; fl-jc84 releases after.
