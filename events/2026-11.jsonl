@@ -37,3 +37,4 @@
 {"actor":"external:orchestrator","at":"2026-11-17T04:24:19.631309421Z","from":"open","task":"fl-8g3q","to":"planned"}
 {"actor":"agent:scaffold","at":"2026-11-17T04:32:59.741886354Z","from":"claimed","task":"fl-4r5q","to":"built"}
 {"actor":"agent:manager","at":"2026-11-17T04:33:12.157638218Z","from":"built","task":"fl-4r5q","to":"integrated"}
+{"actor":"agent:specs","at":"2026-11-17T04:36:04.209299266Z","from":"claimed","task":"fl-47b8","to":"built"}
