@@ -35,12 +35,13 @@ On using Claude's own option rules: "We know exactly how Claude behaves ... I do
 2. **No name -> error.** With no `--name` and no `@flume_agent` on the tmux pane, exit 2 with: this agent has no name; start again with --name <name>.
 3. **A bare argument is the prompt.** It is the user's prompt to the agent. More than one bare argument is an error ("quote the prompt"), not joined and not passed through.
 4. **Claude's options parsed by Claude's rules** (from `claude --help`): `--flag value`, `--flag=value`, flags that take one value, flags that take several values (`<x...>`: --add-dir, --allowedTools, --disallowedTools, --tools, --mcp-config, --betas, --file) and take every following non-dash argument, flags with an optional value (`[x]`: --resume/-r, --debug/-d, --worktree/-w, --cloud, --from-pr, ...). Replaces the short VALUE_FLAGS list (fl-ttmw).
-5. **`--` still passes everything after it to claude unread.**
+5. **After `--`, flume still parses the arguments by Claude's rules, only to catch errors, and passes them to claude unchanged.** Errors: a bare argument after `--` when a prompt was already given (two prompts), and Claude's own -n/--name (it would clash with the agent name, item 10).
 6. **Prime always in the system prompt** (`--append-system-prompt`). The `--system` flag goes away (it becomes the only behaviour).
 7. **Interactive prompt:** the user's prompt when given, verbatim, focused on that ask; else a default kickoff: check your tickets/status, suggest next steps, follow up. Exact wording: implementer's call, kept short.
 8. **Launch order:** flume puts the interactive prompt after a closing `--` when it runs claude, so no claude flag (e.g. a trailing --add-dir) can eat it.
 9. Specs (design/specs/agent.md) and tests updated in the same change; USAGE text too.
+10. **Flume always passes the agent name to claude as `--name <agent>`** (Claude's session name), so the agent knows its own name for sending messages.
 
-## Open points for the human
+## Decided
 
-- Claude has its own `-n, --name <name>` (session display name). Flume's `--name` takes over that flag; to reach Claude's, put it after `--`. Should flume also pass the agent name to Claude as its session `--name`?
+The human, 2026-11-17, on the summary: "Yeah, we do need to parse some of these things that come after the `--`. I think just to avoid errors, but the Flume agent should pass the agent's name as the `--name` parameter. That's really key and really important here. Otherwise, the Claude doesn't know and can't use that name as an actual agent name for sending messages."
