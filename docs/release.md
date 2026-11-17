@@ -19,6 +19,7 @@ Updates reach the work machine by `git clone` / `git pull` from the public GitHu
 - Update: `git fetch --tags`, then `git checkout v<new version>` (or `git pull` on `main`).
 - After each clone or update, run `npm ci --omit=dev` (from the Artifactory mirror, outside the
   sandbox) to install the runtime dependencies (`yaml`).
+- First run in a workspace: `flume init [--root <task-repo>]`, then `flume serve`. After an update, `flume init --force` refreshes the base workflow in `<task-repo>/workflow/base/` (the `workflow/base/` folder ships in this repo).
 - Run: `node bin/flume.js` (or `npm run flume`). `flume --version` prints `<version> (<commit>)`.
 
 ## Using `flume agent`

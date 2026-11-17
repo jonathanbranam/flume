@@ -373,7 +373,12 @@ describe("flume serve, status and stop", () => {
   const flume = (cwd: string, ...args: string[]) =>
     spawnSync("node", [bin, ...args], { cwd, encoding: "utf8", env: gitEnv });
   function serve(cwd: string, ...args: string[]): Promise<{ url: string; pid: number }> {
-    const child = spawn("node", [bin, "serve", ...args], { cwd, env: gitEnv });
+    // serve needs a workspace made by init; --root belongs to init now.
+    const ri = args.indexOf("--root");
+    const serveArgs = ri < 0 ? args : args.filter((_, i) => i !== ri && i !== ri + 1);
+    if (!existsSync(join(cwd, ".flume")))
+      flume(cwd, "init", ...(ri < 0 ? [] : ["--root", args[ri + 1] as string]));
+    const child = spawn("node", [bin, "serve", ...serveArgs], { cwd, env: gitEnv });
     if (child.pid) started.push(child.pid);
     return new Promise((res, rej) => {
       child.stdout.once("data", (b: Buffer) =>
@@ -464,9 +469,9 @@ describe("flume serve, status and stop", () => {
       git(join(ws, n), "add", "-A");
       git(join(ws, n), "commit", "-qm", "init");
     }
-    mkdirSync(join(ws, ".flume"));
-    writeFileSync(join(ws, ".flume/config.toml"), 'root = "a"\n');
-    await serve(ws, "--root", "b");
+    flume(ws, "init", "--root", "a");
+    flume(ws, "init", "--force", "--root", "b");
+    await serve(ws);
     expect(flume(ws, "status").stdout).toContain(`root ${join(ws, "b")}`);
     expect(readFileSync(join(ws, ".flume/config.toml"), "utf8")).toContain('root = "b"');
     flume(ws, "stop");
@@ -475,7 +480,7 @@ describe("flume serve, status and stop", () => {
   it("s-fe06 no root and no repository", () => {
     const ws = realpathSync(mkdtempSync(join(tmpdir(), "flume-ws-")));
     dirs.push(ws);
-    const r = flume(ws, "serve");
+    const r = flume(ws, "init");
     expect(r.status).toBe(1);
     expect(r.stderr).toContain("no task root");
     expect(existsSync(join(ws, ".git"))).toBe(false);
@@ -506,6 +511,19 @@ describe("flume serve, status and stop", () => {
     });
     expect(r.status).toBe(0);
     flume(repo, "stop");
+  });
+
+  it("s-1d01 serve without init", () => {
+    const ws = realpathSync(mkdtempSync(join(tmpdir(), "flume-ws-")));
+    dirs.push(ws);
+    const r = flume(ws, "serve");
+    expect(r.status).toBe(1);
+    expect(r.stderr).toContain("run flume init first");
+    expect(existsSync(join(ws, ".flume"))).toBe(false);
+  });
+
+  it("s-1d02 serve takes no root", () => {
+    expect(flume(tempRepo(), "serve", "--root", "x").status).toBe(2);
   });
 
   it("serve refuses an unknown option with exit 2", () => {

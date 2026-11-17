@@ -57,6 +57,7 @@ function tempRepo(): string {
 /** A repo with a real `flume serve` process (stopped by pid in afterAll). */
 async function project(): Promise<string> {
   const repo = tempRepo();
+  spawnSync("node", [bin, "init"], { cwd: repo, env });
   const child = spawn("node", [bin, "serve"], { cwd: repo, env });
   if (child.pid) pids.push(child.pid);
   await new Promise<void>((res, rej) => {

@@ -39,3 +39,8 @@ export function commitPaths(dir: string, paths: string[], message: string): void
   git(dir, ["add", "-A", "--", ...paths]);
   git(dir, ["commit", "-m", message, "--", ...paths]);
 }
+
+/** Does `path` (relative to `dir`) have uncommitted changes or untracked files? */
+export function hasChanges(dir: string, path: string): boolean {
+  return git(dir, ["status", "--porcelain", "--", path]).trim() !== "";
+}

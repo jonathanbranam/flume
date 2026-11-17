@@ -2,6 +2,7 @@ import { agent, prime } from "./agent.ts";
 import { bugTemplate } from "./bug.ts";
 import { check } from "./check.ts";
 import { serve, status, stop } from "./daemon.ts";
+import { init } from "./init.ts";
 import { roadmap } from "./roadmap.ts";
 import { task } from "./task.ts";
 import { version } from "./version.ts";
@@ -11,7 +12,8 @@ const HELP = `flume - a workflow tool for agents
 Usage: flume <command>
 
 Commands:
-  serve      run the daemon in the foreground [--port N] [--root PATH]
+  init       set up this workspace folder [--root PATH] [--force]
+  serve      run the daemon in the foreground [--port N]
   status     show whether the daemon runs, its address and root
   stop       ask the daemon to exit
   task       new, show, list, update, comment, close, reopen (flume task --help)
@@ -41,6 +43,7 @@ export async function main(args: string[]): Promise<number> {
     process.stdout.write(bugTemplate());
     return 0;
   }
+  if (command === "init") return init(process.cwd(), args.slice(1));
   if (command === "serve") return serve(process.cwd(), args.slice(1));
   if (command === "status" || command === "stop") {
     if (args.length > 1) {

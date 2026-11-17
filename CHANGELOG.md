@@ -2,8 +2,13 @@
 
 ## Unreleased
 
+### Added
+
+- `flume init [--root PATH] [--force]` sets up a workspace folder: `.flume/` (`.gitignore`, `config.toml` root) and flume's shipped base workflow (one placeholder `workflow.md`) copied to `<root>/workflow/base/` in the task repo and committed there (never pushed). A second init fails and points at `--force`, which rewrites only `workflow/base/`. `flume prime` gains one line naming the reading order (base, workspace, project workflow files, then CLAUDE.md; later overrides earlier) when `<root>/workflow/` exists (fl-7sme).
+
 ### Changed
 
+- `flume serve` now needs `flume init` first (it fails with "run flume init first" when the folder has no `.flume/`), no longer takes `--root` (set it with `flume init --root`), and no longer creates `.flume/` (fl-7sme).
 - The not-running message (`flume task`, `flume roadmap show`) now says "the flume daemon is not running for this workspace." instead of "for this project", since the server is per workspace (fl-k9pk).
 - `flume agent` and `flume prime` no longer read `~/.flume/templates/` (base.md, project.md): the prime is always the built-in base text, plus the built-in project text when there is a project. `~/.flume/agents/` is unchanged; no workspace overrides yet (fl-hh6x).
 - `flume version` is now `flume --version` (GNU style; same output, exit 0); `flume version` is an unknown command (exit 2), no alias. Top-level help lists `--version` and `--help` under Options (fl-a4nc).

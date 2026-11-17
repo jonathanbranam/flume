@@ -1,7 +1,8 @@
 import { spawnSync } from "node:child_process";
-import { mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
+import { findInitialized, findProject, readConfigRoot } from "../daemon/index.ts";
 
 const USAGE = `Usage:
   flume agent [--name <name>] [--project <p>] [--force] [<prompt>] [-- <claude-arg>...]
@@ -193,10 +194,21 @@ function fill(text: string, vars: Record<string, string>): string {
   return text.replace(/\{(name|project)\}/g, (_, k: string) => vars[k] ?? "");
 }
 
+/** The task root of the workspace the current folder is in, when it has a workflow/ folder; else undefined. */
+function workflowRoot(): string | undefined {
+  const ws = findInitialized(process.cwd());
+  if (!ws) return undefined;
+  const root = readConfigRoot(ws) ?? findProject(ws)?.mainCheckout;
+  return root && existsSync(join(root, "workflow")) ? root : undefined;
+}
+
 function primeText(name: string, project: string): string {
   const vars = { name, project };
   let text = fill(DEFAULT_BASE, vars);
   if (project) text += `\n${fill(DEFAULT_PROJECT, vars)}`;
+  const root = workflowRoot();
+  if (root)
+    text += `\nWorkflow: read the .md files in ${root}/workflow/base/, then in ${root}/workflow/, then in the project's workflow/ folder, then the project's CLAUDE.md, each in name order; where they conflict, later ones override earlier ones.\n`;
   return text;
 }
 

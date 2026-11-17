@@ -197,6 +197,15 @@ flume SHALL always give claude a first prompt as the last argument, after a clos
 - **THEN** the last argument of claude is not empty and does not contain "You are agent alpha"
 - **AND** the argument before it is --
 
+### Requirement: Prime names the workflow layers  {#r-1d13}
+When the current folder is inside a workspace set up with flume init and the task root has a workflow folder, the prime text SHALL end with one line telling the agent to read the .md files in workflow/base/ of the task root, then in workflow/ of the task root, then in the project's workflow/ folder, then the project's CLAUDE.md, each in name order, with later ones overriding earlier ones. Otherwise the prime text SHALL NOT mention the workflow. flume SHALL merge nothing.
+
+#### Scenario: Prime with a workflow  {#s-1d08}
+*Verification*: **executable**
+- **GIVEN** a workspace that has not been set up with flume init
+- **WHEN** the user runs flume prime --name a, then flume init --root tasks, then flume prime --name a again
+- **THEN** the first output does not mention the workflow and the second names tasks/workflow/base/, CLAUDE.md and override
+
 ### Requirement: Built-in prime text  {#r-a8c0}
 
 flume SHALL build the prime text only from its built-in base text and built-in project text, SHALL replace {name} and {project} in them, and SHALL NOT read any file in the home folder's templates folder.

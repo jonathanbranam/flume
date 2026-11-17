@@ -32,9 +32,10 @@ through the Artifactory npm mirror.
 
    Check it: `flume --version` prints `<version> (<commit>)`.
 
-4. Start the daemon in your workspace folder (a git repo with its tasks, or a folder of repos with `flume serve --root <task-repo>`, saved in `.flume/config.toml`), and check it is up. Flume commands find it from any folder below:
+4. Set up your workspace folder once (a git repo with its tasks, or a folder of repos with `flume init --root <task-repo>`; this creates `.flume/` and commits flume's base workflow to `<task-repo>/workflow/base/`), then start the daemon and check it is up. Flume commands find it from any folder below. `flume init --force` refreshes the base workflow after an update; `flume serve` without `flume init` fails:
 
    ```sh
+   flume init --root <task-repo>   # once; omit --root inside a git repo
    flume serve     # runs in the foreground and prints its address; leave it running
    flume status    # in another terminal: "running at <address>" and the root; exit 1 if not running
    flume stop      # stops the daemon

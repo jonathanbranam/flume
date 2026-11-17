@@ -1,4 +1,5 @@
-import { resolve } from "node:path";
+import { existsSync } from "node:fs";
+import { join, resolve } from "node:path";
 import {
   daemonUrl,
   findProject,
@@ -8,7 +9,6 @@ import {
   readConfigRoot,
   removeRecord,
   request,
-  saveConfigRoot,
   startDaemon,
   writeRecord,
 } from "../daemon/index.ts";
@@ -16,14 +16,13 @@ import {
 const err = (s: string) => process.stderr.write(`${s}\n`);
 
 function usage(msg: string): number {
-  err(`flume: ${msg}\nusage: flume serve [--port N] [--root PATH] | flume status | flume stop`);
+  err(`flume: ${msg}\nusage: flume serve [--port N] | flume status | flume stop`);
   return 2;
 }
 
 /** `flume serve`: run the daemon in the foreground until stopped. */
 export async function serve(cwd: string, args: string[]): Promise<number> {
   let port = 0;
-  let root: string | undefined;
   for (let i = 0; i < args.length; i++) {
     const a = args[i];
     if (a === "--port") {
@@ -31,29 +30,30 @@ export async function serve(cwd: string, args: string[]): Promise<number> {
       if (v === undefined || !/^\d+$/.test(v) || Number(v) > 65535)
         return usage("--port needs a port number");
       port = Number(v);
-    } else if (a === "--root") {
-      const v = args[++i];
-      if (v === undefined) return usage("--root needs a path");
-      root = resolve(cwd, v);
     } else return usage(`unknown option '${a}'`);
   }
   // The workspace is the folder serve runs in; its .flume/ holds daemon.json and config.toml.
   const ws = resolve(cwd);
+  if (!existsSync(join(ws, ".flume"))) {
+    err("flume: no flume workspace here; run flume init first");
+    return 1;
+  }
   const running = findWorkspace(ws) === ws ? await liveDaemon(ws) : undefined;
   if (running) {
     err(`flume: a daemon is already running at ${running.url}`);
     return 1;
   }
-  const taskRoot = root ?? readConfigRoot(ws) ?? findProject(ws)?.mainCheckout;
+  const taskRoot = readConfigRoot(ws) ?? findProject(ws)?.mainCheckout;
   if (!taskRoot) {
-    err("flume: no task root: run flume serve --root PATH, or run it inside a git repository");
+    err(
+      "flume: no task root: run flume init --root PATH, or run flume init inside a git repository",
+    );
     return 1;
   }
   if (!inRepo(taskRoot)) {
     err(`flume: the task root is not a git repository: ${taskRoot}`);
     return 1;
   }
-  if (root) saveConfigRoot(ws, root);
   let stopped: () => void = () => {};
   const done = new Promise<void>((r) => {
     stopped = r;

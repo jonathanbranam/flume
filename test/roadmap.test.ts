@@ -49,6 +49,7 @@ function project(roadmap?: string): string {
 }
 
 async function serve(repo: string): Promise<string> {
+  spawnSync("node", [bin, "init"], { cwd: repo, env });
   const child = spawn("node", [bin, "serve"], { cwd: repo, env });
   if (child.pid) pids.push(child.pid);
   return new Promise<string>((res, rej) => {

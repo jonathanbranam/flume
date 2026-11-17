@@ -70,3 +70,14 @@ export function writeRecord(ws: string, rec: DaemonRecord): void {
 export function removeRecord(ws: string, pid: number): void {
   if (readRecord(ws)?.pid === pid) rmSync(join(ws, DIR, "daemon.json"), { force: true });
 }
+
+/** The workspace folder holding a `.flume/` (made by `flume init`), found by walking up from `cwd`. */
+export function findInitialized(cwd: string): string | undefined {
+  let dir = resolve(cwd);
+  for (;;) {
+    if (existsSync(join(dir, DIR))) return dir;
+    const up = dirname(dir);
+    if (up === dir) return undefined;
+    dir = up;
+  }
+}

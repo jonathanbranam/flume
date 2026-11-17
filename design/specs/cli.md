@@ -55,40 +55,85 @@ When flume --version is run, it SHALL print the Flume version and git commit on 
 - **THEN** standard error holds a usage message and the exit code is 2
 
 ### Requirement: Serve starts the daemon  {#r-495d}
-When flume serve is run in a folder (the workspace), it SHALL start the daemon on the local machine only, write its address to .flume/daemon.json in that folder (creating .flume with a .gitignore holding * when missing), print one line stating the address, and keep running until stopped, removing daemon.json when it stops; with --port N it SHALL listen on port N, and otherwise on a free port. The workspace folder need not be a git repository, and flume SHALL NOT run git init or create a repository.
+When flume serve is run in a folder (the workspace) that holds a .flume folder (made by flume init), it SHALL start the daemon on the local machine only, write its address to .flume/daemon.json in that folder, print one line stating the address, and keep running until stopped, removing daemon.json when it stops; with --port N it SHALL listen on port N, and otherwise on a free port. The workspace folder need not be a git repository, and flume SHALL NOT run git init or create a repository.
 
 #### Scenario: Serve prints its address  {#s-a4db}
 *Verification*: **executable**
-- **GIVEN** a git repository with no daemon running
+- **GIVEN** a git repository set up with flume init and no daemon running
 - **WHEN** flume serve --port 0 is run
 - **THEN** the first output line holds an address beginning http://127.0.0.1: and flume status then exits with code 0
 
 #### Scenario: The flume folder is ignored  {#s-fe02}
 *Verification*: **executable**
-- **GIVEN** a git repository with no daemon running
+- **GIVEN** a git repository set up with flume init and no daemon running
 - **WHEN** flume serve is run
 - **THEN** the folder .flume holds daemon.json and a .gitignore whose content is *, and git status in the repository lists nothing untracked
 
-### Requirement: Serve chooses the task root  {#r-fe03}
-When flume serve is run, it SHALL use as the task root, in this order: the path given with --root; the root in .flume/config.toml of the workspace folder; the current folder's git repository (main checkout). A relative path is relative to the workspace folder, and an absolute path also works. When --root is given, flume SHALL save it as root in .flume/config.toml, replacing a different saved value. When the task root is not a git repository, or there is none, flume SHALL print a message to standard error and exit with code 1.
+### Requirement: Serve needs init  {#r-1d10}
+When flume serve is run in a folder that has no .flume folder, flume SHALL print a message to standard error saying no flume workspace is here and to run flume init first, exit with code 1, and create nothing. flume serve SHALL NOT accept --root (exit code 2).
 
-#### Scenario: Root from a non-repo workspace  {#s-fe04}
+#### Scenario: Serve without init  {#s-1d01}
+*Verification*: **executable**
+- **GIVEN** a folder with no .flume folder
+- **WHEN** flume serve is run
+- **THEN** the exit code is 1, standard error says to run flume init first, and no .flume folder exists
+
+#### Scenario: Serve takes no root option  {#s-1d02}
+*Verification*: **executable**
+- **GIVEN** a folder
+- **WHEN** flume serve --root x is run
+- **THEN** the exit code is 2
+
+### Requirement: Serve chooses the task root  {#r-fe03}
+When flume serve is run, it SHALL use as the task root, in this order: the root in .flume/config.toml of the workspace folder; the current folder's git repository (main checkout). A relative path in config.toml is relative to the workspace folder, and an absolute path also works. When the task root is not a git repository, or there is none, flume SHALL print a message to standard error and exit with code 1.
+
+#### Scenario: Root from config  {#s-fe04}
+*Verification*: **executable**
+- **GIVEN** a folder that is not a git repository holding a git repository named tasks, set up with flume init --root tasks
+- **WHEN** flume serve is run
+- **THEN** config.toml in .flume holds root = "tasks", and the server's task root is the tasks repository
+
+#### Scenario: Forced root replaces the saved one  {#s-fe05}
+*Verification*: **executable**
+- **GIVEN** a workspace set up with flume init --root a, and git repositories a and b in it
+- **WHEN** flume init --force --root b is run, then flume serve
+- **THEN** the task root is b and config.toml holds root = "b"
+
+### Requirement: Init sets up a workspace  {#r-1d11}
+When flume init [--root PATH] [--force] is run in a folder (the workspace, which need not be a git repository), flume SHALL create .flume in it with a .gitignore holding * and, when --root is given, a config.toml holding root (relative to the workspace folder when inside it); the task root is --root, else the root in config.toml, else the current folder's git repository (main checkout). flume SHALL copy the base workflow that ships with flume to workflow/base/ in the task root and commit it there as one commit (nothing when unchanged), and SHALL NOT push, run git init, or write anything else in workflow/ or in a project. flume SHALL put nothing workflow-related in .flume. When the task root is not a git repository, or there is none, flume SHALL print a message to standard error saying there is no task root, exit with code 1, and create nothing. The shipped base workflow is one file, workflow.md.
+
+#### Scenario: Init in a workspace  {#s-1d03}
 *Verification*: **executable**
 - **GIVEN** a folder that is not a git repository holding a git repository named tasks
-- **WHEN** flume serve --root tasks is run in the folder, stopped, and flume serve is run again with no --root
-- **THEN** config.toml in .flume holds root = "tasks", and the second server's task root is the tasks repository
+- **WHEN** flume init --root tasks is run in the folder
+- **THEN** .flume holds a .gitignore of * and config.toml with root = "tasks", tasks/workflow/base/workflow.md exists and is committed in tasks as one new commit, and the folder is not a git repository
 
-#### Scenario: Root flag wins and is saved  {#s-fe05}
+#### Scenario: Init in a repository  {#s-1d06}
 *Verification*: **executable**
-- **GIVEN** a workspace whose config.toml names root a, and git repositories a and b in it
-- **WHEN** flume serve --root b is run
-- **THEN** the task root is b and config.toml then holds root = "b"
+- **GIVEN** a git repository
+- **WHEN** flume init is run in it
+- **THEN** workflow/base/workflow.md exists in the repository and git status lists nothing
 
-#### Scenario: No root and no repository  {#s-fe06}
+#### Scenario: Init with no task root  {#s-1d07}
 *Verification*: **executable**
-- **GIVEN** a folder that is not a git repository, with no config.toml
-- **WHEN** flume serve is run
-- **THEN** the exit code is 1, standard error says there is no task root, and no repository is created
+- **GIVEN** a folder that is not a git repository
+- **WHEN** flume init is run
+- **THEN** the exit code is 1, standard error says there is no task root, and no .flume folder exists
+
+### Requirement: Init again needs force  {#r-1d12}
+When flume init is run in a folder that already has a .flume folder, it SHALL print a message to standard error that names --force, exit with code 1, and change nothing. When flume init --force is run, flume SHALL replace only workflow/base/ in the task root with the shipped copy and commit it, leaving other files in workflow/ alone; with --root it SHALL also replace root in config.toml, and without --root it SHALL keep config.toml.
+
+#### Scenario: Second init  {#s-1d04}
+*Verification*: **executable**
+- **GIVEN** a workspace already set up with flume init
+- **WHEN** flume init is run again
+- **THEN** the exit code is 1, standard error names --force, and the task repository has no new commit
+
+#### Scenario: Force rewrites the base only  {#s-1d05}
+*Verification*: **executable**
+- **GIVEN** a set up workspace where workflow/base/workflow.md was edited and workflow/mine.md was added in the task root
+- **WHEN** flume init --force is run
+- **THEN** workflow/base/workflow.md is the shipped text again in a new commit, workflow/mine.md is unchanged, and config.toml still holds root = "tasks"
 
 ### Requirement: A second serve is refused  {#r-6579}
 When flume serve is run in a workspace folder whose .flume/daemon.json names a running daemon, it SHALL print a message naming the running daemon's address to standard error and exit with code 1.
