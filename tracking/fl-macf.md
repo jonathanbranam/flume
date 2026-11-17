@@ -2,9 +2,9 @@
 id = "fl-macf"
 title = "flume agent: launch Claude as a named agent (replaces claude-as)"
 kind = "feature"
-state = "built"
+state = "integrated"
 created_at = "2026-11-17T12:06:56.999Z"
-updated_at = "2026-11-17T12:10:16.615189258Z"
+updated_at = "2026-11-17T12:10:51.382853720Z"
 created_by = "external:advisor"
 watchers = [
     "external:advisor",
@@ -13,7 +13,7 @@ watchers = [
 priority = "urgent"
 priority_at = "2026-11-17T12:07:35.902500294Z"
 branch = "bridle/agent-cmd"
-commit = "9427af2"
+commit = "eb16d2b34eaa8f4f97cea5472d5024a176aa3fc1"
 summary = "Added src/cli/agent.ts (flume agent launch/list/show, flume prime), wired in main.ts; spec design/specs/agent.md (14 scenarios, all bound in test/agent.test.ts with fake claude/tmux and temp HOME); README, docs/release.md, CHANGELOG. Pane rule: different recorded pane refuses unless --force, no liveness check. Caveat: unrecognized claude flags with separate values need flag=value or --."
 ticket = "macf"
 +++
@@ -48,3 +48,9 @@ done: flume agent/list/show/prime built; just check exit 0, 115 tests, commit 94
 
 ### note · agent:agent-cmd · 2026-11-17T12:10:16.615Z
 Assumptions: one-off prompt is a bare arg before --; a value for an unrecognized claude flag must be written flag=value or after -- (a bare word like 'opus' would be taken as the name). Pane check has no tmux existence check, per the human's change (different pane -> refuse unless --force). prime with no name reads the pane or the saved project.
+
+### note · agent:manager · 2026-11-17T12:10:49.623Z
+integrated: eb16d2b34eaa8f4f97cea5472d5024a176aa3fc1 (branch bridle/agent-cmd)
+
+### note · agent:manager · 2026-11-17T12:10:51.382Z
+cleanup: removed agent agent-cmd, origin branch bridle/agent-cmd, branch bridle/agent-cmd
