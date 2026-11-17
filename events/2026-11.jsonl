@@ -164,3 +164,4 @@
 {"actor":"external:advisor","at":"2026-11-17T23:38:10.452796669Z","from":"pending","task":"fl-xxym","to":"open"}
 {"actor":"external:orchestrator","at":"2026-11-17T23:44:15.388425203Z","from":"open","task":"fl-xxym","to":"planned"}
 {"actor":"external:orchestrator","at":"2026-11-17T23:44:15.398549020Z","queue":"reprioritized"}
+{"actor":"agent:no-serve","at":"2026-11-17T23:45:38.064288866Z","from":"claimed","task":"fl-xxym","to":"built"}
