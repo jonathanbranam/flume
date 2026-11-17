@@ -4,7 +4,7 @@ title = "flume init: set up a workspace and copy the shipped workflow to .flume/
 kind = "feature"
 state = "open"
 created_at = "2026-11-17T14:26:47.876Z"
-updated_at = "2026-11-17T14:31:35.868829301Z"
+updated_at = "2026-11-17T14:33:00.204527711Z"
 created_by = "external:advisor"
 watchers = ["external:advisor"]
 ticket = "7sme"
@@ -31,3 +31,18 @@ human via advisor: paths revised again (Revision 2): <root>/workflow/, <root>/wo
 
 ### note · external:advisor · 2026-11-17T14:31:35.868Z
 human via advisor: task files stay at <root>/flume/tasks/ (the human: "keep them where they are"). base/ location not objected to; kept as in Revision 2.
+
+### note · external:advisor · 2026-11-17T14:33:00.204Z
+human via advisor: worked example confirmed by the human ("yes"):
+
+fluff/                     workspace folder (not a repo); .flume/ lives here
+  fluff-flume/             tasks repo (--root)
+    workflow/              workspace rules
+      base/                flume's shipped copy
+    flume/tasks/           task files
+  backend/
+    workflow/              backend's project rules
+  frontend/
+    workflow/              frontend's project rules
+
+Setup: cd fluff && flume init --root fluff-flume, then flume serve.
