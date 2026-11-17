@@ -53,7 +53,7 @@ stopping consuming args."; "remove the custom --prompt, I stopped using it after
 2. `--project <p>` saves the project on the entry; without it, the saved project is used.
 3. Pane check (as `claude-as`): if the entry is associated with a different pane than the current
    one, refuse with a message naming that pane, unless `--force`, which claims the entry. No
-   check of whether the other pane exists or is live (the human: "\"stale\" panes is not a good
+   check of whether the other pane exists or is live (the human: ""stale" panes is not a good
    check at all, just remove that"). Record the current pane.
 4. Set the pane option `@flume_agent=<name>` on the current pane.
 5. Environment for claude: `AGENT_NAME=<name>`, and `AGENT_PROJECT=<project>` when set.
