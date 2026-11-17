@@ -44,4 +44,4 @@ As built by fl-xv3z (5e072f1), flume passes unknown options before `--` to claud
 ## Assumptions (assume-and-record)
 
 - The prompt may still come after `--` when none was given before it (as built); two prompts in total stay an error. Alternative: prompt only before `--`. Change if the human wants it stricter.
-- The -n/--name-before-`--` conflict check from fl-xv3z becomes this general error (`-n is not a flume option ...`).
+- The -n/--name-before-`--` conflict check from fl-xv3z becomes this general error (`flume: unknown option -n`).
