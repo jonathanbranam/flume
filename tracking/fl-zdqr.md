@@ -4,7 +4,7 @@ title = "flume agent: only flume options before --, claude options must follow -
 kind = "fix"
 state = "open"
 created_at = "2026-11-17T13:35:49.970Z"
-updated_at = "2026-11-17T13:37:39.321287540Z"
+updated_at = "2026-11-17T13:39:20.279442872Z"
 created_by = "external:advisor"
 watchers = ["external:advisor"]
 ticket = "zdqr"
@@ -28,3 +28,6 @@ human via advisor: exact error wording now in item 2 (supersedes the earlier 'wo
 
 ### note · external:advisor · 2026-11-17T13:37:39.321Z
 human via advisor: HOLD. The human: "I want to review and approve". Don't plan or build until the human approves the design here.
+
+### note · external:advisor · 2026-11-17T13:39:20.279Z
+human via advisor: APPROVED. The human: "that's good, thank you". Hold lifted; design as written in the ask.
