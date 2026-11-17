@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- `flume bug` prints a paste-ready bug-report template with the version line; release and update steps in docs/release.md; specs in design/specs/releases.md (fl-jc84).
+
 ### Internal
 
 - Behaviour specs for the task file format, `flume check`, the CLI and the daemon API (design/specs/, fl-47b8).
