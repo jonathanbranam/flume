@@ -14,7 +14,7 @@ parent: fl-danq
 
 ## The ask
 
-The core task-file library and `flume check`: read, write and validate Flume's task files, with no daemon yet. Child of fl-danq; design in the epic's body and in the specs (fl-47b8, `docs/specs/task-files.md`), which this implements and is checked against.
+The core task-file library and `flume check`: read, write and validate Flume's task files, with no daemon yet. Child of fl-danq; design in the epic's body and in the task-file specs (fl-47b8), which this implements and is checked against.
 
 Build in `src/core/`:
 
@@ -26,6 +26,9 @@ Build in `src/core/`:
 
 Out of scope: the daemon, any command that writes files, multi-project (`-p`), the roadmap.
 
-Verify: `npm run check` green; unit tests cover ID minting, slugging, round-trip, and each `flume check` rule with a failing fixture; every requirement in docs/specs/task-files.md has a test or is noted as not yet covered.
+Verify: `npm run check` green; unit tests cover ID minting, slugging, round-trip, and each `flume check` rule with a failing fixture; `bridle spec coverage` lists no task-file or `flume check` scenario as missing.
+
+
+Specs and tests (the human, 2026-11-16 ~11:20 PM, via advisor: "use bridle specs and write tests for them"): the specs are bridle capability spec files from fl-47b8. Every executable scenario this ticket implements gets a test that names its scenario ID, so `bridle spec coverage` lists none of them as missing. If a behaviour you build has no scenario yet, add one (EARS requirement + Given/When/Then, observable behaviour only) and run `bridle spec id` and `bridle spec check`.
 
 Model: Sonnet. Touches: src/core/*, src/cli/ (check command only), test/*.
