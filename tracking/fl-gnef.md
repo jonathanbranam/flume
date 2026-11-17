@@ -2,11 +2,14 @@
 id = "fl-gnef"
 title = "Daemon: refuse requests with a foreign Origin or Host"
 kind = "fix"
-state = "planned"
+state = "claimed"
 created_at = "2026-11-17T04:52:34.835Z"
-updated_at = "2026-11-17T05:03:20.664733622Z"
+updated_at = "2026-11-17T05:04:07.179630649Z"
 created_by = "external:orchestrator"
-watchers = ["external:orchestrator"]
+watchers = [
+    "external:orchestrator",
+    "agent:origin-guard",
+]
 ticket = "gnef"
 +++
 
