@@ -162,3 +162,5 @@
 {"actor":"human","at":"2026-11-17T23:27:25.101Z","from":"","task":"fl-3pfa","to":"pending"}
 {"actor":"human","at":"2026-11-17T23:38:05.346Z","from":"","task":"fl-xxym","to":"pending"}
 {"actor":"external:advisor","at":"2026-11-17T23:38:10.452796669Z","from":"pending","task":"fl-xxym","to":"open"}
+{"actor":"external:orchestrator","at":"2026-11-17T23:44:15.388425203Z","from":"open","task":"fl-xxym","to":"planned"}
+{"actor":"external:orchestrator","at":"2026-11-17T23:44:15.398549020Z","queue":"reprioritized"}
