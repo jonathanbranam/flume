@@ -85,6 +85,20 @@ describe("flume agent specs", () => {
     ]);
   });
 
+  it("s-d1c1 flag value after the name", () => {
+    flume(["agent", "alpha", "--model", "opus"]);
+    const a = args(claudeRuns()[0] as string[]);
+    expect(claudeRuns()[0]).toContain("AGENT_NAME=alpha");
+    expect(a.slice(0, 2)).toEqual(["--model", "opus"]);
+    expect(a[a.length - 1]).not.toContain("opus");
+  });
+
+  it("s-d1c2 flag value before the name", () => {
+    flume(["agent", "--model", "opus", "alpha"]);
+    expect(claudeRuns()[0]).toContain("AGENT_NAME=alpha");
+    expect(args(claudeRuns()[0] as string[]).slice(0, 2)).toEqual(["--model", "opus"]);
+  });
+
   it("s-a3c1 project saved and reused", () => {
     flume(["agent", "alpha", "--project", "web"]);
     flume(["agent", "alpha"]);

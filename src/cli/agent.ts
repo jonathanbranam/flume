@@ -63,6 +63,24 @@ function livePanes(): Map<string, string> {
   return panes;
 }
 
+/** claude flags that take a separate value; the value passes through with the flag. */
+const VALUE_FLAGS = new Set([
+  "--model",
+  "--permission-mode",
+  "--resume",
+  "-r",
+  "--add-dir",
+  "--settings",
+  "--allowedTools",
+  "--disallowedTools",
+  "--mcp-config",
+  "--fallback-model",
+  "--session-id",
+  "--agents",
+  "--append-system-prompt",
+  "--system-prompt",
+]);
+
 function parse(args: string[]): Parsed | string {
   const p: Parsed = { force: false, system: false, passthrough: [] };
   for (let i = 0; i < args.length; i++) {
@@ -77,8 +95,14 @@ function parse(args: string[]): Parsed | string {
       const v = args[++i];
       if (v === undefined) return "--project needs a value";
       p.project = v;
-    } else if (a.startsWith("-")) p.passthrough.push(a);
-    else if (NAME_RE.test(a) && p.name === undefined) p.name = a;
+    } else if (a.startsWith("-")) {
+      p.passthrough.push(a);
+      const v = args[i + 1];
+      if (VALUE_FLAGS.has(a) && v !== undefined) {
+        p.passthrough.push(v);
+        i++;
+      }
+    } else if (NAME_RE.test(a) && p.name === undefined) p.name = a;
     else if (p.prompt === undefined) p.prompt = a;
     else p.passthrough.push(a);
   }

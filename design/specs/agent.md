@@ -41,6 +41,27 @@ flume SHALL consume the options --project <p>, --force and --system, one agent n
 - **THEN** claude receives --model=opus, --force and -p in that order
 - **AND** no pane check is bypassed by that --force
 
+### Requirement: Claude flag values  {#r-d1c0}
+
+When an argument that flume passes to claude is one of the claude options --model, --permission-mode, --resume, -r, --add-dir, --settings, --allowedTools, --disallowedTools, --mcp-config, --fallback-model, --session-id, --agents, --append-system-prompt or --system-prompt, flume SHALL also pass the next argument to claude as that option's value, and SHALL NOT take it as the agent name or the one-off prompt.
+
+#### Scenario: Value after the name  {#s-d1c1}
+
+*Verification*: **executable**
+
+- **GIVEN** a home folder and claude on the path
+- **WHEN** the user runs flume agent with the arguments alpha --model opus
+- **THEN** AGENT_NAME is alpha and claude receives --model followed by opus
+- **AND** the last argument of claude does not contain the word opus
+
+#### Scenario: Value before the name  {#s-d1c2}
+
+*Verification*: **executable**
+
+- **GIVEN** a home folder and claude on the path
+- **WHEN** the user runs flume agent with the arguments --model opus alpha
+- **THEN** AGENT_NAME is alpha and claude receives --model followed by opus
+
 ### Requirement: Registry entry  {#r-a3c0}
 
 flume SHALL store one JSON file per agent name at .flume/agents/<name>.json in the home folder, holding name, project (empty when none), pane, created and last_launch, and when "--project" is not given SHALL use the project saved on the entry.
