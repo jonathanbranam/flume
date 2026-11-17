@@ -45,3 +45,19 @@ On using Claude's own option rules: "We know exactly how Claude behaves ... I do
 ## Decided
 
 The human, 2026-11-17, on the summary: "Yeah, we do need to parse some of these things that come after the `--`. I think just to avoid errors, but the Flume agent should pass the agent's name as the `--name` parameter. That's really key and really important here. Otherwise, the Claude doesn't know and can't use that name as an actual agent name for sending messages."
+
+The human, 2026-11-17, on conflicts: "Yeah, let's have Flume parse what comes after the `--`, only to look for conflicts. ... I just want a Flume agent to error out quickly if there's ambiguous input into Claude. If we pass `--name`, and then the caller writes `flume agent --name name` and then `-- --name name` again, that should just error out immediately because it's unclear."
+
+## Conflicts (flume exits 2 at once, naming the conflict; claude is not started)
+
+Checked 2026-11-17 by advisor (claude -p, haiku): Claude takes a repeated single-value option silently, last one wins. `--append-system-prompt "...APPLE" --append-system-prompt "...BANANA"` left only BANANA in the system prompt; `--name aaa --name bbb` ran without error. So every repeat below loses input without a word from Claude.
+
+Arguments for claude are checked wherever they appear (before or after `--`):
+
+1. **Claude's -n / --name after `--`.** Flume always passes `--name <agent>`.
+2. **--append-system-prompt or --append-system-prompt-file.** Flume always passes the prime there, and a repeat drops one of them.
+3. **Two prompts:** more than one bare argument in total (before and after `--`). A value taken by a Claude flag is not a bare argument.
+4. **Any other single-value Claude option given twice** (e.g. --model twice). Flags that take several values (--add-dir, --allowedTools, ...) may repeat; they add up.
+5. **A Claude flag with a required value and none given** (it is last, or the next argument is another flag).
+
+Not conflicts: --system-prompt (it replaces Claude's default prompt; the appended prime still applies), flags flume does not know (claude reports its own errors).
