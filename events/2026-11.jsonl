@@ -35,3 +35,5 @@
 {"actor":"external:orchestrator","at":"2026-11-17T04:24:19.604226427Z","from":"open","task":"fl-s52x","to":"planned"}
 {"actor":"external:orchestrator","at":"2026-11-17T04:24:19.617420171Z","from":"open","task":"fl-jc84","to":"planned"}
 {"actor":"external:orchestrator","at":"2026-11-17T04:24:19.631309421Z","from":"open","task":"fl-8g3q","to":"planned"}
+{"actor":"agent:scaffold","at":"2026-11-17T04:32:59.741886354Z","from":"claimed","task":"fl-4r5q","to":"built"}
+{"actor":"agent:manager","at":"2026-11-17T04:33:12.157638218Z","from":"built","task":"fl-4r5q","to":"integrated"}
