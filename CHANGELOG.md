@@ -9,6 +9,7 @@
 
 ### Added
 
+- README `## Install`: prerequisites, clone (optional tag), `npm ci --omit=dev`, a symlink onto PATH, starting and checking the daemon (`flume serve`, `status`, `stop`), and update steps; verified in a fresh clone (fl-dtyj).
 - `flume agent [<name>]` launches Claude Code as a named agent (registry in ~/.flume/agents, one pane per agent, `--project`, `--force`, `--system`, templates in ~/.flume/templates), plus `flume agent list|show` and `flume prime`; specs in design/specs/agent.md (fl-macf).
 - `flume roadmap show|check` on `flume/roadmap.md` (Markdown headings plus lists of task wiki links; a Done section holds finished work), `GET /api/roadmap`, and `flume check` runs the roadmap check too; specs in design/specs/roadmap.md (fl-s52x).
 - `flume task new|show|list|update|note|close|reopen`: the task CLI, a thin client of the daemon; human output by default, `--json` for agents, bare IDs, `--help` per command, and a clear error naming `flume serve` when no daemon answers. The API task object gains `file` (the stored text) for `show` (fl-yt5q).

@@ -2,9 +2,57 @@
 
 A workflow tool for agents
 
+## Install
+
+You need Node 22.18 or later, and git. At work, run these outside the sandbox; `npm ci` fetches
+through the Artifactory npm mirror.
+
+1. Clone the public repo and, optionally, check out a release tag (`git tag` lists them; stay on
+   `main` if you prefer):
+
+   ```sh
+   git clone https://github.com/jonathanbranam/flume.git
+   cd flume
+   git checkout v<version>   # optional
+   ```
+
+2. Install the runtime dependency:
+
+   ```sh
+   npm ci --omit=dev
+   ```
+
+3. Put `flume` on PATH. From the checkout, link the program into a folder on your PATH (here
+   `~/bin`, which must exist and be on PATH). The link points into the checkout, so updates need no
+   relinking. An alias also works: `alias flume='node /path/to/flume/bin/flume.js'`.
+
+   ```sh
+   ln -s "$(pwd)/bin/flume.js" ~/bin/flume
+   ```
+
+   Check it: `flume version` prints `<version> (<commit>)`.
+
+4. Start the daemon from the project checkout you want to track, and check it is up:
+
+   ```sh
+   flume serve     # runs in the foreground and prints its address; leave it running
+   flume status    # in another terminal: "running at <address>" and the root; exit 1 if not running
+   flume stop      # stops the daemon
+   ```
+
+5. Update: from the checkout, pull `main` (or fetch tags and check out the new `v<version>`), then
+   install the dependency again. Restart the daemon (`flume stop`, then `flume serve`) to run the
+   new code.
+
+   ```sh
+   git pull        # or: git fetch --tags && git checkout v<version>
+   npm ci --omit=dev
+   ```
+
+Releases and how they are cut are in `docs/release.md`.
+
 ## Use
 
-Clone, `npm ci --omit=dev`, and put `bin/flume.js` on PATH as `flume` (symlink or alias). Then
 `flume agent <name> [--project <p>]` launches Claude Code as a named agent (needs `claude` on PATH;
 `tmux` optional), `flume agent list` lists agents, `flume prime <name>` prints the prime text.
 See `docs/release.md` and `design/specs/agent.md`.
