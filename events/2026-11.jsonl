@@ -144,3 +144,4 @@
 {"actor":"human","at":"2026-11-17T14:15:41.130Z","from":"","task":"fl-k9pk","to":"pending"}
 {"actor":"external:orchestrator","at":"2026-11-17T14:15:46.378583424Z","from":"pending","task":"fl-k9pk","to":"open"}
 {"actor":"agent:version-flag","at":"2026-11-17T14:16:46.122144812Z","from":"claimed","task":"fl-a4nc","to":"built"}
+{"actor":"agent:manager","at":"2026-11-17T14:17:15.468664703Z","from":"built","task":"fl-a4nc","to":"integrated"}
