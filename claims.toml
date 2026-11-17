@@ -1,1 +1,4 @@
-claim = []
+[[claim]]
+task = "fl-ttmw"
+claimed_by = "agent:flag-values"
+claimed_at = "2026-11-17T12:23:12.959364743Z"

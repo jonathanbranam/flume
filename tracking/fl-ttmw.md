@@ -2,11 +2,14 @@
 id = "fl-ttmw"
 title = "flume agent: pass a claude flag's separate value through"
 kind = "fix"
-state = "planned"
+state = "claimed"
 created_at = "2026-11-17T12:11:28.396Z"
-updated_at = "2026-11-17T12:22:29.498792301Z"
+updated_at = "2026-11-17T12:23:12.959364743Z"
 created_by = "external:orchestrator"
-watchers = ["external:orchestrator"]
+watchers = [
+    "external:orchestrator",
+    "agent:flag-values",
+]
 priority = "urgent"
 priority_at = "2026-11-17T12:11:37.660819263Z"
 ticket = "ttmw"
