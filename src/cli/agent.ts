@@ -4,16 +4,16 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 
 const USAGE = `Usage:
-  flume agent [--name <name>] [--project <p>] [--force] [<claude-option>...] [--] [<prompt>]
+  flume agent [--name <name>] [--project <p>] [--force] [<prompt>] [-- <claude-arg>...]
   flume agent list
   flume agent show <name>
   flume prime [--name <name>] [--project <p>]
 
 Launch Claude Code as a named agent. The name comes only from --name, else from the tmux
 pane option @flume_agent. One bare argument is the prompt sent to the agent (quote it); with
-none, flume sends a short default. Flume consumes --name, --project and --force; every other
-argument goes to claude, and so does everything after "--", which flume checks only for
-conflicts (a second prompt, -n/--name, --append-system-prompt[-file], a repeated single-value
+none, flume sends a short default. Before "--" flume accepts only --name, --project, --force, -h/--help and the prompt;
+any other option is an error (exit 2). Claude's options go after "--", which flume passes
+to claude and checks only for conflicts (a second prompt, -n/--name, --append-system-prompt[-file], a repeated single-value
 option, an option missing its value) and exits 2 on one. The prime text always goes to claude
 with --append-system-prompt, and flume always passes --name <name>.
 `;
@@ -157,6 +157,10 @@ function parse(args: string[]): Parsed | string {
       continue;
     }
     const eq = a.indexOf("=");
+    if (!afterDash) {
+      const bad = eq > 0 && a.startsWith("--") ? a.slice(0, eq) : a;
+      return `unknown option ${bad}\nClaude options go after --, as in: flume agent "<prompt>" -- ${bad} ...`;
+    }
     const flag = a.startsWith("--") && eq > 0 ? a.slice(0, eq) : a;
     const opt = OPTION.get(flag);
     p.passthrough.push(a);

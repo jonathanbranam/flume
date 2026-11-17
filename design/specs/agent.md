@@ -30,7 +30,7 @@ When the user runs "flume agent --name <name>", flume SHALL record the agent in 
 
 ### Requirement: Argument parsing  {#r-a2c0}
 
-flume SHALL consume the options --name <n>, --name=<n>, --project <p> and --force and one bare argument, the prompt, in any order before "--", SHALL treat a bare argument as the prompt and never as the agent name, and SHALL pass every other argument to claude unchanged and in order, including everything after "--".
+Before "--", flume SHALL accept only the options --name <n>, --name=<n>, --project <p>, --force, -h and --help and one bare argument, the prompt, in any order, and SHALL treat a bare argument as the prompt and never as the agent name; flume SHALL pass every argument after "--" to claude unchanged and in order.
 
 #### Scenario: Options before the prompt  {#s-a2c1}
 
@@ -40,14 +40,32 @@ flume SHALL consume the options --name <n>, --name=<n>, --project <p> and --forc
 - **WHEN** the user runs flume agent with the arguments --project web --name alpha
 - **THEN** AGENT_NAME is alpha and AGENT_PROJECT is web
 
-#### Scenario: Unrecognized arguments and double dash  {#s-a2c2}
+#### Scenario: Claude arguments after the double dash  {#s-a2c2}
 
 *Verification*: **executable**
 
 - **GIVEN** a home folder and claude on the path
-- **WHEN** the user runs flume agent with the arguments --name alpha --model=opus -- --force -p
+- **WHEN** the user runs flume agent with the arguments --name alpha -- --model=opus --force -p
 - **THEN** claude receives --model=opus, --force and -p in that order
 - **AND** no pane check is bypassed by that --force
+
+#### Scenario: Claude option before the double dash  {#s-a2c4}
+
+*Verification*: **executable**
+
+- **GIVEN** a home folder and claude on the path
+- **WHEN** the user runs flume agent with the arguments --name alpha --add-dir ../lib "fix the bug"
+- **THEN** the exit code is 2 and claude does not run
+- **AND** standard error is exactly two lines: "flume: unknown option --add-dir" and "Claude options go after --, as in: flume agent \<prompt\> -- --add-dir ..."
+
+#### Scenario: Name option before the double dash  {#s-a2c5}
+
+*Verification*: **executable**
+
+- **GIVEN** a home folder and claude on the path
+- **WHEN** the user runs flume agent with the arguments --name alpha -n other
+- **THEN** the exit code is 2 and claude does not run
+- **AND** the first line of standard error is "flume: unknown option -n"
 
 #### Scenario: A bare argument is not a name  {#s-a2c3}
 
@@ -228,7 +246,7 @@ When the user runs "flume agent show <name>", flume SHALL print the entry as JSO
 
 ### Requirement: Conflicts  {#r-c1c0}
 
-When the arguments contain a conflict, flume SHALL print the conflict to standard error, exit with code 2 and not start claude. The conflicts are, before or after "--": more than one bare argument; claude's -n or --name option; --append-system-prompt or --append-system-prompt-file; an option that takes one value (and may not repeat) given twice; and an option that needs a value given none because it is last or the next argument starts with a dash.
+When the arguments contain a conflict, flume SHALL print the conflict to standard error, exit with code 2 and not start claude. The conflicts are: more than one bare argument; claude's -n or --name option after "--"; --append-system-prompt or --append-system-prompt-file; an option that takes one value (and may not repeat) given twice; and an option that needs a value given none because it is last or the next argument starts with a dash.
 
 #### Scenario: Two prompts  {#s-c1c1}
 
@@ -251,7 +269,7 @@ When the arguments contain a conflict, flume SHALL print the conflict to standar
 *Verification*: **executable**
 
 - **GIVEN** a home folder and claude on the path
-- **WHEN** the user runs flume agent with the arguments --name alpha --append-system-prompt "extra"
+- **WHEN** the user runs flume agent with the arguments --name alpha -- --append-system-prompt "extra"
 - **THEN** the exit code is 2 and claude does not run
 
 #### Scenario: Repeated single-value option  {#s-c1c4}
@@ -259,7 +277,7 @@ When the arguments contain a conflict, flume SHALL print the conflict to standar
 *Verification*: **executable**
 
 - **GIVEN** a home folder and claude on the path
-- **WHEN** the user runs flume agent with the arguments --name alpha --model opus -- --model haiku
+- **WHEN** the user runs flume agent with the arguments --name alpha -- --model opus --model haiku
 - **THEN** the exit code is 2 and claude does not run
 
 #### Scenario: Several-value option may repeat  {#s-c1c5}
@@ -267,7 +285,7 @@ When the arguments contain a conflict, flume SHALL print the conflict to standar
 *Verification*: **executable**
 
 - **GIVEN** a home folder and claude on the path
-- **WHEN** the user runs flume agent with the arguments --name alpha --add-dir a -- --add-dir b
+- **WHEN** the user runs flume agent with the arguments --name alpha -- --add-dir a --add-dir b
 - **THEN** the exit code is 0 and claude receives --add-dir a and --add-dir b
 
 #### Scenario: Missing value  {#s-c1c6}
@@ -275,7 +293,7 @@ When the arguments contain a conflict, flume SHALL print the conflict to standar
 *Verification*: **executable**
 
 - **GIVEN** a home folder and claude on the path
-- **WHEN** the user runs flume agent with the arguments --name alpha --model
+- **WHEN** the user runs flume agent with the arguments --name alpha -- --model
 - **THEN** the exit code is 2 and claude does not run
 
 ### Requirement: Usage text  {#r-c2c0}

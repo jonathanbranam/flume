@@ -85,7 +85,7 @@ describe("flume agent specs", () => {
   });
 
   it("s-a2c2 unrecognized arguments and double dash", () => {
-    flume(["agent", "--name", "alpha", "--model=opus", "--", "--force", "-p"]);
+    flume(["agent", "--name", "alpha", "--", "--model=opus", "--force", "-p"]);
     const run = args(claudeRuns()[0] as string[]);
     expect(run.slice(run.indexOf("--model=opus"), run.indexOf("--model=opus") + 3)).toEqual([
       "--model=opus",
@@ -95,14 +95,14 @@ describe("flume agent specs", () => {
   });
 
   it("s-d1c1 value before and after the prompt", () => {
-    flume(["agent", "--name", "alpha", "--model", "opus", "do xyz"]);
+    flume(["agent", "--name", "alpha", "do xyz", "--", "--model", "opus"]);
     const a = args(claudeRuns()[0] as string[]);
     expect(a.slice(a.indexOf("--model"), a.indexOf("--model") + 2)).toEqual(["--model", "opus"]);
     expect(a.at(-1)).toBe("do xyz");
   });
 
   it("s-d1c2 several values", () => {
-    flume(["agent", "--name", "alpha", "--add-dir", "a", "b", "--", "do xyz"]);
+    flume(["agent", "--name", "alpha", "do xyz", "--", "--add-dir", "a", "b"]);
     const a = args(claudeRuns()[0] as string[]);
     const i = a.indexOf("--add-dir");
     expect(a.slice(i, i + 3)).toEqual(["--add-dir", "a", "b"]);
@@ -110,7 +110,7 @@ describe("flume agent specs", () => {
   });
 
   it("s-d1c3 optional value", () => {
-    flume(["agent", "--name", "alpha", "--resume", "--model", "opus"]);
+    flume(["agent", "--name", "alpha", "--", "--resume", "--model", "opus"]);
     const a = args(claudeRuns()[0] as string[]);
     const i = a.indexOf("--resume");
     expect(a.slice(i, i + 4)).toEqual(["--resume", "--model", "opus", "--"]);
@@ -129,11 +129,11 @@ describe("flume agent specs", () => {
   });
 
   it("s-a4c2 no name anywhere", () => {
-    const r = flume(["agent", "pick up it's xyz", "--model", "opus"]);
+    const r = flume(["agent", "pick up it's xyz", "--", "--model", "opus"]);
     expect(r.code).toBe(2);
     expect(claudeRuns()).toHaveLength(0);
     expect(r.err).toContain("--name");
-    expect(r.err.split("\n")).toContain("flume agent 'pick up it'\\''s xyz' --model opus");
+    expect(r.err.split("\n")).toContain("flume agent 'pick up it'\\''s xyz' -- --model opus");
   });
 
   it("s-a5c1 refused when tied to another pane", () => {
@@ -164,7 +164,7 @@ describe("flume agent specs", () => {
   });
 
   it("s-a7c1 default first prompt", () => {
-    flume(["agent", "--name", "alpha", "--add-dir", "x"]);
+    flume(["agent", "--name", "alpha", "--", "--add-dir", "x"]);
     const a = args(claudeRuns()[0] as string[]);
     expect(a.at(-1)).not.toBe("");
     expect(a.at(-1)).not.toContain("You are agent alpha");
@@ -192,6 +192,22 @@ describe("flume agent specs", () => {
     expect(existsSync(join(dir, "home", ".flume", "agents", "alpha.json"))).toBe(false);
   });
 
+  it("s-a2c4 claude option before the double dash", () => {
+    const r = flume(["agent", "--name", "alpha", "--add-dir", "../lib", "fix the bug"]);
+    expect(r.code).toBe(2);
+    expect(r.err).toBe(
+      'flume: unknown option --add-dir\nClaude options go after --, as in: flume agent "<prompt>" -- --add-dir ...\n',
+    );
+    expect(claudeRuns()).toHaveLength(0);
+  });
+
+  it("s-a2c5 name option before the double dash", () => {
+    const r = flume(["agent", "--name", "alpha", "-n", "other"]);
+    expect(r.code).toBe(2);
+    expect(r.err).toContain("flume: unknown option -n\n");
+    expect(claudeRuns()).toHaveLength(0);
+  });
+
   const refused = (a: string[]) => {
     const r = flume(["agent", "--name", "alpha", ...a]);
     expect(r.code).toBe(2);
@@ -200,13 +216,13 @@ describe("flume agent specs", () => {
   };
   it("s-c1c1 two prompts", () => refused(["one", "--", "two"]));
   it("s-c1c2 claude name after the double dash", () => refused(["--", "--name", "other"]));
-  it("s-c1c3 appended system prompt", () => refused(["--append-system-prompt", "extra"]));
+  it("s-c1c3 appended system prompt", () => refused(["--", "--append-system-prompt", "extra"]));
   it("s-c1c4 repeated single-value option", () =>
-    refused(["--model", "opus", "--", "--model", "haiku"]));
-  it("s-c1c6 missing value", () => refused(["--model"]));
+    refused(["--", "--model", "opus", "--model", "haiku"]));
+  it("s-c1c6 missing value", () => refused(["--", "--model"]));
 
   it("s-c1c5 several-value option may repeat", () => {
-    const r = flume(["agent", "--name", "alpha", "--add-dir", "a", "--", "--add-dir", "b"]);
+    const r = flume(["agent", "--name", "alpha", "--", "--add-dir", "a", "--add-dir", "b"]);
     expect(r.code).toBe(0);
     const a = args(claudeRuns()[0] as string[]);
     expect(a.join(" ")).toContain("--add-dir a --add-dir b");
@@ -216,7 +232,7 @@ describe("flume agent specs", () => {
     const r = flume(["agent", "--help"]);
     expect(r.code).toBe(0);
     expect(r.out).toContain("[--force]");
-    expect(r.out).toContain("[--]");
+    expect(r.out).toContain("[-- <claude-arg>...]");
   });
 
   it("s-a8c1 template override", () => {
