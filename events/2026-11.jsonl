@@ -70,3 +70,5 @@
 {"actor":"agent:manager","at":"2026-11-17T05:08:30.853477049Z","from":"built","task":"fl-8vw7","to":"integrated"}
 {"actor":"system","at":"2026-11-17T09:09:13.260837153Z","from":"open","task":"fl-danq","to":"pending"}
 {"actor":"external:orchestrator","at":"2026-11-17T09:09:39.886150887Z","from":"pending","task":"fl-danq","to":"integrated"}
+{"actor":"human","at":"2026-11-17T12:06:56.999Z","from":"","task":"fl-macf","to":"pending"}
+{"actor":"external:advisor","at":"2026-11-17T12:07:03.144472767Z","from":"pending","task":"fl-macf","to":"open"}
