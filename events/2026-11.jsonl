@@ -87,3 +87,4 @@
 {"actor":"agent:manager","at":"2026-11-17T12:20:55.887152189Z","from":"built","task":"fl-dtyj","to":"integrated"}
 {"actor":"external:orchestrator","at":"2026-11-17T12:22:29.498792301Z","from":"open","task":"fl-ttmw","to":"planned"}
 {"actor":"external:orchestrator","at":"2026-11-17T12:22:29.506995606Z","queue":"reprioritized"}
+{"actor":"agent:flag-values","at":"2026-11-17T12:23:52.204095600Z","from":"claimed","task":"fl-ttmw","to":"built"}
