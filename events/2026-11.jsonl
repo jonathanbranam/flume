@@ -4,3 +4,5 @@
 {"actor":"external:advisor","at":"2026-11-17T04:05:25.210892156Z","from":"pending","task":"fl-28pa","to":"open"}
 {"actor":"external:orchestrator","at":"2026-11-17T04:05:54.033836372Z","queue":"reprioritized"}
 {"actor":"human","at":"2026-11-17T04:08:02.824Z","from":"","task":"fl-jc84","to":"pending"}
+{"actor":"external:advisor","at":"2026-11-17T04:08:42.306552280Z","from":"pending","task":"fl-47b8","to":"open"}
+{"actor":"external:advisor","at":"2026-11-17T04:08:42.349478809Z","from":"pending","task":"fl-jc84","to":"open"}
