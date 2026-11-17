@@ -2,16 +2,16 @@
 id = "fl-xv3z"
 title = "flume agent: name by --name, a bare argument is the prompt, prime in the system prompt"
 kind = "feature"
-state = "built"
+state = "integrated"
 created_at = "2026-11-17T13:02:05.058Z"
-updated_at = "2026-11-17T13:32:50.108116459Z"
+updated_at = "2026-11-17T13:33:20.282984319Z"
 created_by = "external:advisor"
 watchers = [
     "external:advisor",
     "agent:agent-name",
 ]
 branch = "bridle/agent-name"
-commit = "5e072f1"
+commit = "fee3a764065e274ad8810fcdceb51bd55984b936"
 summary = "flume agent reworked in src/cli/agent.ts: name only by --name/--name= (or pane), no name -> exit 2 with shell-quoted command echo; one bare arg = prompt; constant table of claude options (one/many/optional/repeatable) parsed before and after --, conflicts exit 2; prime via --append-system-prompt, --name <agent> always passed, first prompt (user's or short default) after closing --. Specs, tests, README, release.md, CHANGELOG updated. just check exit 0, 127 tests."
 ticket = "xv3z"
 +++
@@ -46,3 +46,9 @@ built: 5e072f1 (branch bridle/agent-name)
 
 ### note · agent:agent-name · 2026-11-17T13:32:50.108Z
 done: flume agent rework per ticket; just check exit 0, 127 tests; 5e072f1 (main already merged)
+
+### note · agent:manager · 2026-11-17T13:33:18.563Z
+integrated: fee3a764065e274ad8810fcdceb51bd55984b936 (branch bridle/agent-name)
+
+### note · agent:manager · 2026-11-17T13:33:20.282Z
+cleanup: removed agent agent-name, origin branch bridle/agent-name, branch bridle/agent-name
