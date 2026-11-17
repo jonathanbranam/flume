@@ -40,13 +40,19 @@ When a command needs the daemon and none answers, flume SHALL print to standard 
 - **THEN** standard error is exactly the two lines "flume: the flume daemon is not running for this project." and "Ask the human to start it: flume serve (in its own pane).", and the exit code is 1
 
 ### Requirement: Version prints the version  {#r-5465}
-When flume version is run, it SHALL print the Flume version on one line to standard output and exit with code 0, without needing the daemon.
+When flume --version is run, it SHALL print the Flume version and git commit on one line to standard output and exit with code 0, without needing the daemon.
 
 #### Scenario: Version offline  {#s-129b}
 *Verification*: **executable**
 - **GIVEN** no daemon running
-- **WHEN** flume version is run
+- **WHEN** flume --version is run
 - **THEN** one non-empty line is printed and the exit code is 0
+
+#### Scenario: version as a command is unknown  {#s-7662}
+*Verification*: **executable**
+- **GIVEN** no daemon running
+- **WHEN** flume version is run
+- **THEN** standard error holds a usage message and the exit code is 2
 
 ### Requirement: Serve starts the daemon  {#r-495d}
 When flume serve is run in a folder (the workspace), it SHALL start the daemon on the local machine only, write its address to .flume/daemon.json in that folder (creating .flume with a .gitignore holding * when missing), print one line stating the address, and keep running until stopped, removing daemon.json when it stops; with --port N it SHALL listen on port N, and otherwise on a free port. The workspace folder need not be a git repository, and flume SHALL NOT run git init or create a repository.

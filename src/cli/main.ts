@@ -11,7 +11,6 @@ const HELP = `flume - a workflow tool for agents
 Usage: flume <command>
 
 Commands:
-  version    print the version and git commit
   serve      run the daemon in the foreground [--port N] [--root PATH]
   status     show whether the daemon runs, its address and root
   stop       ask the daemon to exit
@@ -21,6 +20,9 @@ Commands:
   agent      launch Claude as a named agent; list, show (flume agent --help)
   prime      print the prime text flume agent would send
   bug        print a bug-report template to paste into an email
+
+Options:
+  --version  print the version and git commit
   --help     show this help
 `;
 
@@ -31,7 +33,7 @@ export async function main(args: string[]): Promise<number> {
     process.stdout.write(HELP);
     return 0;
   }
-  if (command === "version") {
+  if (command === "--version") {
     process.stdout.write(`${version()}\n`);
     return 0;
   }

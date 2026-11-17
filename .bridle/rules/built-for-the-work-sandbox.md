@@ -16,7 +16,7 @@ Flume runs on the human's work computers, under a Claude Code sandbox. Design fo
 - **Updates arrive by `git clone` / `git pull` from the public GitHub repo only.** Nothing is ever
   pushed from work. Each update must work from a pull with as little build as possible.
 - **Bugs come back by email**: the human files them at work and sends them through bridle. Every
-  report must be traceable to a version (`flume version`).
+  report must be traceable to a version (`flume --version`).
 - **Rebase is likely blocked at work**: don't rely on destructive git operations in Flume's own
   workflow.
 

@@ -30,7 +30,7 @@ through the Artifactory npm mirror.
    ln -s "$(pwd)/bin/flume.js" ~/bin/flume
    ```
 
-   Check it: `flume version` prints `<version> (<commit>)`.
+   Check it: `flume --version` prints `<version> (<commit>)`.
 
 4. Start the daemon in your workspace folder (a git repo with its tasks, or a folder of repos with `flume serve --root <task-repo>`, saved in `.flume/config.toml`), and check it is up. Flume commands find it from any folder below:
 

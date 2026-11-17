@@ -1,4 +1,4 @@
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import { cpSync, mkdtempSync, rmSync, symlinkSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -12,7 +12,7 @@ describe("flume cli", () => {
     expect(run("--help")).toContain("Usage: flume");
   });
   it("prints the package version and a git commit", () => {
-    expect(run("version")).toMatch(/^0\.0\.1 \(([0-9a-f]{7,40}|unknown)\)\n$/);
+    expect(run("--version")).toMatch(/^0\.0\.1 \(([0-9a-f]{7,40}|unknown)\)\n$/);
   });
 });
 
@@ -20,7 +20,7 @@ describe("flume releases specs", () => {
   const versionLine = /^0\.0\.1 \(([0-9a-f]{7,40}|unknown)\)$/;
 
   it("s-9b9e version in a git checkout", () => {
-    expect(run("version").trimEnd()).toMatch(versionLine);
+    expect(run("--version").trimEnd()).toMatch(versionLine);
   });
 
   it("s-90c6 version outside a git checkout", () => {
@@ -30,7 +30,7 @@ describe("flume releases specs", () => {
       for (const p of ["bin", "src", "package.json"])
         cpSync(join(root, p), join(dir, p), { recursive: true });
       symlinkSync(join(root, "node_modules"), join(dir, "node_modules"));
-      const out = execFileSync("node", [join(dir, "bin/flume.js"), "version"], {
+      const out = execFileSync("node", [join(dir, "bin/flume.js"), "--version"], {
         encoding: "utf8",
       });
       expect(out).toBe("0.0.1 (unknown)\n");
@@ -44,7 +44,7 @@ describe("flume releases specs", () => {
     try {
       const env = { ...process.env };
       delete env.FLUME_URL;
-      const out = execFileSync("node", [bin, "version"], { encoding: "utf8", cwd: dir, env });
+      const out = execFileSync("node", [bin, "--version"], { encoding: "utf8", cwd: dir, env });
       const lines = out.split("\n");
       expect(lines).toHaveLength(2);
       expect(lines[0]).not.toBe("");
@@ -55,8 +55,21 @@ describe("flume releases specs", () => {
   });
 
   it("s-e49f bug template has the version line", () => {
-    const line = run("version").trimEnd();
+    const line = run("--version").trimEnd();
     expect(run("bug")).toContain(`Version: ${line}\n`);
+  });
+
+  it("s-7662 version as a command is unknown", () => {
+    const dir = mkdtempSync(join(tmpdir(), "flume-unknown-"));
+    try {
+      const env = { ...process.env };
+      delete env.FLUME_URL;
+      const r = spawnSync("node", [bin, "version"], { encoding: "utf8", cwd: dir, env });
+      expect(r.status).toBe(2);
+      expect(r.stderr).toMatch(/unknown command 'version'/);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 
   it("s-31d3 bug template has sections to fill in", () => {
