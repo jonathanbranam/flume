@@ -2,11 +2,14 @@
 id = "fl-w89j"
 title = "Task-file core library and flume check"
 kind = "feature"
-state = "planned"
+state = "claimed"
 created_at = "2026-11-17T04:10:37.444Z"
-updated_at = "2026-11-17T04:24:19.574843500Z"
+updated_at = "2026-11-17T04:38:17.897093573Z"
 created_by = "external:orchestrator"
-watchers = ["external:orchestrator"]
+watchers = [
+    "external:orchestrator",
+    "agent:core",
+]
 ticket = "w89j"
 +++
 

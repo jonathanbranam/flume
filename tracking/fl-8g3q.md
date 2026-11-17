@@ -2,11 +2,14 @@
 id = "fl-8g3q"
 title = "UI specs for Flume"
 kind = "docs"
-state = "planned"
+state = "claimed"
 created_at = "2026-11-17T04:12:21.677Z"
-updated_at = "2026-11-17T04:24:19.631309421Z"
+updated_at = "2026-11-17T04:38:22.505266440Z"
 created_by = "external:orchestrator"
-watchers = ["external:orchestrator"]
+watchers = [
+    "external:orchestrator",
+    "agent:ui-specs",
+]
 ticket = "8g3q"
 +++
 
