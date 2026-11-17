@@ -104,5 +104,6 @@ export function taskObject(e: TaskEntry) {
     related: list("related"),
     path: e.path,
     body: file.body,
+    file: e.text,
   };
 }

@@ -128,7 +128,7 @@ export function startDaemon(opts: {
         .filter((e) => state === "all" || e.state === state)
         .flatMap((e) => {
           try {
-            const { body: _body, ...t } = taskObject(e);
+            const { body: _body, file: _file, ...t } = taskObject(e);
             return [t];
           } catch {
             return [];

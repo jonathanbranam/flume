@@ -2,7 +2,7 @@
 
 The daemon is the only writer of task files. It serves JSON over HTTP on the local machine. Ticket: fl-47b8.
 
-Assumptions (recorded on fl-47b8): paths start with /api; requests with a body and all responses are JSON (UTF-8); an error response has the status code and a body {"error": "<message>"}; there is no login because the daemon listens on 127.0.0.1 only (a work-sandbox rule: localhost works); one daemon serves one task root, the folder holding flume/tasks (the project's own checkout or a separate task repository); the daemon commits each change there (advisor note on fl-47b8) and never pushes. A task object has the fields id, title, kind, state (open or resolved), created, resolved (null when open), parent (null when none), blocked_by, related, path (relative to the project root) and body.
+Assumptions (recorded on fl-47b8): paths start with /api; requests with a body and all responses are JSON (UTF-8); an error response has the status code and a body {"error": "<message>"}; there is no login because the daemon listens on 127.0.0.1 only (a work-sandbox rule: localhost works); one daemon serves one task root, the folder holding flume/tasks (the project's own checkout or a separate task repository); the daemon commits each change there (advisor note on fl-47b8) and never pushes. A task object has the fields id, title, kind, state (open or resolved), created, resolved (null when open), parent (null when none), blocked_by, related, path (relative to the project root), body and file (the whole task file as stored, front matter and body). A list omits body and file.
 
 ## Requirements
 

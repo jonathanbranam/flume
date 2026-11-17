@@ -79,7 +79,7 @@ When flume stop is run, it SHALL ask the daemon to exit, wait until it has, and 
 - **THEN** stop exits with code 0 and status prints not running with exit code 1
 
 ### Requirement: Task new creates a task  {#r-9812}
-When flume task new is run with a title, flume SHALL create the task and print its ID and the path of its file relative to the project root, separated by one space, on one line; options are -k or --kind (default feature), --parent ID, and --body-file PATH (a dash means standard input).
+When flume task new is run with a title, flume SHALL create the task and print its ID and the path of its file relative to the project root, separated by one space, on one line; options are -k or --kind (default feature), --parent ID, --blocked-by IDS and --related IDS (comma separated lists), and the body as --body TEXT or --body-file PATH (a dash means standard input).
 
 #### Scenario: New with a body from standard input  {#s-f616}
 *Verification*: **executable**
@@ -98,6 +98,27 @@ When flume task new is run with a title, flume SHALL create the task and print i
 - **GIVEN** a daemon running and no task with ID abcd
 - **WHEN** flume task new "Child" --parent abcd is run
 - **THEN** the exit code is 1, standard error says no task abcd, and no file is written
+
+#### Scenario: Links and a body argument  {#s-5a1c}
+*Verification*: **executable**
+- **GIVEN** open tasks k7tm and q3rp
+- **WHEN** flume task new "Follow up" --blocked-by k7tm --related q3rp --body "Details here" is run
+- **THEN** the new task's front matter has blocked_by holding k7tm and related holding q3rp, and its body is Details here
+
+### Requirement: Task commands take --json  {#r-3d7e}
+When any flume task command is given --json, flume SHALL print the daemon's JSON answer (a task object, or a list of task objects for list) to standard output instead of the human-readable form; errors stay on standard error with exit code 1.
+
+#### Scenario: List as JSON  {#s-6b2f}
+*Verification*: **executable**
+- **GIVEN** two open tasks
+- **WHEN** flume task list --json is run
+- **THEN** standard output is a JSON list of two task objects, each with an id, title, kind and state
+
+#### Scenario: Task usage error  {#s-0c9d}
+*Verification*: **executable**
+- **GIVEN** any project
+- **WHEN** flume task new is run with no title, and flume task list --bogus is run
+- **THEN** both print a usage message to standard error and exit with code 2
 
 ### Requirement: Task show prints the task  {#r-c36b}
 When flume task show is run with an ID, flume SHALL print the task file exactly as stored (front matter and body) to standard output and exit with code 0; for an ID that names no task it SHALL print a message to standard error and exit with code 1.
@@ -157,7 +178,7 @@ When flume task update is run with an ID, a field and a value, flume SHALL set t
 - **THEN** the front matter has no parent field
 
 ### Requirement: Task note appends to the body  {#r-52c7}
-When flume task note is run with an ID and text (as an argument after --text, or from standard input with --body-file -), flume SHALL append the text to the end of the body after one blank line and leave everything else unchanged.
+When flume task note is run with an ID and text (as an argument after --text, or from a file with --body-file PATH, where a dash means standard input), flume SHALL append the text to the end of the body after one blank line and leave everything else unchanged.
 
 #### Scenario: Two notes in order  {#s-2660}
 *Verification*: **executable**
