@@ -1,6 +1,6 @@
 ---
 id: fl-7sme
-title: "flume init: set up a workspace and copy the shipped workflow to .flume/workflow"
+title: "flume init: set up a workspace and copy the shipped workflow to <root>/workflow/base"
 kind: feature
 created: 2026-11-17
 created_by: external:advisor
