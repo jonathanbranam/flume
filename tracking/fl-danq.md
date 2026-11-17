@@ -4,11 +4,12 @@ title = "Tasks first: task files, IDs, daemon and CLI"
 kind = "epic"
 state = "integrated"
 created_at = "2026-11-17T04:08:59.639Z"
-updated_at = "2026-11-17T09:09:39.888504502Z"
+updated_at = "2026-11-17T09:09:45.384742125Z"
 created_by = "external:advisor"
 watchers = ["external:advisor"]
 branch = "main"
 commit = "6a94b45"
+summary = "Epic done: task files, IDs, daemon (sole writer), task CLI, roadmap, flume check; children 4r5q w89j brmx yt5q s52x 8g3q fruc gnef 8vw7 all integrated; main 598cf7e green (101 tests). Failing coverage gate deferred to the UI epic."
 ticket = "danq"
 +++
 
