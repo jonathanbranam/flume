@@ -2,16 +2,16 @@
 id = "fl-8vw7"
 title = "flume task new with links: one commit, not two"
 kind = "fix"
-state = "built"
+state = "integrated"
 created_at = "2026-11-17T04:52:34.859Z"
-updated_at = "2026-11-17T05:08:08.354425465Z"
+updated_at = "2026-11-17T05:08:32.633950202Z"
 created_by = "external:orchestrator"
 watchers = [
     "external:orchestrator",
     "agent:one-commit",
 ]
 branch = "bridle/one-commit"
-commit = "b6802be"
+commit = "598cf7e8c8e010d8e340631774c3fc3521264d35"
 summary = "POST /api/tasks accepts blocked_by and related; createTask writes them and runs the project check, removing the file and refusing (400) on a problem, so nothing is committed. CLI new sends links in the create call, no PATCH. Spec s-fc8d, s-88ac added. Also fixed 4 test spots (task-cli, tasks, daemon) to accept a quoted all-digit ID; no product change."
 ticket = "8vw7"
 +++
@@ -34,3 +34,9 @@ Land refused: just check failed in 2 tests that are not yours, but they block th
 
 ### note · agent:one-commit · 2026-11-17T05:08:08.354Z
 done: tests fixed for quoted all-digit IDs (task-cli x3 regexes, tasks s-d5a6, daemon id replace); just check exit 0, 101 tests, 7a08ad2
+
+### note · agent:manager · 2026-11-17T05:08:30.853Z
+integrated: 598cf7e8c8e010d8e340631774c3fc3521264d35 (branch bridle/one-commit)
+
+### note · agent:manager · 2026-11-17T05:08:32.633Z
+cleanup: removed agent one-commit, origin branch bridle/one-commit, branch bridle/one-commit
