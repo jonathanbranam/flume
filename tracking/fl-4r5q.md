@@ -2,11 +2,14 @@
 id = "fl-4r5q"
 title = "Scaffold the TypeScript project and check command"
 kind = "chore"
-state = "planned"
+state = "claimed"
 created_at = "2026-11-17T04:10:37.420Z"
-updated_at = "2026-11-17T04:24:19.565093945Z"
+updated_at = "2026-11-17T04:32:15.208461243Z"
 created_by = "external:orchestrator"
-watchers = ["external:orchestrator"]
+watchers = [
+    "external:orchestrator",
+    "agent:scaffold",
+]
 ticket = "4r5q"
 +++
 
