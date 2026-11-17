@@ -22,7 +22,7 @@ As built by fl-xv3z (5e072f1), flume passes unknown options before `--` to claud
 ## Change
 
 1. Before `--`, flume accepts only: `--name <n>` / `--name=<n>`, `--project <p>`, `--force`, `-h` / `--help`, and one bare argument (the prompt).
-2. Any other argument starting with `-` before `--` is an error, exit 2, claude not started: `flume: <arg> is not a flume option, pass claude options after --` (the arg as typed, without any `=value`).
+2. Any other argument starting with `-` before `--` is an error, exit 2, claude not started: `flume: <arg> is not a flume option, pass claude options after --` (the arg as typed, without any `=value`). The wording is a suggestion: the human, 2026-11-17: "clean up my wording as needed it doesn't have to be verbatim on that error message wording". It must name the option and say to put claude options after --.
 3. After `--`: unchanged from fl-xv3z. Claude's arguments, parsed by Claude's rules only to find the listed conflicts, passed to claude unchanged.
 4. Usage: `flume agent [--name <name>] [--project <p>] [--force] [<prompt>] [-- <claude-arg>...]`.
 5. Spec (design/specs/agent.md) and tests updated in the same change.
