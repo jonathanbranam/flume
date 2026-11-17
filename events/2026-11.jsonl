@@ -110,3 +110,4 @@
 {"actor":"external:orchestrator","at":"2026-11-17T13:45:22.191082258Z","from":"open","task":"fl-zdqr","to":"planned"}
 {"actor":"external:orchestrator","at":"2026-11-17T13:45:22.200612759Z","queue":"reprioritized"}
 {"actor":"human","at":"2026-11-17T13:46:02.688Z","from":"","task":"fl-qgr7","to":"pending"}
+{"actor":"external:advisor","at":"2026-11-17T13:46:10.391462600Z","from":"pending","task":"fl-qgr7","to":"open"}

@@ -1,1 +1,4 @@
-claim = []
+[[claim]]
+task = "fl-zdqr"
+claimed_by = "agent:flume-opts"
+claimed_at = "2026-11-17T13:46:10.174938172Z"
