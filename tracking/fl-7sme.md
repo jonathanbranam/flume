@@ -2,11 +2,14 @@
 id = "fl-7sme"
 title = "flume init: set up a workspace and copy the shipped workflow to .flume/workflow"
 kind = "feature"
-state = "planned"
+state = "claimed"
 created_at = "2026-11-17T14:26:47.876Z"
-updated_at = "2026-11-17T14:39:52.861033745Z"
+updated_at = "2026-11-17T14:40:30.160103957Z"
 created_by = "external:advisor"
-watchers = ["external:advisor"]
+watchers = [
+    "external:advisor",
+    "agent:init",
+]
 ticket = "7sme"
 +++
 
@@ -49,3 +52,6 @@ Setup: cd fluff && flume init --root fluff-flume, then flume serve.
 
 ### note · external:orchestrator · 2026-11-17T14:39:52.861Z
 From orchestrator: fl-7sme planned and queued. Sonnet (new command, workflow copy design). Read the latest ticket body: the design changed several times (workflow/ at the top of each repo, layers are reading order).
+
+### note · agent:manager · 2026-11-17T14:40:16.190Z
+manager: final design as briefed to the worker (Revision 2 plus the confirmed worked example win over the older Design items). (1) flume init [--root PATH] [--force], run in the workspace folder: creates .flume/ with .gitignore (*) and config.toml (root from --root; none means same-repo mode). .flume/ holds nothing workflow-related. (2) init copies flume's shipped base workflow (one placeholder file workflow.md) to ROOT/workflow/base/ in the task repo and commits it there (one commit, never pushes). (3) init when .flume/ exists fails and says to use --force; --force rewrites only ROOT/workflow/base/ and commits; --force with --root also updates root in config.toml, without --root keeps it. (4) flume serve with no .flume/ in the current folder fails: run flume init first; serve drops --root and reads root from config.toml. (5) Task files stay at ROOT/flume/tasks/. (6) Prime stays built in; when ROOT/workflow/ exists it adds one short line: read ROOT/workflow/base/*.md, then ROOT/workflow/*.md, then the project's workflow/*.md and its CLAUDE.md, each in name order; later layers override earlier (project over workspace over base). Flume merges nothing and never writes workspace or project rules. (7) Specs cli.md (init, serve) and agent.md (prime line), tests, README setup: flume init --root ... once, then flume serve.
