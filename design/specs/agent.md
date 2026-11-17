@@ -171,7 +171,7 @@ When the entry records a pane other than the current one, flume SHALL refuse to 
 
 ### Requirement: Prime in the system prompt  {#r-a6c0}
 
-flume SHALL pass claude the prime text (the base template, then the project template when there is a project) with --append-system-prompt, SHALL pass claude --name <agent>, and SHALL NOT put the prime text in the prompt.
+flume SHALL pass claude the prime text (the built-in base text, then the built-in project text when there is a project) with --append-system-prompt, SHALL pass claude --name <agent>, and SHALL NOT put the prime text in the prompt.
 
 #### Scenario: Prime contents  {#s-a6c1}
 
@@ -197,17 +197,18 @@ flume SHALL always give claude a first prompt as the last argument, after a clos
 - **THEN** the last argument of claude is not empty and does not contain "You are agent alpha"
 - **AND** the argument before it is --
 
-### Requirement: Templates  {#r-a8c0}
+### Requirement: Built-in prime text  {#r-a8c0}
 
-flume SHALL ship a default base template and project template, SHALL use base.md or project.md in .flume/templates of the home folder instead when present, and SHALL replace {name} and {project} in them.
+flume SHALL build the prime text only from its built-in base text and built-in project text, SHALL replace {name} and {project} in them, and SHALL NOT read any file in the home folder's templates folder.
 
-#### Scenario: Override  {#s-a8c1}
+#### Scenario: Templates folder ignored  {#s-a8c1}
 
 *Verification*: **executable**
 
-- **GIVEN** a file base.md in the templates folder holding "Hello {name}"
+- **GIVEN** a file base.md in the templates folder of the home folder holding "Hello {name}"
 - **WHEN** the user runs flume prime --name alpha
-- **THEN** the output contains "Hello alpha"
+- **THEN** the output contains "You are agent alpha"
+- **AND** the output does not contain "Hello alpha"
 
 ### Requirement: prime  {#r-a9c0}
 

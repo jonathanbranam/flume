@@ -238,10 +238,12 @@ describe("flume agent specs", () => {
     expect(r.out).toContain("[-- <claude-arg>...]");
   });
 
-  it("s-a8c1 template override", () => {
+  it("s-a8c1 templates folder ignored", () => {
     mkdirSync(join(dir, "home", ".flume", "templates"), { recursive: true });
     writeFileSync(join(dir, "home", ".flume", "templates", "base.md"), "Hello {name}");
-    expect(flume(["prime", "--name", "alpha"]).out).toContain("Hello alpha");
+    const out = flume(["prime", "--name", "alpha"]).out;
+    expect(out).not.toContain("Hello alpha");
+    expect(out).toContain("You are agent alpha");
   });
 
   it("s-a9c1 prime with a project", () => {

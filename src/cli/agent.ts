@@ -189,20 +189,14 @@ function parse(args: string[]): Parsed | string {
   return p;
 }
 
-function template(file: string, fallback: string, vars: Record<string, string>): string {
-  let text: string;
-  try {
-    text = readFileSync(join(flumeHome(), "templates", file), "utf8");
-  } catch {
-    text = fallback;
-  }
+function fill(text: string, vars: Record<string, string>): string {
   return text.replace(/\{(name|project)\}/g, (_, k: string) => vars[k] ?? "");
 }
 
 function primeText(name: string, project: string): string {
   const vars = { name, project };
-  let text = template("base.md", DEFAULT_BASE, vars);
-  if (project) text += `\n${template("project.md", DEFAULT_PROJECT, vars)}`;
+  let text = fill(DEFAULT_BASE, vars);
+  if (project) text += `\n${fill(DEFAULT_PROJECT, vars)}`;
   return text;
 }
 
