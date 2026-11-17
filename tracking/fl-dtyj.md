@@ -2,11 +2,14 @@
 id = "fl-dtyj"
 title = "README: install instructions for using Flume"
 kind = "docs"
-state = "planned"
+state = "claimed"
 created_at = "2026-11-17T12:07:22.039Z"
-updated_at = "2026-11-17T12:18:29.910784814Z"
+updated_at = "2026-11-17T12:19:17.879774543Z"
 created_by = "external:aide"
-watchers = ["external:aide"]
+watchers = [
+    "external:aide",
+    "agent:readme-install",
+]
 ticket = "dtyj"
 +++
 
