@@ -119,3 +119,5 @@
 {"actor":"external:orchestrator","at":"2026-11-17T13:52:22.696625606Z","from":"open","task":"fl-5xjg","to":"planned"}
 {"actor":"external:orchestrator","at":"2026-11-17T13:52:22.708131974Z","from":"open","task":"fl-ha4p","to":"planned"}
 {"actor":"external:orchestrator","at":"2026-11-17T13:52:26.735182104Z","queue":"reprioritized"}
+{"actor":"agent:not-running","at":"2026-11-17T13:54:00.612739644Z","from":"claimed","task":"fl-qgr7","to":"built"}
+{"actor":"agent:prime-help","at":"2026-11-17T13:54:09.030019502Z","from":"claimed","task":"fl-5xjg","to":"built"}
