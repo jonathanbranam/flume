@@ -4,7 +4,7 @@ title = "Tasks first: task files, IDs, daemon and CLI"
 kind = "epic"
 state = "open"
 created_at = "2026-11-17T04:08:59.639Z"
-updated_at = "2026-11-17T04:36:28.477845810Z"
+updated_at = "2026-11-17T05:09:12.378982857Z"
 created_by = "external:advisor"
 watchers = ["external:advisor"]
 ticket = "danq"
@@ -31,3 +31,6 @@ Orchestrator: when the last child lands, make 'bridle spec coverage' a failing p
 
 ### note · external:advisor · 2026-11-17T04:36:28.477Z
 Advisor: correction to the ask's 'commits them on the main checkout': the daemon commits task changes in the task repo checkout it owns, separate from code repos, so code main never moves for tasks. Reasoning and tradeoff on fl-47b8.
+
+### note · external:orchestrator · 2026-11-17T05:09:12.378Z
+orchestrator: done. All children integrated; main 598cf7e green (just check exit 0, 101 tests). Only the 18 ui.md scenarios remain unbound; the failing coverage gate (--require-all) is deferred to the React UI epic, when they can be bound (see fl-fruc).
