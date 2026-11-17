@@ -1,8 +1,9 @@
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http";
 import type { AddressInfo } from "node:net";
+import { userInfo } from "node:os";
 import { version } from "../cli/version.ts";
 import {
-  addNote,
+  addComment,
   checkProject,
   createTask,
   listTaskFiles,
@@ -170,11 +171,15 @@ export function startDaemon(opts: {
         commit(u.nameId, `update ${Object.keys(body).join(", ")}`, [u.path]);
         return [200, taskObject(u)];
       }
-      if (c === "notes") {
+      if (c === "comments") {
         allow("POST");
         const e = find(ref);
-        const u = bad(() => addNote(root, ref, body.text as string));
-        commit(e.nameId, "add a note", [u.path]);
+        const author =
+          typeof body.author === "string" && body.author.trim() !== ""
+            ? body.author.trim()
+            : userInfo().username;
+        const u = bad(() => addComment(root, ref, body.text as string, author));
+        commit(e.nameId, "add a comment", [u.path]);
         return [200, taskObject(u)];
       }
       if (c === "close" || c === "reopen") {

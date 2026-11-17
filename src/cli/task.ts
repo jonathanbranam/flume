@@ -13,7 +13,7 @@ Commands:
   list [--closed | --all] [--kind K] [--parent ID]
                                                 one line per task (tab separated)
   update ID FIELD VALUE                         FIELD: title, kind, parent, blocked-by, related
-  note ID [--text TEXT | --body-file PATH]      append text to the body
+  comment ID [--text TEXT | --body-file PATH]   add a comment under ## Comments
   close ID                                      resolve the task
   reopen ID                                     reopen a resolved task
 
@@ -37,11 +37,11 @@ const COMMANDS: Record<string, { opts: string[]; flags: string[]; pos: number; u
     usage: "flume task list [--closed | --all] [--kind K] [--parent ID]",
   },
   update: { opts: [], flags: [], pos: 3, usage: "flume task update ID FIELD VALUE" },
-  note: {
+  comment: {
     opts: ["--text", "--body-file"],
     flags: [],
     pos: 1,
-    usage: "flume task note ID [--text TEXT | --body-file PATH]",
+    usage: "flume task comment ID [--text TEXT | --body-file PATH]",
   },
   close: { opts: [], flags: [], pos: 1, usage: "flume task close ID" },
   reopen: { opts: [], flags: [], pos: 1, usage: "flume task reopen ID" },
@@ -122,8 +122,8 @@ export async function task(cwd: string, args: string[]): Promise<number> {
       throw new Usage("use --text or --body-file, not both");
     if (flag.has("--closed") && flag.has("--all"))
       throw new Usage("use --closed or --all, not both");
-    if (sub === "note" && opt["--text"] === undefined && opt["--body-file"] === undefined)
-      throw new Usage("note needs --text or --body-file");
+    if (sub === "comment" && opt["--text"] === undefined && opt["--body-file"] === undefined)
+      throw new Usage("comment needs --text or --body-file");
     if (sub === "new" && (pos[0] as string).trim() === "") throw new Usage("the title is empty");
 
     // Read any input before talking to the daemon.
@@ -177,9 +177,12 @@ export async function task(cwd: string, args: string[]): Promise<number> {
         [key]: v === "" && (key === "parent" || Array.isArray(value)) ? null : value,
       });
       if (json) out(JSON.stringify(t));
-    } else if (sub === "note") {
+    } else if (sub === "comment") {
       const text = opt["--text"] ?? readText(opt["--body-file"] as string);
-      const t = await call("POST", `/api/tasks/${enc(pos[0] as string)}/notes`, { text });
+      const t = await call("POST", `/api/tasks/${enc(pos[0] as string)}/comments`, {
+        text,
+        ...(process.env.AGENT_NAME ? { author: process.env.AGENT_NAME } : {}),
+      });
       if (json) out(JSON.stringify(t));
     } else {
       const t = await call("POST", `/api/tasks/${enc(pos[0] as string)}/${sub}`);

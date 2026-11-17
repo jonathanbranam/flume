@@ -222,13 +222,18 @@ describe("daemon api", () => {
     expect((await call("PATCH", "/api/tasks/abcd", { title: "x" })).status).toBe(404);
   });
 
-  it("s-adcc note", async () => {
+  it("s-adcc comment", async () => {
     const t = await create("Noted");
-    const r = await call("POST", `/api/tasks/${t.id}/notes`, { text: "Found the cause" });
+    const r = await call("POST", `/api/tasks/${t.id}/comments`, {
+      text: "Found the cause",
+      author: "scout",
+    });
     expect(r.status).toBe(200);
-    expect(r.body.body).toBe("## The ask\n\nFound the cause\n");
-    expect((await call("POST", `/api/tasks/${t.id}/notes`, { text: " " })).status).toBe(400);
-    expect((await call("POST", "/api/tasks/abcd/notes", { text: "x" })).status).toBe(404);
+    expect(r.body.body).toMatch(
+      /^## The ask\n\n## Comments\n\n### [^\n]*, scout\n\nFound the cause\n$/,
+    );
+    expect((await call("POST", `/api/tasks/${t.id}/comments`, { text: " " })).status).toBe(400);
+    expect((await call("POST", "/api/tasks/abcd/comments", { text: "x" })).status).toBe(404);
   });
 
   it("s-3131 close twice", async () => {
@@ -333,10 +338,10 @@ describe("daemon api", () => {
     expect(clean()).toBe("");
   });
 
-  it("s-6f12 a note and an update commit", async () => {
+  it("s-6f12 a comment and an update commit", async () => {
     const t = await create("Noted");
     const before = head();
-    await call("POST", `/api/tasks/${t.id}/notes`, { text: "hello" });
+    await call("POST", `/api/tasks/${t.id}/comments`, { text: "hello" });
     await call("PATCH", `/api/tasks/${t.id}`, { title: "Renamed" });
     expect(commitsSince(before)).toHaveLength(2);
     for (const rev of ["HEAD", "HEAD~1"]) {

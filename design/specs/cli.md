@@ -177,14 +177,14 @@ When flume task update is run with an ID, a field and a value, flume SHALL set t
 - **WHEN** flume task update with that task's ID, the field parent and an empty value is run
 - **THEN** the front matter has no parent field
 
-### Requirement: Task note appends to the body  {#r-52c7}
-When flume task note is run with an ID and text (as an argument after --text, or from a file with --body-file PATH, where a dash means standard input), flume SHALL append the text to the end of the body after one blank line and leave everything else unchanged.
+### Requirement: Task comment adds a comment to the body  {#r-52c7}
+When flume task comment is run with an ID and text (as an argument after --text, or from a file with --body-file PATH, where a dash means standard input), flume SHALL add the text as a comment per the task-files spec (a Comments section at the end of the body, each comment under a heading ### header), using the AGENT_NAME environment variable as the author when it is set and the operating system user name otherwise, and leave the rest of the body unchanged; with neither --text nor --body-file it SHALL exit 2.
 
-#### Scenario: Two notes in order  {#s-2660}
+#### Scenario: Two comments in order  {#s-2660}
 *Verification*: **executable**
-- **GIVEN** an open task with the default body
-- **WHEN** flume task note adds First and then adds Second
-- **THEN** the body ends with First, a blank line, and Second, in that order
+- **GIVEN** an open task with the default body and AGENT_NAME set to scout
+- **WHEN** flume task comment adds First and then adds Second
+- **THEN** the body has one Comments heading, then a header line ending in ", scout" and First, then a header line ending in ", scout" and Second, in that order
 
 ### Requirement: Task close and reopen change the state  {#r-7226}
 When flume task close is run with an ID, flume SHALL resolve the task, and when flume task reopen is run it SHALL reopen it, per the task-files spec; closing a resolved task or reopening an open task SHALL exit with code 1 and change nothing.

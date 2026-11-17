@@ -40,8 +40,8 @@ interface Run {
   stdout: string;
   stderr: string;
 }
-const flume = (cwd: string, args: string[], input?: string): Run =>
-  spawnSync("node", [bin, ...args], { cwd, encoding: "utf8", env, input });
+const flume = (cwd: string, args: string[], input?: string, extra: NodeJS.ProcessEnv = {}): Run =>
+  spawnSync("node", [bin, ...args], { cwd, encoding: "utf8", env: { ...env, ...extra }, input });
 
 function tempRepo(): string {
   const d = realpathSync(mkdtempSync(join(tmpdir(), "flume-taskcli-")));
@@ -113,7 +113,7 @@ describe("flume task commands", () => {
     expect(flume(repo, ["task", "--help"]).stdout).toContain("update ID FIELD VALUE");
     expect(flume(repo, ["task", "new", "--help"]).stdout).toContain("--blocked-by");
     expect(flume(repo, ["task", "list", "--help"]).stdout).toContain("--closed");
-    expect(flume(repo, ["task", "note", "--help"]).stdout).toContain("--body-file");
+    expect(flume(repo, ["task", "comment", "--help"]).stdout).toContain("--body-file");
   });
 
   it("s-f616 new with a body from standard input", async () => {
@@ -285,13 +285,22 @@ describe("flume task commands", () => {
     flume(repo, ["stop"]);
   });
 
-  it("s-2660 two notes in order", async () => {
+  it("s-2660 two comments in order", async () => {
     const repo = await project();
     const t = mk(repo, "A");
-    expect(flume(repo, ["task", "note", t.id, "--text", "First"]).status).toBe(0);
-    expect(flume(repo, ["task", "note", t.id, "--body-file", "-"], "Second\n").status).toBe(0);
-    expect(read(repo, t.path).endsWith("First\n\nSecond\n")).toBe(true);
-    expect(flume(repo, ["task", "note", t.id]).status).toBe(2);
+    const env = { AGENT_NAME: "scout" };
+    expect(flume(repo, ["task", "comment", t.id, "--text", "First"], undefined, env).status).toBe(
+      0,
+    );
+    expect(flume(repo, ["task", "comment", t.id, "--body-file", "-"], "Second\n", env).status).toBe(
+      0,
+    );
+    const body = read(repo, t.path);
+    expect(body).toMatch(
+      /\n## Comments\n\n### \d{4}-\d\d-\d\d \d\d:\d\d [+-]\d\d:\d\d, scout\n\nFirst\n\n### [^\n]*, scout\n\nSecond\n$/,
+    );
+    expect(body.match(/^## Comments$/gm)).toHaveLength(1);
+    expect(flume(repo, ["task", "comment", t.id]).status).toBe(2);
     flume(repo, ["stop"]);
   });
 
@@ -320,7 +329,7 @@ describe("flume task commands", () => {
     expect(flume(wt, ["task", "list"]).stdout).toContain("From the worktree");
     expect(flume(wt, ["task", "show", t.id]).stdout).toBe(read(repo, t.path));
     expect(flume(wt, ["task", "update", t.id, "title", "Renamed"]).status).toBe(0);
-    expect(flume(wt, ["task", "note", t.id, "--text", "n"]).status).toBe(0);
+    expect(flume(wt, ["task", "comment", t.id, "--text", "n"]).status).toBe(0);
     expect(flume(wt, ["task", "close", t.id]).status).toBe(0);
     expect(flume(wt, ["task", "reopen", t.id]).status).toBe(0);
     expect(flume(wt, ["task", "list"]).stdout).toContain("Renamed");

@@ -77,12 +77,28 @@ export function updateTask(root: string, ref: string, patch: TaskPatch): TaskEnt
   return load(root, e.stem);
 }
 
-/** Append text to the body after one blank line. */
-export function addNote(root: string, ref: string, text: string): TaskEntry {
+/** Local time with its UTC offset, minutes precision: 2026-11-17 14:05 -05:00. */
+export function commentTime(d: Date): string {
+  const p = (n: number) => String(n).padStart(2, "0");
+  const off = -d.getTimezoneOffset();
+  const a = Math.abs(off);
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())} ${off < 0 ? "-" : "+"}${p(Math.floor(a / 60))}:${p(a % 60)}`;
+}
+
+/** Append a comment under the last "## Comments" heading (added when missing). */
+export function addComment(
+  root: string,
+  ref: string,
+  text: string,
+  author: string,
+  now: Date = new Date(),
+): TaskEntry {
   if (typeof text !== "string" || text.trim() === "") throw new Error("text must not be empty");
   const e = load(root, ref);
   const file = parsed(e);
-  file.body = `${file.body.trimEnd()}\n\n${text.trimEnd()}\n`;
+  let body = file.body.trimEnd();
+  if (!/^## Comments[ \t]*$/m.test(body)) body += `${body === "" ? "" : "\n\n"}## Comments`;
+  file.body = `${body}\n\n### ${commentTime(now)}, ${author}\n\n${text.trimEnd()}\n`;
   writeFileSync(join(root, e.path), serializeTaskFile(file));
   return load(root, e.stem);
 }

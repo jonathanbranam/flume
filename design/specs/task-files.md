@@ -109,6 +109,21 @@ Everything after the front matter SHALL be free Markdown that flume keeps as wri
 - **WHEN** a task is created with no body
 - **THEN** the text after the front matter is the line ## The ask followed by a blank line
 
+### Requirement: Comments go under a Comments heading  {#r-7090}
+When a comment is added to a task, flume SHALL put it at the end of the body under a line "## Comments" (adding that line after one blank line when the body has none, or using the last one when the body has several), newest last, each comment being a line "### <time>, <author>", a blank line and the text, where time is the local time with its UTC offset to the minute (as in 2026-11-17 14:05 -05:00), and flume SHALL NOT change the rest of the body.
+
+#### Scenario: First and second comment  {#s-1c69}
+*Verification*: **executable**
+- **GIVEN** an open task with the default body
+- **WHEN** a comment First by scout and then a comment Second by remus are added
+- **THEN** the body ends with the line ## Comments, a header line ending in ", scout" and First, then a header line ending in ", remus" and Second, and the header time matches the form 2026-11-17 14:05 -05:00
+
+#### Scenario: Existing Comments heading  {#s-1582}
+*Verification*: **executable**
+- **GIVEN** a task whose body already holds a line ## Comments
+- **WHEN** a comment is added
+- **THEN** the body still holds one Comments heading and the comment is at the end
+
 ### Requirement: A task link names the file stem  {#r-c5a3}
 When a task body links to another task, the link SHALL be a wiki link by full file stem without folder or extension, as in [[login-page-drops-the-redirect-k7tm]] or with a label after a vertical bar.
 

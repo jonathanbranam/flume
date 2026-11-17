@@ -111,14 +111,14 @@ When PATCH /api/tasks/{id} is requested with an object of fields to set (title, 
 - **WHEN** PATCH /api/tasks/k7tm is requested with title New and kind idea
 - **THEN** the status is 400 and the title is still Old
 
-### Requirement: Add a note  {#r-c1a0}
-When POST /api/tasks/{id}/notes is requested with text, the daemon SHALL append it to the body after one blank line and answer 200 with the task object; an empty text SHALL answer 400 and an unknown task 404.
+### Requirement: Add a comment  {#r-c1a0}
+When POST /api/tasks/{id}/comments is requested with text and an optional author, the daemon SHALL add the text as a comment per the task-files spec, with the author given or, when it is missing or empty, the operating system user name of the daemon, and answer 200 with the task object; an empty text SHALL answer 400 and an unknown task 404.
 
-#### Scenario: Note  {#s-adcc}
+#### Scenario: Comment  {#s-adcc}
 *Verification*: **executable**
 - **GIVEN** an open task with the default body
-- **WHEN** POST /api/tasks/{id}/notes is requested with text Found the cause
-- **THEN** the status is 200 and the body ends with a blank line and Found the cause
+- **WHEN** POST /api/tasks/{id}/comments is requested with text Found the cause and author scout
+- **THEN** the status is 200 and the body ends with a Comments heading, a header line ending in ", scout", a blank line and Found the cause
 
 ### Requirement: Close and reopen  {#r-17ac}
 When POST /api/tasks/{id}/close or POST /api/tasks/{id}/reopen is requested, the daemon SHALL change the state per the task-files spec and answer 200 with the task object; closing a resolved task or reopening an open one SHALL answer 409 with nothing changed, and an unknown task 404.
@@ -187,7 +187,7 @@ When several create or update requests arrive at the same time, the daemon SHALL
 - **THEN** all ten answer 201 with different IDs and ten files exist in open
 
 ### Requirement: Each change is one commit  {#r-a89d}
-When a request creates or changes a task (create, update, note, close, reopen), the daemon SHALL commit the changed files in the git repository of the task root as one commit whose message names the task ID and the change, and SHALL NOT push.
+When a request creates or changes a task (create, update, comment, close, reopen), the daemon SHALL commit the changed files in the git repository of the task root as one commit whose message names the task ID and the change, and SHALL NOT push.
 
 #### Scenario: A create commits  {#s-1c86}
 *Verification*: **executable**
@@ -213,8 +213,8 @@ When a request creates or changes a task (create, update, note, close, reopen), 
 - **WHEN** POST /api/tasks/{id}/close is requested
 - **THEN** one new commit exists, it removes the file from open and adds it to resolved, and the working tree is clean
 
-#### Scenario: A note and an update commit  {#s-6f12}
+#### Scenario: A comment and an update commit  {#s-6f12}
 *Verification*: **executable**
 - **GIVEN** an open task and a clean working tree
-- **WHEN** a note is added and then the title is changed
+- **WHEN** a comment is added and then the title is changed
 - **THEN** two new commits exist, each message contains the task ID, each holds only that task file, and the working tree is clean

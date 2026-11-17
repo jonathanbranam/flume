@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
+  addComment,
   checkProject,
   createTask,
   formatProblem,
@@ -146,6 +147,26 @@ describe("task files", () => {
   it("s-3437 default body", () => {
     const e = createTask(root, { title: "Plain", kind: "chore" });
     expect(e.text.endsWith("---\n## The ask\n\n")).toBe(true);
+  });
+
+  it("s-1c69 first and second comment", () => {
+    const e = createTask(root, { title: "Plain", kind: "chore" });
+    addComment(root, e.stem, "First", "scout", new Date(2026, 10, 17, 14, 5));
+    const u = addComment(root, e.stem, "Second", "remus", new Date(2026, 10, 17, 14, 6));
+    const r = parseTaskFile(u.text);
+    const body = r.ok ? r.file.body : "";
+    expect(body).toMatch(
+      /^## The ask\n\n## Comments\n\n### 2026-11-17 14:05 [+-]\d\d:\d\d, scout\n\nFirst\n\n### 2026-11-17 14:06 [+-]\d\d:\d\d, remus\n\nSecond\n$/,
+    );
+  });
+
+  it("s-1582 existing Comments heading", () => {
+    const e = createTask(root, { title: "Plain", kind: "chore", body: "Text\n\n## Comments\n" });
+    const u = addComment(root, e.stem, "Hi", "scout");
+    const r = parseTaskFile(u.text);
+    const body = r.ok ? r.file.body : "";
+    expect(body.match(/^## Comments$/gm)).toHaveLength(1);
+    expect(body.endsWith("Hi\n")).toBe(true);
   });
 
   it("s-fa81 a link stays valid after a move", () => {

@@ -15,7 +15,7 @@ Commands:
   serve      run the daemon in the foreground [--port N] [--root PATH]
   status     show whether the daemon runs, its address and root
   stop       ask the daemon to exit
-  task       new, show, list, update, note, close, reopen (flume task --help)
+  task       new, show, list, update, comment, close, reopen (flume task --help)
   roadmap    show, check (flume roadmap --help)
   check      validate the task files; one line per problem, exit 1 if any
   agent      launch Claude as a named agent; list, show (flume agent --help)

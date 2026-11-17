@@ -66,16 +66,16 @@ When the path /tasks/{id} is opened, the UI SHALL request GET /api/tasks/{id} an
 - **WHEN** /tasks/k7tm is opened and the parent ID is clicked
 - **THEN** the page path is /tasks/q3rp
 
-### Requirement: A note can be added from the detail  {#r-f0e1}
-When the note form on an open or resolved task's detail is submitted with text, the UI SHALL send POST /api/tasks/{id}/notes with that text and then show the task as the API answered, with the form cleared; with empty text it SHALL send nothing.
+### Requirement: A comment can be added from the detail  {#r-f0e1}
+When the comment form on an open or resolved task's detail is submitted with text, the UI SHALL send POST /api/tasks/{id}/comments with that text and then show the task as the API answered, with the form cleared; with empty text it SHALL send nothing.
 
-#### Scenario: Add a note  {#s-f0e2}
+#### Scenario: Add a comment  {#s-f0e2}
 *Verification*: **executable**
 - **GIVEN** the detail of an open task k7tm
 - **WHEN** the text Found the cause is entered and the form is submitted
-- **THEN** one POST /api/tasks/k7tm/notes request is sent with that text, the body shown ends with Found the cause, and the text box is empty
+- **THEN** one POST /api/tasks/k7tm/comments request is sent with that text, the body shown ends with Found the cause, and the text box is empty
 
-#### Scenario: Empty note  {#s-f0e3}
+#### Scenario: Empty comment  {#s-f0e3}
 *Verification*: **executable**
 - **GIVEN** the detail of an open task k7tm
 - **WHEN** the form is submitted with no text
@@ -129,7 +129,7 @@ When the path /roadmap is opened, the UI SHALL request GET /api/tasks?state=all 
 ### Requirement: An epic on the roadmap opens its detail  {#r-d1c1}
 When an epic's title on the roadmap is clicked, the UI SHALL go to /tasks/ followed by the epic's ID, and the epic's detail SHALL list its children, each linking to that child's detail.
 
-#### Scenario: From roadmap to child  {#s-d1c2}
+#### Scenario: From roadmap to child  {#s-d1c9}
 *Verification*: **executable**
 - **GIVEN** an open epic q3rp with a child k7tm
 - **WHEN** the epic is clicked on /roadmap and then k7tm is clicked in the epic's detail
