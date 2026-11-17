@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { cpSync, mkdtempSync, rmSync } from "node:fs";
+import { cpSync, mkdtempSync, rmSync, symlinkSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -29,6 +29,7 @@ describe("flume releases specs", () => {
       const root = new URL("..", import.meta.url).pathname;
       for (const p of ["bin", "src", "package.json"])
         cpSync(join(root, p), join(dir, p), { recursive: true });
+      symlinkSync(join(root, "node_modules"), join(dir, "node_modules"));
       const out = execFileSync("node", [join(dir, "bin/flume.js"), "version"], {
         encoding: "utf8",
       });

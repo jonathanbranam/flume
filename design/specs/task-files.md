@@ -150,3 +150,18 @@ When flume check runs, it SHALL examine every task file in open and resolved and
 - **GIVEN** a file in open whose front matter has a resolved field
 - **WHEN** flume check runs
 - **THEN** it exits with code 1 and prints a problem for that file
+
+### Requirement: Check also reports file names and dependency cycles  {#r-43e7}
+When flume check runs, it SHALL report a file name that is not a slug of lowercase letters, digits and hyphens (at most 50 characters) followed by a hyphen, a well formed 4 character ID and .md, and each task that is blocked, directly or through other tasks, by itself.
+
+#### Scenario: A bad file name  {#s-cb3b}
+*Verification*: **executable**
+- **GIVEN** an open task file named Bad Name.md
+- **WHEN** flume check runs
+- **THEN** it exits with code 1 and prints a problem for that file
+
+#### Scenario: A dependency cycle  {#s-258c}
+*Verification*: **executable**
+- **GIVEN** two open tasks that each name the other in blocked_by
+- **WHEN** flume check runs
+- **THEN** it exits with code 1 and prints a problem for each of the two files

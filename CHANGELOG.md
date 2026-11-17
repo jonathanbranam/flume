@@ -4,6 +4,7 @@
 
 ### Added
 
+- Task-file core library (src/core/: IDs, slugs, front matter round-trip, links, folders) and `flume check`, which prints one line per problem and exits 1 (fl-w89j).
 - `flume bug` prints a paste-ready bug-report template with the version line; release and update steps in docs/release.md; specs in design/specs/releases.md (fl-jc84).
 
 ### Internal

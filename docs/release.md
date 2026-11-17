@@ -1,7 +1,8 @@
 # Releases and updating
 
-Flume has no build step and no runtime dependencies: `bin/flume.js` runs the TypeScript in `src/`
-directly (Node type stripping, Node 22.18 or newer). A git checkout of a tag is the whole install.
+Flume has no build step: `bin/flume.js` runs the TypeScript in `src/` directly (Node type stripping,
+Node 22.18 or newer). A git checkout of a tag plus `npm ci --omit=dev` (for the one runtime
+dependency, `yaml`) is the whole install.
 Updates reach the work machine by `git clone` / `git pull` from the public GitHub repo only.
 
 ## Cutting a release (human or orchestrator)
@@ -16,8 +17,8 @@ Updates reach the work machine by `git clone` / `git pull` from the public GitHu
 
 - First install: `git clone <public flume repo>`, then `git checkout v<version>` (or stay on `main`).
 - Update: `git fetch --tags`, then `git checkout v<new version>` (or `git pull` on `main`).
-- Runtime dependencies: none today, so nothing to install. If one is added, run
-  `npm ci --omit=dev` (from the Artifactory mirror, outside the sandbox) after each update.
+- After each clone or update, run `npm ci --omit=dev` (from the Artifactory mirror, outside the
+  sandbox) to install the runtime dependencies (`yaml`).
 - Run: `node bin/flume.js` (or `npm run flume`). `flume version` prints `<version> (<commit>)`.
 
 ## Bug reports
