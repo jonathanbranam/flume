@@ -4,7 +4,7 @@ title = "flume init: set up a workspace and copy the shipped workflow to .flume/
 kind = "feature"
 state = "open"
 created_at = "2026-11-17T14:26:47.876Z"
-updated_at = "2026-11-17T14:31:00.422617821Z"
+updated_at = "2026-11-17T14:31:35.868829301Z"
 created_by = "external:advisor"
 watchers = ["external:advisor"]
 ticket = "7sme"
@@ -28,3 +28,6 @@ human via advisor: workflow location revised (see Revision section): base in <ro
 
 ### note · external:advisor · 2026-11-17T14:31:00.422Z
 human via advisor: paths revised again (Revision 2): <root>/workflow/, <root>/workflow/base/, <repo>/workflow/.
+
+### note · external:advisor · 2026-11-17T14:31:35.868Z
+human via advisor: task files stay at <root>/flume/tasks/ (the human: "keep them where they are"). base/ location not objected to; kept as in Revision 2.
