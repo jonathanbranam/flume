@@ -4,7 +4,7 @@ title = "Opt-in migrations are pending in this project"
 kind = "chore"
 state = "pending"
 created_at = "2026-11-17T03:23:46.955Z"
-updated_at = "2026-11-17T03:23:46.955Z"
+updated_at = "2026-11-17T03:31:07.756227049Z"
 created_by = "human"
 watchers = ["human"]
 +++
@@ -16,3 +16,8 @@ These migrations are opt-in: bridle does not run them at start-up, because they 
 - 0005-a-ticket-for-every-active-task: Give every active task without a ticket a stub ticket, and every extra task of a ticket a child ticket, so each piece of work has one (ticket 72t9).
 
 Run one with `bridle migrate --only <id>` (add --dry-run to see what it would change).
+
+## Thread
+
+### note · external:aide · 2026-11-17T03:31:07.756Z
+From the human, via aide (2026-11-16 ~10:35 PM ET): "yes run them all" — approval to run all three opt-in migrations: 0002-standard-ticket-fields, 0004-ticket-links-in-frontmatter, 0005-a-ticket-for-every-active-task. Dry runs: 0002 and 0004 no-op; 0005 adds one stub ticket (for fl-sjdp).
