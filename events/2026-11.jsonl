@@ -26,3 +26,4 @@
 {"actor":"external:orchestrator","at":"2026-11-17T04:13:00.823393958Z","queue":"reprioritized"}
 {"actor":"external:orchestrator","at":"2026-11-17T04:16:36.099277940Z","from":"open","task":"fl-28pa","to":"planned"}
 {"actor":"agent:stack-doc","at":"2026-11-17T04:16:58.172133579Z","from":"claimed","task":"fl-28pa","to":"built"}
+{"actor":"agent:manager","at":"2026-11-17T04:17:35.082713962Z","from":"built","task":"fl-28pa","to":"integrated"}
