@@ -2,11 +2,14 @@
 id = "fl-vpsb"
 title = "flume prime: project text tells the agent to read that project's CLAUDE.md"
 kind = "fix"
-state = "planned"
+state = "claimed"
 created_at = "2026-11-17T13:51:58.989Z"
-updated_at = "2026-11-17T13:58:16.539567956Z"
+updated_at = "2026-11-17T13:58:57.838622953Z"
 created_by = "external:advisor"
-watchers = ["external:advisor"]
+watchers = [
+    "external:advisor",
+    "agent:prime-project",
+]
 ticket = "vpsb"
 +++
 
