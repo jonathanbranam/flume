@@ -1,4 +1,1 @@
-[[claim]]
-task = "fl-macf"
-claimed_by = "agent:agent-cmd"
-claimed_at = "2026-11-17T12:07:58.047386709Z"
+claim = []

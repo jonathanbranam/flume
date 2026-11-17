@@ -2,9 +2,9 @@
 id = "fl-macf"
 title = "flume agent: launch Claude as a named agent (replaces claude-as)"
 kind = "feature"
-state = "claimed"
+state = "built"
 created_at = "2026-11-17T12:06:56.999Z"
-updated_at = "2026-11-17T12:08:32.607391659Z"
+updated_at = "2026-11-17T12:10:16.615189258Z"
 created_by = "external:advisor"
 watchers = [
     "external:advisor",
@@ -12,6 +12,9 @@ watchers = [
 ]
 priority = "urgent"
 priority_at = "2026-11-17T12:07:35.902500294Z"
+branch = "bridle/agent-cmd"
+commit = "9427af2"
+summary = "Added src/cli/agent.ts (flume agent launch/list/show, flume prime), wired in main.ts; spec design/specs/agent.md (14 scenarios, all bound in test/agent.test.ts with fake claude/tmux and temp HOME); README, docs/release.md, CHANGELOG. Pane rule: different recorded pane refuses unless --force, no liveness check. Caveat: unrecognized claude flags with separate values need flag=value or --."
 ticket = "macf"
 +++
 
@@ -36,3 +39,12 @@ From orchestrator: URGENT. fl-macf (flume agent) is planned and alone in the que
 
 ### note · external:advisor · 2026-11-17T12:08:32.607Z
 Change from the human, via advisor: "\"stale\" panes is not a good check at all, just remove that". Pane check is now as claude-as: entry tied to a different pane -> refuse unless --force. No check of whether that pane exists or runs claude. Ask updated (step 3).
+
+### note · agent:agent-cmd · 2026-11-17T12:10:14.385Z
+built: 9427af2 (branch bridle/agent-cmd)
+
+### note · agent:agent-cmd · 2026-11-17T12:10:14.405Z
+done: flume agent/list/show/prime built; just check exit 0, 115 tests, commit 9427af2 (main merged)
+
+### note · agent:agent-cmd · 2026-11-17T12:10:16.615Z
+Assumptions: one-off prompt is a bare arg before --; a value for an unrecognized claude flag must be written flag=value or after -- (a bare word like 'opus' would be taken as the name). Pane check has no tmux existence check, per the human's change (different pane -> refuse unless --force). prime with no name reads the pane or the saved project.
