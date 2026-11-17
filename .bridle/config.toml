@@ -1,0 +1,31 @@
+# bridle project config. Reference: docs/design/agent-host/roles-and-config.md
+# project: flume
+
+# Where the workflow layers live (repo-relative); roles below then use
+# <workflow>/base/roles/<role>.md as their system prompt.
+# workflow = "workflow"
+# packs = ["python"]   # or typescript
+
+[branches]
+integration = "main"
+# release = "release"
+
+[roles.manager]
+# model = "sonnet"
+
+[roles.worker]
+# model = "sonnet"
+
+[commands]
+# What a role runs to check its work.
+# check = "just check"
+
+[worktrees]
+# Run in each new worktree (install dependencies, build caches).
+# setup = "npm ci"
+# Untracked files to copy into each worktree.
+# copy = [".env"]
+
+[integration]
+# The gate `bridle land` runs before moving the integration branch.
+# check = "just check"

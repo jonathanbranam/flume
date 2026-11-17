@@ -1,0 +1,9 @@
+
+# bridle runtime and generated files
+.bridle/*.db*
+.bridle/daemon.json
+.bridle/cache/
+.bridle/tmp/
+.bridle/review-documents.txt
+.claude/skills/bridle-*/
+.claude/.bridle-sync-hooks.json
