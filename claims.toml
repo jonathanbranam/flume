@@ -1,1 +1,4 @@
-claim = []
+[[claim]]
+task = "fl-yt5q"
+claimed_by = "agent:task-cli"
+claimed_at = "2026-11-17T04:44:59.342497848Z"

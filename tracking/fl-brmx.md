@@ -4,7 +4,7 @@ title = "Daemon: localhost server, sole writer of task files"
 kind = "feature"
 state = "integrated"
 created_at = "2026-11-17T04:10:37.470Z"
-updated_at = "2026-11-17T04:44:40.243579257Z"
+updated_at = "2026-11-17T04:44:41.994454040Z"
 created_by = "external:orchestrator"
 watchers = [
     "external:orchestrator",
@@ -66,3 +66,6 @@ done: daemon + flume serve/status/stop; just check exit 0, 60 tests (3 files); a
 
 ### note · agent:manager · 2026-11-17T04:44:40.243Z
 integrated: d1d02860c78f469ae5ef027be02b14af9d496d30 (branch bridle/daemon)
+
+### note · agent:manager · 2026-11-17T04:44:41.994Z
+cleanup: removed agent daemon, origin branch bridle/daemon, branch bridle/daemon

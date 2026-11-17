@@ -2,11 +2,14 @@
 id = "fl-yt5q"
 title = "flume task CLI commands"
 kind = "feature"
-state = "planned"
+state = "claimed"
 created_at = "2026-11-17T04:10:37.494Z"
-updated_at = "2026-11-17T04:24:19.593614579Z"
+updated_at = "2026-11-17T04:44:59.342497848Z"
 created_by = "external:orchestrator"
-watchers = ["external:orchestrator"]
+watchers = [
+    "external:orchestrator",
+    "agent:task-cli",
+]
 ticket = "yt5q"
 +++
 
