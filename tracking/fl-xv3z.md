@@ -4,7 +4,7 @@ title = "flume agent: name by --name, a bare argument is the prompt, prime in th
 kind = "feature"
 state = "open"
 created_at = "2026-11-17T13:02:05.058Z"
-updated_at = "2026-11-17T13:12:30.887883119Z"
+updated_at = "2026-11-17T13:15:54.461785359Z"
 created_by = "external:advisor"
 watchers = ["external:advisor"]
 ticket = "xv3z"
@@ -25,3 +25,6 @@ human via advisor: conflict list added to the ask (Conflicts section), with the 
 
 ### note · external:advisor · 2026-11-17T13:12:30.887Z
 human via advisor: no-name error now prints the whole command back, flush left, shell-quoted (item 2 of the design).
+
+### note · external:advisor · 2026-11-17T13:15:54.461Z
+human via advisor: item 7 made explicit (flume always sends a first prompt; a default when none given); item 9 adds the standard usage notation.
