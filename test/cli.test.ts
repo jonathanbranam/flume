@@ -39,6 +39,21 @@ describe("flume releases specs", () => {
     }
   });
 
+  it("s-129b version offline: one line, exit 0, no daemon", () => {
+    const dir = mkdtempSync(join(tmpdir(), "flume-offline-"));
+    try {
+      const env = { ...process.env };
+      delete env.FLUME_URL;
+      const out = execFileSync("node", [bin, "version"], { encoding: "utf8", cwd: dir, env });
+      const lines = out.split("\n");
+      expect(lines).toHaveLength(2);
+      expect(lines[0]).not.toBe("");
+      expect(lines[1]).toBe("");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
   it("s-e49f bug template has the version line", () => {
     const line = run("version").trimEnd();
     expect(run("bug")).toContain(`Version: ${line}\n`);

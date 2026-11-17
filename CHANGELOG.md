@@ -16,6 +16,7 @@
 
 ### Internal
 
+- Test binds scenario s-129b (version offline: one line, exit 0, no daemon) in test/cli.test.ts (fl-fruc).
 - Behaviour spec for the web UI: board, task detail, roadmap (design/specs/ui.md, fl-8g3q).
 - Behaviour specs for the task file format, `flume check`, the CLI and the daemon API (design/specs/, fl-47b8).
 - Scaffold the TypeScript on Node project: flume bin (help, version), vitest, biome, strict tsconfig, `npm run check` / `just check` (fl-4r5q).
