@@ -2,11 +2,14 @@
 id = "fl-wryg"
 title = "flume agent: reject a --name that doesn't match the name pattern"
 kind = "fix"
-state = "planned"
+state = "claimed"
 created_at = "2026-11-17T13:33:59.682Z"
-updated_at = "2026-11-17T13:39:36.206672997Z"
+updated_at = "2026-11-17T13:40:23.197965323Z"
 created_by = "external:orchestrator"
-watchers = ["external:orchestrator"]
+watchers = [
+    "external:orchestrator",
+    "agent:name-check",
+]
 ticket = "wryg"
 +++
 
