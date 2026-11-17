@@ -22,3 +22,12 @@ tasks = [
     "fl-jc84",
     "fl-8g3q",
 ]
+
+[[tier]]
+tasks = [
+    "fl-gnef",
+    "fl-fruc",
+]
+
+[[tier]]
+tasks = ["fl-8vw7"]
