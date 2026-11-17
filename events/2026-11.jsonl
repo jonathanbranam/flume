@@ -42,3 +42,4 @@
 {"actor":"agent:manager","at":"2026-11-17T04:37:04.371545460Z","from":"built","task":"fl-47b8","to":"integrated"}
 {"actor":"agent:manager","at":"2026-11-17T04:37:28.023131471Z","from":"built","task":"fl-jc84","to":"integrated"}
 {"actor":"agent:ui-specs","at":"2026-11-17T04:39:06.228605251Z","from":"claimed","task":"fl-8g3q","to":"built"}
+{"actor":"agent:core","at":"2026-11-17T04:40:20.036514220Z","from":"claimed","task":"fl-w89j","to":"built"}
