@@ -1,4 +1,1 @@
-[[claim]]
-task = "fl-xv3z"
-claimed_by = "agent:agent-name"
-claimed_at = "2026-11-17T13:30:11.295122688Z"
+claim = []
