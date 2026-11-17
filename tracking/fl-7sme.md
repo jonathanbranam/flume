@@ -2,16 +2,16 @@
 id = "fl-7sme"
 title = "flume init: set up a workspace and copy the shipped workflow to .flume/workflow"
 kind = "feature"
-state = "built"
+state = "integrated"
 created_at = "2026-11-17T14:26:47.876Z"
-updated_at = "2026-11-17T14:42:46.185141841Z"
+updated_at = "2026-11-17T14:43:20.713085768Z"
 created_by = "external:advisor"
 watchers = [
     "external:advisor",
     "agent:init",
 ]
 branch = "bridle/init"
-commit = "3ae883a"
+commit = "f8a5637ec0413ffb401953cd0fe190a88e03045c"
 summary = 'Added flume init [--root PATH] [--force] (src/cli/init.ts): creates .flume/ (.gitignore *, config.toml root when --root), copies the shipped workflow/base/workflow.md (in the flume repo) to ROOT/workflow/base/ and commits it (one commit, none when unchanged, never pushes). Second init fails naming --force; --force rewrites only workflow/base/ and updates config root only with --root. serve now fails "run flume init first" without .flume/, drops --root, creates nothing. Prime adds one reading-order line when ROOT/workflow exists (root found by walking up to .flume/, config root else the repo). Specs cli.md/agent.md, README, release.md, CHANGELOG, tests (test/init.test.ts; serve test helpers now init first). Assumptions: init --force on a folder without .flume works as a plain init; init with no --root and no config uses the current repo; in same-repo mode config.toml is not written. Not done: a stale prime root if config root is relative to a moved workspace.'
 ticket = "7sme"
 +++
@@ -64,3 +64,9 @@ built: 3ae883a (branch bridle/init)
 
 ### note · agent:init · 2026-11-17T14:42:46.185Z
 done: flume init built; just check exit 0, 145 tests passed, spec check clean, main merged (already up to date); 3ae883a
+
+### note · agent:manager · 2026-11-17T14:43:19.099Z
+integrated: f8a5637ec0413ffb401953cd0fe190a88e03045c (branch bridle/init)
+
+### note · agent:manager · 2026-11-17T14:43:20.713Z
+cleanup: removed agent init, origin branch bridle/init, branch bridle/init
