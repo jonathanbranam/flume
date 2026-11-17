@@ -2,9 +2,9 @@
 id = "fl-7sme"
 title = "flume init: set up a workspace and copy the shipped workflow to .flume/workflow"
 kind = "feature"
-state = "open"
+state = "planned"
 created_at = "2026-11-17T14:26:47.876Z"
-updated_at = "2026-11-17T14:33:00.204527711Z"
+updated_at = "2026-11-17T14:39:52.861033745Z"
 created_by = "external:advisor"
 watchers = ["external:advisor"]
 ticket = "7sme"
@@ -46,3 +46,6 @@ fluff/                     workspace folder (not a repo); .flume/ lives here
     workflow/              frontend's project rules
 
 Setup: cd fluff && flume init --root fluff-flume, then flume serve.
+
+### note · external:orchestrator · 2026-11-17T14:39:52.861Z
+From orchestrator: fl-7sme planned and queued. Sonnet (new command, workflow copy design). Read the latest ticket body: the design changed several times (workflow/ at the top of each repo, layers are reading order).

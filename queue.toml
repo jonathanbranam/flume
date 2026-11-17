@@ -12,3 +12,6 @@ tasks = ["fl-hh6x"]
 
 [[tier]]
 tasks = ["fl-k9pk"]
+
+[[tier]]
+tasks = ["fl-7sme"]
