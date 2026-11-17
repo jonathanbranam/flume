@@ -417,25 +417,68 @@ describe("flume serve, status and stop", () => {
     expect(flume(repo, "stop").status).toBe(1);
   });
 
-  it("s-bdbc a worktree reaches the same daemon", async () => {
+  it("s-bdbc a folder inside the workspace reaches the daemon", async () => {
     const repo = tempRepo();
-    const wt = join(repo, "..", `${repo.split("/").pop()}-wt`);
-    dirs.push(wt);
-    git(repo, "worktree", "add", "-q", "-b", "side", wt);
-    mkdirSync(join(wt, "sub"));
+    mkdirSync(join(repo, "sub"));
     const { url } = await serve(repo);
-    const s = flume(join(wt, "sub"), "status");
+    const s = flume(join(repo, "sub"), "status");
     expect(s.status).toBe(0);
     expect(s.stdout).toContain(url);
-    const created = await fetch(`${url}/api/tasks`, {
-      method: "POST",
-      body: JSON.stringify({ title: "From anywhere" }),
-    });
-    expect(created.status).toBe(201);
-    // the task file and commit land in the main checkout, not in the worktree
-    expect(readdirSync(join(repo, "flume/tasks/open"))).toHaveLength(1);
-    expect(existsSync(join(wt, "flume/tasks/open"))).toBe(false);
-    expect(flume(wt, "stop").status).toBe(0);
+    expect(flume(join(repo, "sub"), "stop").status).toBe(0);
+  });
+
+  it("s-fe02 the flume folder is ignored", async () => {
+    const repo = tempRepo();
+    await serve(repo);
+    expect(readFileSync(join(repo, ".flume/.gitignore"), "utf8")).toBe("*\n");
+    expect(existsSync(join(repo, ".flume/daemon.json"))).toBe(true);
+    expect(git(repo, "status", "--porcelain")).toBe("");
+    flume(repo, "stop");
+  });
+
+  it("s-fe04 root is saved and reused", async () => {
+    const ws = realpathSync(mkdtempSync(join(tmpdir(), "flume-ws-")));
+    dirs.push(ws);
+    const tasks = join(ws, "tasks");
+    mkdirSync(tasks);
+    git(tasks, "init", "-q", "-b", "main");
+    writeFileSync(join(tasks, "r"), "x");
+    git(tasks, "add", "-A");
+    git(tasks, "commit", "-qm", "init");
+    await serve(ws, "--root", "tasks");
+    expect(readFileSync(join(ws, ".flume/config.toml"), "utf8")).toContain('root = "tasks"');
+    expect(existsSync(join(ws, ".git"))).toBe(false);
+    flume(ws, "stop");
+    await serve(ws);
+    expect(flume(ws, "status").stdout).toContain(`root ${tasks}`);
+    flume(ws, "stop");
+  });
+
+  it("s-fe05 --root wins over config and is saved", async () => {
+    const ws = realpathSync(mkdtempSync(join(tmpdir(), "flume-ws-")));
+    dirs.push(ws);
+    for (const n of ["a", "b"]) {
+      mkdirSync(join(ws, n));
+      git(join(ws, n), "init", "-q", "-b", "main");
+      writeFileSync(join(ws, n, "r"), "x");
+      git(join(ws, n), "add", "-A");
+      git(join(ws, n), "commit", "-qm", "init");
+    }
+    mkdirSync(join(ws, ".flume"));
+    writeFileSync(join(ws, ".flume/config.toml"), 'root = "a"\n');
+    await serve(ws, "--root", "b");
+    expect(flume(ws, "status").stdout).toContain(`root ${join(ws, "b")}`);
+    expect(readFileSync(join(ws, ".flume/config.toml"), "utf8")).toContain('root = "b"');
+    flume(ws, "stop");
+  });
+
+  it("s-fe06 no root and no repository", () => {
+    const ws = realpathSync(mkdtempSync(join(tmpdir(), "flume-ws-")));
+    dirs.push(ws);
+    const r = flume(ws, "serve");
+    expect(r.status).toBe(1);
+    expect(r.stderr).toContain("no task root");
+    expect(existsSync(join(ws, ".git"))).toBe(false);
   });
 
   it("serve --root uses a separate task repository", async () => {
@@ -452,7 +495,7 @@ describe("flume serve, status and stop", () => {
     flume(repo, "stop");
   });
 
-  it("FLUME_URL overrides the recorded address", async () => {
+  it("s-fe01 FLUME_URL overrides the recorded address", async () => {
     const repo = tempRepo();
     const other = tempRepo();
     const { url } = await serve(repo);

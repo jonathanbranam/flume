@@ -15,14 +15,20 @@ When flume is run with an unknown command, a missing required argument or an unk
 - **WHEN** flume frobnicate is run
 - **THEN** standard error holds a usage message and the exit code is 2
 
-### Requirement: The CLI finds the daemon from any checkout  {#r-656f}
-When a command needs the daemon, flume SHALL use the address in the FLUME_URL environment variable if set, and otherwise the address recorded by the running daemon for the project, found from the project's main checkout, a git worktree of it, or any folder inside either.
+### Requirement: The CLI finds the daemon by walking up  {#r-656f}
+When a command needs the daemon, flume SHALL use the address in the FLUME_URL environment variable if set, and otherwise the address in the nearest file .flume/daemon.json found in the current folder or any folder above it (the workspace of that daemon).
 
-#### Scenario: From a worktree  {#s-bdbc}
+#### Scenario: From a folder inside the workspace  {#s-bdbc}
 *Verification*: **executable**
-- **GIVEN** a daemon running for a project and a git worktree of that project
-- **WHEN** flume task list is run inside the worktree
-- **THEN** it prints the project's open tasks and exits with code 0
+- **GIVEN** a daemon running for a workspace folder that holds a subfolder src
+- **WHEN** flume status is run inside src
+- **THEN** it prints the daemon's address and exits with code 0
+
+#### Scenario: FLUME_URL wins  {#s-fe01}
+*Verification*: **executable**
+- **GIVEN** a daemon running for a workspace and FLUME_URL set to its address
+- **WHEN** flume status is run in a folder outside the workspace
+- **THEN** it prints the daemon's address and exits with code 0
 
 ### Requirement: Without a daemon, commands say so  {#r-67a9}
 When a command needs the daemon and none answers, flume SHALL print to standard error exactly these two lines: "flume: the flume daemon is not running for this project." and "Ask the human to start it: flume serve (in its own pane)." and exit with code 1. flume SHALL NOT start a daemon itself.
@@ -43,25 +49,52 @@ When flume version is run, it SHALL print the Flume version on one line to stand
 - **THEN** one non-empty line is printed and the exit code is 0
 
 ### Requirement: Serve starts the daemon  {#r-495d}
-When flume serve is run in a project, it SHALL start the daemon on the local machine only, record its address for the project, print one line stating the address, and keep running until stopped; with --port N it SHALL listen on port N, and otherwise on a free port; with --root PATH it SHALL use PATH as the task root, and otherwise the project's main checkout.
+When flume serve is run in a folder (the workspace), it SHALL start the daemon on the local machine only, write its address to .flume/daemon.json in that folder (creating .flume with a .gitignore holding * when missing), print one line stating the address, and keep running until stopped, removing daemon.json when it stops; with --port N it SHALL listen on port N, and otherwise on a free port. The workspace folder need not be a git repository, and flume SHALL NOT run git init or create a repository.
 
 #### Scenario: Serve prints its address  {#s-a4db}
 *Verification*: **executable**
-- **GIVEN** a project with no daemon running
+- **GIVEN** a git repository with no daemon running
 - **WHEN** flume serve --port 0 is run
 - **THEN** the first output line holds an address beginning http://127.0.0.1: and flume status then exits with code 0
 
+#### Scenario: The flume folder is ignored  {#s-fe02}
+*Verification*: **executable**
+- **GIVEN** a git repository with no daemon running
+- **WHEN** flume serve is run
+- **THEN** the folder .flume holds daemon.json and a .gitignore whose content is *, and git status in the repository lists nothing untracked
+
+### Requirement: Serve chooses the task root  {#r-fe03}
+When flume serve is run, it SHALL use as the task root, in this order: the path given with --root; the root in .flume/config.toml of the workspace folder; the current folder's git repository (main checkout). A relative path is relative to the workspace folder, and an absolute path also works. When --root is given, flume SHALL save it as root in .flume/config.toml, replacing a different saved value. When the task root is not a git repository, or there is none, flume SHALL print a message to standard error and exit with code 1.
+
+#### Scenario: Root from a non-repo workspace  {#s-fe04}
+*Verification*: **executable**
+- **GIVEN** a folder that is not a git repository holding a git repository named tasks
+- **WHEN** flume serve --root tasks is run in the folder, stopped, and flume serve is run again with no --root
+- **THEN** config.toml in .flume holds root = "tasks", and the second server's task root is the tasks repository
+
+#### Scenario: Root flag wins and is saved  {#s-fe05}
+*Verification*: **executable**
+- **GIVEN** a workspace whose config.toml names root a, and git repositories a and b in it
+- **WHEN** flume serve --root b is run
+- **THEN** the task root is b and config.toml then holds root = "b"
+
+#### Scenario: No root and no repository  {#s-fe06}
+*Verification*: **executable**
+- **GIVEN** a folder that is not a git repository, with no config.toml
+- **WHEN** flume serve is run
+- **THEN** the exit code is 1, standard error says there is no task root, and no repository is created
+
 ### Requirement: A second serve is refused  {#r-6579}
-When flume serve is run in a project that already has a running daemon, it SHALL print a message naming the running daemon's address to standard error and exit with code 1.
+When flume serve is run in a workspace folder whose .flume/daemon.json names a running daemon, it SHALL print a message naming the running daemon's address to standard error and exit with code 1.
 
 #### Scenario: Two serves  {#s-7e28}
 *Verification*: **executable**
-- **GIVEN** a daemon running for a project
-- **WHEN** flume serve is run again in the project
+- **GIVEN** a daemon running for a workspace
+- **WHEN** flume serve is run again in the workspace folder
 - **THEN** the exit code is 1 and standard error names the first daemon's address
 
 ### Requirement: Status reports whether the daemon runs  {#r-4ebf}
-When flume status is run, it SHALL print the daemon's address and the project root and exit with code 0 if the daemon answers, and otherwise print "not running" and exit with code 1.
+When flume status is run, it SHALL print the daemon's address and the task root and exit with code 0 if the daemon answers, and otherwise print "not running" and exit with code 1.
 
 #### Scenario: Status when stopped  {#s-62cc}
 *Verification*: **executable**

@@ -32,7 +32,7 @@ through the Artifactory npm mirror.
 
    Check it: `flume version` prints `<version> (<commit>)`.
 
-4. Start the daemon from the project checkout you want to track, and check it is up:
+4. Start the daemon in your workspace folder (a git repo with its tasks, or a folder of repos with `flume serve --root <task-repo>`, saved in `.flume/config.toml`), and check it is up. Flume commands find it from any folder below:
 
    ```sh
    flume serve     # runs in the foreground and prints its address; leave it running

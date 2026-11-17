@@ -4,6 +4,7 @@
 
 ### Changed
 
+- `flume serve` runs per workspace: from any folder (it need not be a git repo), with `.flume/` (own `.gitignore` of `*`) holding `daemon.json` and `config.toml` (`root = ...`, relative to the workspace folder). `--root` is saved and wins; with neither, the current repo. Commands find the server by walking up to the nearest `.flume/daemon.json`; `.git/flume-daemon.json` is gone, no migration (fl-4dgp).
 - `flume prime` and `flume agent`: the default project template (no `~/.flume/templates/project.md`) now reads "You are working on the {project} project. Read that project's CLAUDE.md and follow its instructions." (fl-vpsb).
 - `flume task note` is now `flume task comment` (API `POST /api/tasks/{id}/comments`, commit message "add a comment"; no alias). A comment goes under a `## Comments` heading at the end of the body, headed `### <local time with UTC offset>, <author>`; the author is `$AGENT_NAME` (the API takes an optional `author`), else the OS user name (fl-ha4p).
 - `flume prime` and `flume agent`: the default base template (no `~/.flume/templates/base.md`) gets a second line, "Use the flume CLI to work with tasks; run flume --help to learn it." (fl-5xjg).

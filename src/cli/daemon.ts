@@ -2,9 +2,13 @@ import { resolve } from "node:path";
 import {
   daemonUrl,
   findProject,
+  findWorkspace,
+  inRepo,
   liveDaemon,
+  readConfigRoot,
   removeRecord,
   request,
+  saveConfigRoot,
   startDaemon,
   writeRecord,
 } from "../daemon/index.ts";
@@ -33,29 +37,35 @@ export async function serve(cwd: string, args: string[]): Promise<number> {
       root = resolve(cwd, v);
     } else return usage(`unknown option '${a}'`);
   }
-  const project = findProject(cwd);
-  if (!project) {
-    err("flume: not inside a git repository");
-    return 1;
-  }
-  const running = await liveDaemon(cwd);
+  // The workspace is the folder serve runs in; its .flume/ holds daemon.json and config.toml.
+  const ws = resolve(cwd);
+  const running = findWorkspace(ws) === ws ? await liveDaemon(ws) : undefined;
   if (running) {
     err(`flume: a daemon is already running at ${running.url}`);
     return 1;
   }
+  const taskRoot = root ?? readConfigRoot(ws) ?? findProject(ws)?.mainCheckout;
+  if (!taskRoot) {
+    err("flume: no task root: run flume serve --root PATH, or run it inside a git repository");
+    return 1;
+  }
+  if (!inRepo(taskRoot)) {
+    err(`flume: the task root is not a git repository: ${taskRoot}`);
+    return 1;
+  }
+  if (root) saveConfigRoot(ws, root);
   let stopped: () => void = () => {};
   const done = new Promise<void>((r) => {
     stopped = r;
   });
-  const taskRoot = root ?? project.mainCheckout;
   const daemon = await startDaemon({ root: taskRoot, port, onStop: () => stopped() });
-  writeRecord(cwd, { url: daemon.url, pid: process.pid, root: taskRoot });
+  writeRecord(ws, { url: daemon.url, pid: process.pid, root: taskRoot });
   process.stdout.write(`${daemon.url}\n`);
   const onSignal = () => stopped();
   process.once("SIGINT", onSignal);
   process.once("SIGTERM", onSignal);
   await done;
-  removeRecord(cwd, process.pid);
+  removeRecord(ws, process.pid);
   await daemon.close();
   return 0;
 }

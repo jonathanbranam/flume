@@ -1,6 +1,7 @@
 import { execFileSync, spawn, spawnSync } from "node:child_process";
 import {
   existsSync,
+  mkdirSync,
   mkdtempSync,
   readdirSync,
   readFileSync,
@@ -317,11 +318,10 @@ describe("flume task commands", () => {
     flume(repo, ["stop"]);
   });
 
-  it("s-bdbc every command works from a second worktree", async () => {
+  it("s-bdbc every command works from a folder inside the workspace", async () => {
     const repo = await project();
-    const wt = `${repo}-wt`;
-    dirs.push(wt);
-    git(repo, "worktree", "add", "-q", "-b", "side", wt);
+    const wt = join(repo, "sub");
+    mkdirSync(wt);
     const t = mk(wt, "From the worktree", "--body", "b");
     // files land in the main checkout, not in the worktree
     expect(existsSync(join(repo, t.path))).toBe(true);

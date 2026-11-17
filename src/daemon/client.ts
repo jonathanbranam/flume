@@ -3,7 +3,7 @@ import { readRecord } from "./record.ts";
 export const NOT_RUNNING =
   "flume: the flume daemon is not running for this project.\nAsk the human to start it: flume serve (in its own pane).\n";
 
-/** The daemon address: FLUME_URL if set, else the recorded one for the project at `cwd`. */
+/** The daemon address: FLUME_URL if set, else the one in the nearest .flume/daemon.json above `cwd`. */
 export function daemonUrl(cwd: string): string | undefined {
   const env = process.env.FLUME_URL;
   if (env) return env.replace(/\/+$/, "");
