@@ -51,3 +51,6 @@
 {"actor":"agent:manager","at":"2026-11-17T04:48:19.996597749Z","from":"built","task":"fl-yt5q","to":"integrated"}
 {"actor":"agent:roadmap","at":"2026-11-17T04:50:41.695684967Z","from":"claimed","task":"fl-s52x","to":"built"}
 {"actor":"agent:manager","at":"2026-11-17T04:51:08.998809209Z","from":"built","task":"fl-s52x","to":"integrated"}
+{"actor":"human","at":"2026-11-17T04:52:34.812Z","from":"","task":"fl-fruc","to":"pending"}
+{"actor":"human","at":"2026-11-17T04:52:34.835Z","from":"","task":"fl-gnef","to":"pending"}
+{"actor":"human","at":"2026-11-17T04:52:34.859Z","from":"","task":"fl-8vw7","to":"pending"}
