@@ -2,4 +2,20 @@
 tasks = [
     "fl-28pa",
     "fl-47b8",
+    "fl-4r5q",
 ]
+
+[[tier]]
+tasks = ["fl-w89j"]
+
+[[tier]]
+tasks = ["fl-brmx"]
+
+[[tier]]
+tasks = [
+    "fl-yt5q",
+    "fl-s52x",
+]
+
+[[tier]]
+tasks = ["fl-jc84"]

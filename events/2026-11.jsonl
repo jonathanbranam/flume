@@ -14,3 +14,9 @@
 {"actor":"human","at":"2026-11-17T04:10:37.470Z","from":"","task":"fl-brmx","to":"pending"}
 {"actor":"human","at":"2026-11-17T04:10:37.494Z","from":"","task":"fl-yt5q","to":"pending"}
 {"actor":"human","at":"2026-11-17T04:10:37.518Z","from":"","task":"fl-s52x","to":"pending"}
+{"actor":"external:orchestrator","at":"2026-11-17T04:10:52.363392024Z","from":"pending","task":"fl-4r5q","to":"open"}
+{"actor":"external:orchestrator","at":"2026-11-17T04:10:52.406056248Z","from":"pending","task":"fl-w89j","to":"open"}
+{"actor":"external:orchestrator","at":"2026-11-17T04:10:52.440708962Z","from":"pending","task":"fl-brmx","to":"open"}
+{"actor":"external:orchestrator","at":"2026-11-17T04:10:52.474559668Z","from":"pending","task":"fl-yt5q","to":"open"}
+{"actor":"external:orchestrator","at":"2026-11-17T04:10:52.508935143Z","from":"pending","task":"fl-s52x","to":"open"}
+{"actor":"external:orchestrator","at":"2026-11-17T04:10:57.683197160Z","queue":"reprioritized"}
