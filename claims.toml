@@ -1,9 +1,4 @@
 [[claim]]
-task = "fl-8g3q"
-claimed_by = "agent:ui-specs"
-claimed_at = "2026-11-17T04:38:22.505266440Z"
-
-[[claim]]
 task = "fl-w89j"
 claimed_by = "agent:core"
 claimed_at = "2026-11-17T04:38:17.897093573Z"
