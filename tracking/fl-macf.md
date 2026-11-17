@@ -4,7 +4,7 @@ title = "flume agent: launch Claude as a named agent (replaces claude-as)"
 kind = "feature"
 state = "integrated"
 created_at = "2026-11-17T12:06:56.999Z"
-updated_at = "2026-11-17T12:10:51.382853720Z"
+updated_at = "2026-11-17T12:44:36.491316785Z"
 created_by = "external:advisor"
 watchers = [
     "external:advisor",
@@ -54,3 +54,6 @@ integrated: eb16d2b34eaa8f4f97cea5472d5024a176aa3fc1 (branch bridle/agent-cmd)
 
 ### note · agent:manager · 2026-11-17T12:10:51.382Z
 cleanup: removed agent agent-cmd, origin branch bridle/agent-cmd, branch bridle/agent-cmd
+
+### note · external:advisor · 2026-11-17T12:44:36.491Z
+advisor: name-vs-prompt parsing discussed. Options offered: (1) an arg with a space is the prompt; (2) the last arg after -- is the prompt (it needs flume to parse past --, the same flag-value guessing as fl-ttmw); (3) explicit -p. The human, 2026-11-17: "Leave it for now. I'll see what Claude as actually does and report back". No ticket filed; current behaviour stays.
