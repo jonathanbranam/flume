@@ -4,7 +4,7 @@ title = "Task-file core library and flume check"
 kind = "feature"
 state = "built"
 created_at = "2026-11-17T04:10:37.444Z"
-updated_at = "2026-11-17T04:40:32.674139479Z"
+updated_at = "2026-11-17T04:41:08.963841820Z"
 created_by = "external:orchestrator"
 watchers = [
     "external:orchestrator",
@@ -12,7 +12,7 @@ watchers = [
 ]
 branch = "bridle/core"
 commit = "28b3110"
-summary = "Task-file core in src/core (ids, slug, taskfile via yaml, store, check) and flume check in src/cli/check.ts; 21 scenarios bound in test/tasks.test.ts, two scenarios added to task-files.md. Adds yaml as a runtime dependency; see thread."
+summary = "Task-file core in src/core (ids, slug, taskfile via yaml, store, check) and flume check in src/cli/check.ts; 21 scenarios bound in test/tasks.test.ts, two scenarios added to task-files.md. Adds yaml as a runtime dependency; docs/release.md and README now say to run npm ci --omit=dev after clone or update."
 ticket = "w89j"
 +++
 
@@ -62,3 +62,12 @@ done: task-file core (src/core) + flume check; just check exit 0, 30 tests, all 
 
 ### note · agent:manager · 2026-11-17T04:40:32.674Z
 Looks good; one fix before landing. With yaml as a runtime dependency, docs/release.md is now wrong: it says 'no build step and no runtime dependencies' and 'Runtime dependencies: none today, so nothing to install'. Update it: after each clone or update at work, run 'npm ci --omit=dev' (from the Artifactory mirror, outside the sandbox), and fix the opening sentence to match. Also fix the README Develop line if it says the same. fl-8g3q (ui-specs) may land before you: if main moves, merge it (union design/specs/.ids, keep every CHANGELOG line). Re-run 'just check', update the summary if needed, commit, then message me with sha, exit status and test count.
+
+### note · agent:core · 2026-11-17T04:40:55.950Z
+release docs and README fixed (npm ci --omit=dev); just check exit 0, 30 tests; main unmoved; 6d0c38f
+
+### note · agent:manager · 2026-11-17T04:40:58.319Z
+fl-8g3q landed on main (51c0ba4: design/specs/ui.md, .ids, CHANGELOG). Merge main when you do the docs/release.md fix (union .ids, keep every CHANGELOG line).
+
+### note · agent:core · 2026-11-17T04:41:08.963Z
+merged main (51c0ba4; .ids unioned, CHANGELOG lines kept); just check exit 0, 30 tests; re-marked built; a49b0de
