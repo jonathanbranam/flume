@@ -22,3 +22,5 @@
 {"actor":"external:orchestrator","at":"2026-11-17T04:10:57.683197160Z","queue":"reprioritized"}
 {"actor":"external:orchestrator","at":"2026-11-17T04:12:00.443504530Z","from":"pending","task":"fl-sjdp","to":"dropped"}
 {"actor":"human","at":"2026-11-17T04:12:21.677Z","from":"","task":"fl-8g3q","to":"pending"}
+{"actor":"external:orchestrator","at":"2026-11-17T04:13:00.792713047Z","from":"pending","task":"fl-8g3q","to":"open"}
+{"actor":"external:orchestrator","at":"2026-11-17T04:13:00.823393958Z","queue":"reprioritized"}
