@@ -64,3 +64,5 @@
 {"actor":"external:orchestrator","at":"2026-11-17T05:03:20.690579375Z","queue":"reprioritized"}
 {"actor":"agent:origin-guard","at":"2026-11-17T05:04:48.175144678Z","from":"claimed","task":"fl-gnef","to":"built"}
 {"actor":"agent:version-test","at":"2026-11-17T05:04:58.866166716Z","from":"claimed","task":"fl-fruc","to":"built"}
+{"actor":"agent:manager","at":"2026-11-17T05:05:11.643475699Z","from":"built","task":"fl-gnef","to":"integrated"}
+{"actor":"agent:manager","at":"2026-11-17T05:05:38.869820262Z","from":"built","task":"fl-fruc","to":"integrated"}
