@@ -9,6 +9,7 @@ changes: []
 specs: []
 blocked_by: []
 related: [fl-qgr7]
+resolved: 2026-11-17T14:14:25Z
 ---
 
 ## The ask
