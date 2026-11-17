@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Daemon refuses (403) requests with a foreign Host header (DNS rebinding) and POST/PATCH/DELETE with a foreign Origin header (CSRF); the CLI is unaffected; specs in design/specs/api.md (fl-gnef).
+
 ### Added
 
 - `flume roadmap show|check` on `flume/roadmap.md` (Markdown headings plus lists of task wiki links; a Done section holds finished work), `GET /api/roadmap`, and `flume check` runs the roadmap check too; specs in design/specs/roadmap.md (fl-s52x).

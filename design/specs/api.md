@@ -15,6 +15,27 @@ The daemon SHALL accept connections only on the loopback address 127.0.0.1.
 - **WHEN** a connection is made to the machine's non-loopback address on the daemon's port
 - **THEN** the connection is refused
 
+### Requirement: Browser requests from other sites are refused  {#r-5e1b}
+When a request's Host header is not 127.0.0.1 or localhost with the daemon's port, or a POST, PATCH or DELETE request carries an Origin header other than http://127.0.0.1 or http://localhost with the daemon's port, the daemon SHALL answer 403 with an error body and change nothing. A request with no Origin header (the command line client) SHALL be served as usual.
+
+#### Scenario: Foreign Host refused  {#s-7c20}
+*Verification*: **executable**
+- **GIVEN** a running daemon
+- **WHEN** GET /api/status is requested with the Host header evil.example
+- **THEN** the status is 403 and the body has an error message
+
+#### Scenario: Foreign Origin on a write refused  {#s-d4a9}
+*Verification*: **executable**
+- **GIVEN** a running daemon
+- **WHEN** POST /api/tasks is requested with the Origin header http://evil.example and a valid title
+- **THEN** the status is 403, the body has an error message and no task exists
+
+#### Scenario: Request without Origin accepted  {#s-0b63}
+*Verification*: **executable**
+- **GIVEN** a running daemon
+- **WHEN** POST /api/tasks is requested with no Origin header and a valid title
+- **THEN** the status is 201
+
 ### Requirement: Status reports project and version  {#r-95db}
 When GET /api/status is requested, the daemon SHALL answer 200 with the fields version (the Flume version string) and root (the absolute path of the project root).
 

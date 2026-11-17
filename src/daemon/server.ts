@@ -193,11 +193,24 @@ export function startDaemon(opts: {
     res.end(text);
   };
 
+  // Browser attacks: DNS rebinding (foreign Host) and cross-site writes (foreign Origin).
+  const guard = (req: IncomingMessage) => {
+    const { port } = server.address() as AddressInfo;
+    const own = [`127.0.0.1:${port}`, `localhost:${port}`];
+    if (!own.includes(req.headers.host ?? "")) throw new HttpError(403, "foreign Host header");
+    const origin = req.headers.origin;
+    if (origin !== undefined && req.method !== "GET" && req.method !== "HEAD") {
+      if (!own.some((h) => origin === `http://${h}`))
+        throw new HttpError(403, "foreign Origin header");
+    }
+  };
+
   const server = createServer((req: IncomingMessage, res: ServerResponse) => {
     const chunks: Buffer[] = [];
     req.on("data", (d: Buffer) => chunks.push(d));
     req.on("end", () => {
       try {
+        guard(req);
         const url = new URL(req.url ?? "/", "http://127.0.0.1");
         const raw = Buffer.concat(chunks).toString("utf8");
         let body: Json = {};

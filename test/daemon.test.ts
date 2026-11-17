@@ -9,6 +9,7 @@ import {
   rmSync,
   writeFileSync,
 } from "node:fs";
+import { request } from "node:http";
 import { networkInterfaces, tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, afterEach, beforeEach, describe, expect, it } from "vitest";
@@ -81,7 +82,50 @@ const commitsSince = (sha: string) =>
   git(root, "rev-list", `${sha}..HEAD`).split("\n").filter(Boolean);
 const clean = () => git(root, "status", "--porcelain");
 
+function raw(method: string, path: string, headers: Record<string, string>, body?: unknown) {
+  const u = new URL(d?.url ?? "");
+  return new Promise<{ status: number; body: any }>((resolve, reject) => {
+    const text = body === undefined ? undefined : JSON.stringify(body);
+    const req = request(
+      {
+        host: u.hostname,
+        port: u.port,
+        method,
+        path,
+        headers: { ...headers, "content-type": "application/json" },
+      },
+      (res) => {
+        let data = "";
+        res.on("data", (c) => {
+          data += c;
+        });
+        res.on("end", () => resolve({ status: res.statusCode ?? 0, body: JSON.parse(data) }));
+      },
+    );
+    req.on("error", reject);
+    req.end(text);
+  });
+}
+
 describe("daemon api", () => {
+  it("s-7c20 foreign Host refused", async () => {
+    const r = await raw("GET", "/api/status", { host: "evil.example" });
+    expect(r.status).toBe(403);
+    expect(r.body.error).toBeTruthy();
+  });
+
+  it("s-d4a9 foreign Origin on a write refused", async () => {
+    const r = await raw("POST", "/api/tasks", { origin: "http://evil.example" }, { title: "x" });
+    expect(r.status).toBe(403);
+    expect(r.body.error).toBeTruthy();
+    expect(files("open")).toEqual([]);
+  });
+
+  it("s-0b63 request without Origin accepted", async () => {
+    const r = await raw("POST", "/api/tasks", {}, { title: "x" });
+    expect(r.status).toBe(201);
+  });
+
   it("s-92a8 not reachable from other addresses", async () => {
     const other = Object.values(networkInterfaces())
       .flat()
