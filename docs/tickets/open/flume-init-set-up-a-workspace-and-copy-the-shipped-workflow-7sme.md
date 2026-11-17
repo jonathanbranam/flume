@@ -36,10 +36,10 @@ On advisor's proposal: "1. yes flume init is the right name 2. yes 3. no, it fai
 3. **`flume serve`** with no `.flume/` in the current folder fails: no flume workspace here; run flume init first. `serve` drops `--root` (it moves to `init`); `serve` reads `root` from `config.toml`.
 4. **Prime stays built into flume,** not on disk: it changes with flume's commands. The workflow is separate content.
 5. **Shipped workflow content, day one:** one placeholder file, `.flume/workflow/workflow.md`, with a short heading and a line saying this is flume's base workflow, replaced on `flume init --force`. Real content comes from the human's agent workflow (worktrees, merge main before exit, agents don't push, commands to avoid), in a later ticket.
-6. Specs (cli.md: init, serve) and tests in the same change; README install steps say `flume init --root ...` once, then `flume serve`.
+6. **Layers are just reading order; flume merges nothing.** The prime (when the workspace has `.flume/workflow/`) adds one short line: read the files in `<workspace>/.flume/workflow/` in name order, then the project's own instructions (its CLAUDE.md, per fl-vpsb); where they conflict, project (repo) rules override workspace rules. The human, 2026-11-17: "lets KISS and YAGNI for now: for any type of "instructions" or "workflow" we can just tell the agent to read the files in order and that project (repo) level rules override workspace level rules."
+7. Specs (cli.md: init, serve) and tests in the same change; README install steps say `flume init --root ...` once, then `flume serve`.
 
 ## Assumptions (assume-and-record)
 
 - **`--force` with a different `--root`:** updates `root` in config.toml; `--force` without `--root` keeps config.toml as is.
-- **Prime does not mention the workflow yet** (placeholder only); add the pointer when the real workflow lands.
 - **Not now:** workspace and project layers, merging layers, any workflow content beyond the placeholder.
