@@ -1,6 +1,6 @@
 ---
 id: fl-4dgp
-title: "flume serve per area: .flume/ folder, config.toml root, find the server by walking up"
+title: "flume serve per workspace: .flume/ folder, config.toml root, find the server by walking up"
 kind: feature
 created: 2026-11-17
 created_by: external:advisor
@@ -28,6 +28,10 @@ The human, 2026-11-17 (verbatim excerpts):
 > for configuration though I want toml, not JSON; I hate JSON for config; config is either TOML or YAML ... I generally find toml much easier to edit and yaml ends up getting really deep and nested
 
 > agree, daemon.json is not config, it can stay as JSON. agre on toml and agree that running 'flume serve' in area-1 after the setting the --root the first time should work.
+
+## Name: workspace
+
+The grouping of related projects is a **workspace**. The human, 2026-11-17: "yes workspace" (over program, suite, group). Read "area" in this ticket as "workspace" (the human's quotes keep their words); code, specs, help, docs and errors say workspace, e.g. `workspace-1/`, "the workspace folder".
 
 ## Layout
 
