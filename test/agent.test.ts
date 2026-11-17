@@ -1,5 +1,13 @@
 import { spawnSync } from "node:child_process";
-import { chmodSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import {
+  chmodSync,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
@@ -63,7 +71,7 @@ const writeEntry = (n: string, e: Record<string, string>) => {
 
 describe("flume agent specs", () => {
   it("s-a1c1 launch by name", () => {
-    const r = flume(["agent", "alpha"], { FAKE_CLAUDE_EXIT: "3" });
+    const r = flume(["agent", "--name", "alpha"], { FAKE_CLAUDE_EXIT: "3" });
     expect(r.code).toBe(3);
     expect(claudeRuns()).toHaveLength(1);
     expect(claudeRuns()[0]).toContain("AGENT_NAME=alpha");
@@ -71,37 +79,46 @@ describe("flume agent specs", () => {
   });
 
   it("s-a2c1 options before the name", () => {
-    flume(["agent", "--project", "web", "alpha"]);
+    flume(["agent", "--project", "web", "--name", "alpha"]);
     expect(claudeRuns()[0]).toContain("AGENT_NAME=alpha");
     expect(claudeRuns()[0]).toContain("AGENT_PROJECT=web");
   });
 
   it("s-a2c2 unrecognized arguments and double dash", () => {
-    flume(["agent", "alpha", "--model=opus", "--", "--force", "-p"]);
-    expect(args(claudeRuns()[0] as string[]).slice(0, 3)).toEqual([
+    flume(["agent", "--name", "alpha", "--model=opus", "--", "--force", "-p"]);
+    const run = args(claudeRuns()[0] as string[]);
+    expect(run.slice(run.indexOf("--model=opus"), run.indexOf("--model=opus") + 3)).toEqual([
       "--model=opus",
       "--force",
       "-p",
     ]);
   });
 
-  it("s-d1c1 flag value after the name", () => {
-    flume(["agent", "alpha", "--model", "opus"]);
+  it("s-d1c1 value before and after the prompt", () => {
+    flume(["agent", "--name", "alpha", "--model", "opus", "do xyz"]);
     const a = args(claudeRuns()[0] as string[]);
-    expect(claudeRuns()[0]).toContain("AGENT_NAME=alpha");
-    expect(a.slice(0, 2)).toEqual(["--model", "opus"]);
-    expect(a[a.length - 1]).not.toContain("opus");
+    expect(a.slice(a.indexOf("--model"), a.indexOf("--model") + 2)).toEqual(["--model", "opus"]);
+    expect(a.at(-1)).toBe("do xyz");
   });
 
-  it("s-d1c2 flag value before the name", () => {
-    flume(["agent", "--model", "opus", "alpha"]);
-    expect(claudeRuns()[0]).toContain("AGENT_NAME=alpha");
-    expect(args(claudeRuns()[0] as string[]).slice(0, 2)).toEqual(["--model", "opus"]);
+  it("s-d1c2 several values", () => {
+    flume(["agent", "--name", "alpha", "--add-dir", "a", "b", "--", "do xyz"]);
+    const a = args(claudeRuns()[0] as string[]);
+    const i = a.indexOf("--add-dir");
+    expect(a.slice(i, i + 3)).toEqual(["--add-dir", "a", "b"]);
+    expect(a.at(-1)).toBe("do xyz");
+  });
+
+  it("s-d1c3 optional value", () => {
+    flume(["agent", "--name", "alpha", "--resume", "--model", "opus"]);
+    const a = args(claudeRuns()[0] as string[]);
+    const i = a.indexOf("--resume");
+    expect(a.slice(i, i + 4)).toEqual(["--resume", "--model", "opus", "--"]);
   });
 
   it("s-a3c1 project saved and reused", () => {
-    flume(["agent", "alpha", "--project", "web"]);
-    flume(["agent", "alpha"]);
+    flume(["agent", "--name", "alpha", "--project", "web"]);
+    flume(["agent", "--name", "alpha"]);
     expect(claudeRuns()[1]).toContain("AGENT_PROJECT=web");
     expect(entry("alpha").project).toBe("web");
   });
@@ -112,14 +129,16 @@ describe("flume agent specs", () => {
   });
 
   it("s-a4c2 no name anywhere", () => {
-    const r = flume(["agent"]);
+    const r = flume(["agent", "pick up it's xyz", "--model", "opus"]);
     expect(r.code).toBe(2);
-    expect(r.err).toContain("Usage");
+    expect(claudeRuns()).toHaveLength(0);
+    expect(r.err).toContain("--name");
+    expect(r.err.split("\n")).toContain("flume agent 'pick up it'\\''s xyz' --model opus");
   });
 
   it("s-a5c1 refused when tied to another pane", () => {
     writeEntry("alpha", { name: "alpha", project: "", pane: "%7", created: "", last_launch: "" });
-    const r = flume(["agent", "alpha"], { TMUX_PANE: "%1" });
+    const r = flume(["agent", "--name", "alpha"], { TMUX_PANE: "%1" });
     expect(r.code).toBe(1);
     expect(r.err).toContain("%7");
     expect(claudeRuns()).toHaveLength(0);
@@ -127,39 +146,78 @@ describe("flume agent specs", () => {
 
   it("s-a5c2 forced", () => {
     writeEntry("alpha", { name: "alpha", project: "", pane: "%7", created: "", last_launch: "" });
-    const r = flume(["agent", "alpha", "--force"], { TMUX_PANE: "%1" });
+    const r = flume(["agent", "--name", "alpha", "--force"], { TMUX_PANE: "%1" });
     expect(r.code).toBe(0);
     expect(claudeRuns()).toHaveLength(1);
     expect(entry("alpha").pane).toBe("%1");
     expect(readFileSync(join(dir, "tmux.log"), "utf8")).toContain("@flume_agent alpha");
   });
 
-  it("s-a6c1 default prompt contents", () => {
-    flume(["agent", "alpha", "--project", "web", "pick up xyz"]);
-    const last = args(claudeRuns()[0] as string[]).at(-1) as string;
-    expect(last).toContain("You are agent alpha");
-    expect(last).toContain("You are working on project web");
-    expect(last).toContain("pick up xyz");
+  it("s-a6c1 prime in the system prompt", () => {
+    flume(["agent", "--name", "alpha", "--project", "web", "pick up xyz"]);
+    const a = args(claudeRuns()[0] as string[]);
+    const prime = a[a.indexOf("--append-system-prompt") + 1] as string;
+    expect(prime).toContain("You are agent alpha");
+    expect(prime).toContain("You are working on project web");
+    expect(a[a.indexOf("--name") + 1]).toBe("alpha");
+    expect(a.at(-1)).toBe("pick up xyz");
   });
 
-  it("s-a7c1 system mode", () => {
-    flume(["agent", "alpha", "--system"]);
+  it("s-a7c1 default first prompt", () => {
+    flume(["agent", "--name", "alpha", "--add-dir", "x"]);
     const a = args(claudeRuns()[0] as string[]);
-    const i = a.indexOf("--append-system-prompt");
-    expect(a[i + 1]).toContain("You are agent alpha");
-    const last = a.at(-1) as string;
-    expect(last).not.toBe("");
-    expect(last).not.toContain("You are agent alpha");
+    expect(a.at(-1)).not.toBe("");
+    expect(a.at(-1)).not.toContain("You are agent alpha");
+    expect(a.at(-2)).toBe("--");
+  });
+
+  it("s-a1c2 name with an equals sign", () => {
+    flume(["agent", "--name=alpha"]);
+    expect(claudeRuns()[0]).toContain("AGENT_NAME=alpha");
+  });
+
+  it("s-a2c3 a bare argument is not a name", () => {
+    const r = flume(["agent", "alpha"]);
+    expect(r.code).toBe(2);
+    expect(claudeRuns()).toHaveLength(0);
+    expect(existsSync(join(dir, "home", ".flume", "agents", "alpha.json"))).toBe(false);
+  });
+
+  const refused = (a: string[]) => {
+    const r = flume(["agent", "--name", "alpha", ...a]);
+    expect(r.code).toBe(2);
+    expect(r.err).not.toBe("");
+    expect(claudeRuns()).toHaveLength(0);
+  };
+  it("s-c1c1 two prompts", () => refused(["one", "--", "two"]));
+  it("s-c1c2 claude name after the double dash", () => refused(["--", "--name", "other"]));
+  it("s-c1c3 appended system prompt", () => refused(["--append-system-prompt", "extra"]));
+  it("s-c1c4 repeated single-value option", () =>
+    refused(["--model", "opus", "--", "--model", "haiku"]));
+  it("s-c1c6 missing value", () => refused(["--model"]));
+
+  it("s-c1c5 several-value option may repeat", () => {
+    const r = flume(["agent", "--name", "alpha", "--add-dir", "a", "--", "--add-dir", "b"]);
+    expect(r.code).toBe(0);
+    const a = args(claudeRuns()[0] as string[]);
+    expect(a.join(" ")).toContain("--add-dir a --add-dir b");
+  });
+
+  it("s-c2c1 help", () => {
+    const r = flume(["agent", "--help"]);
+    expect(r.code).toBe(0);
+    expect(r.out).toContain("[--force]");
+    expect(r.out).toContain("[--]");
   });
 
   it("s-a8c1 template override", () => {
     mkdirSync(join(dir, "home", ".flume", "templates"), { recursive: true });
     writeFileSync(join(dir, "home", ".flume", "templates", "base.md"), "Hello {name}");
-    expect(flume(["prime", "alpha"]).out).toContain("Hello alpha");
+    expect(flume(["prime", "--name", "alpha"]).out).toContain("Hello alpha");
   });
 
   it("s-a9c1 prime with a project", () => {
-    const r = flume(["prime", "alpha", "--project", "web"]);
+    const r = flume(["prime", "--name", "alpha", "--project", "web"]);
     expect(r.code).toBe(0);
     expect(r.out).toContain("You are agent alpha");
     expect(r.out).toContain("You are working on project web");
@@ -183,7 +241,7 @@ describe("flume agent specs", () => {
   });
 
   it("s-b2c1 show", () => {
-    flume(["agent", "alpha", "--project", "web"]);
+    flume(["agent", "--name", "alpha", "--project", "web"]);
     const r = flume(["agent", "show", "alpha"]);
     expect(r.code).toBe(0);
     expect(r.out).toContain('"project": "web"');

@@ -53,8 +53,8 @@ Releases and how they are cut are in `docs/release.md`.
 
 ## Use
 
-`flume agent <name> [--project <p>]` launches Claude Code as a named agent (needs `claude` on PATH;
-`tmux` optional), `flume agent list` lists agents, `flume prime <name>` prints the prime text.
+`flume agent --name <name> [--project <p>] [<prompt>]` launches Claude Code as a named agent (needs `claude` on PATH;
+`tmux` optional), `flume agent list` lists agents, `flume prime --name <name>` prints the prime text.
 See `docs/release.md` and `design/specs/agent.md`.
 
 ## Develop

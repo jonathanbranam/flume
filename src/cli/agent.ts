@@ -4,19 +4,23 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 
 const USAGE = `Usage:
-  flume agent [<name>] [--project <p>] [--force] [--system] ["<one-off prompt>"] [claude args] [-- claude args]
+  flume agent [--name <name>] [--project <p>] [--force] [<claude-option>...] [--] [<prompt>]
   flume agent list
   flume agent show <name>
-  flume prime [<name>] [--project <p>]
+  flume prime [--name <name>] [--project <p>]
 
-Launch Claude Code as a named agent. Flags flume knows (--project, --force, --system) are
-consumed; other arguments pass to claude unchanged; "--" passes everything after it to claude.
-With no name, the name comes from the tmux pane option @flume_agent.
+Launch Claude Code as a named agent. The name comes only from --name, else from the tmux
+pane option @flume_agent. One bare argument is the prompt sent to the agent (quote it); with
+none, flume sends a short default. Flume consumes --name, --project and --force; every other
+argument goes to claude, and so does everything after "--", which flume checks only for
+conflicts (a second prompt, -n/--name, --append-system-prompt[-file], a repeated single-value
+option, an option missing its value) and exits 2 on one. The prime text always goes to claude
+with --append-system-prompt, and flume always passes --name <name>.
 `;
 
 const DEFAULT_BASE = "You are agent {name}, stored in $AGENT_NAME.\n";
 const DEFAULT_PROJECT = "You are working on project {project}.\n";
-const KICKOFF = "Read your instructions in the system prompt and start.";
+const DEFAULT_PROMPT = "Check your tickets and status, suggest next steps, and follow up.";
 const NAME_RE = /^[a-z0-9][a-z0-9-]*$/;
 
 interface Entry {
@@ -31,7 +35,6 @@ interface Parsed {
   name?: string;
   project?: string;
   force: boolean;
-  system: boolean;
   prompt?: string;
   passthrough: string[];
 }
@@ -63,49 +66,120 @@ function livePanes(): Map<string, string> {
   return panes;
 }
 
-/** claude flags that take a separate value; the value passes through with the flag. */
-const VALUE_FLAGS = new Set([
-  "--model",
-  "--permission-mode",
-  "--resume",
-  "-r",
-  "--add-dir",
-  "--settings",
-  "--allowedTools",
-  "--disallowedTools",
-  "--mcp-config",
-  "--fallback-model",
-  "--session-id",
-  "--agents",
-  "--append-system-prompt",
-  "--system-prompt",
-]);
+type Kind = "one" | "many" | "opt" | "rep";
+
+/**
+ * Claude's options that take a value, from `claude --help` (option names, first is canonical).
+ * one = <x> (one value, may not repeat), many = <x...> (every following non-dash argument,
+ * may repeat), rep = <x> that may repeat, opt = [x] (optional value). Others are switches.
+ */
+const OPTIONS: [Kind, string[]][] = [
+  ["many", ["--add-dir"]],
+  ["one", ["--agent"]],
+  ["one", ["--agents"]],
+  ["many", ["--allowedTools", "--allowed-tools"]],
+  ["one", ["--append-system-prompt"]],
+  ["one", ["--append-system-prompt-file"]],
+  ["one", ["--autocompact"]],
+  ["many", ["--betas"]],
+  ["opt", ["--cloud"]],
+  ["opt", ["-d", "--debug"]],
+  ["one", ["--debug-file"]],
+  ["many", ["--disallowedTools", "--disallowed-tools"]],
+  ["one", ["--effort"]],
+  ["one", ["--environment"]],
+  ["one", ["--fallback-model"]],
+  ["many", ["--file"]],
+  ["opt", ["--from-pr"]],
+  ["one", ["--input-format"]],
+  ["one", ["--json-schema"]],
+  ["one", ["--max-budget-usd"]],
+  ["many", ["--mcp-config"]],
+  ["one", ["--model"]],
+  ["one", ["-n", "--name"]],
+  ["one", ["--output-format"]],
+  ["one", ["--permission-mode"]],
+  ["one", ["--permission-prompts"]],
+  ["rep", ["--plugin-dir"]],
+  ["rep", ["--plugin-url"]],
+  ["opt", ["--prompt-suggestions"]],
+  ["opt", ["--remote-control"]],
+  ["one", ["--remote-control-session-name-prefix"]],
+  ["opt", ["-r", "--resume"]],
+  ["one", ["--session-id"]],
+  ["one", ["--setting-sources"]],
+  ["one", ["--settings"]],
+  ["one", ["--system-prompt"]],
+  ["one", ["--system-prompt-file"]],
+  ["one", ["--system-prompt-snapshot"]],
+  ["opt", ["--teleport"]],
+  ["many", ["--tools"]],
+  ["opt", ["-w", "--worktree"]],
+];
+const OPTION = new Map<string, [Kind, string]>();
+for (const [kind, names] of OPTIONS)
+  for (const n of names) OPTION.set(n, [kind, names[0] as string]);
+
+/** Shell-quote one word so it pastes back exactly. */
+function shq(w: string): string {
+  return /^[A-Za-z0-9_@%+=:,./-]+$/.test(w) ? w : `'${w.replaceAll("'", "'\\''")}'`;
+}
 
 function parse(args: string[]): Parsed | string {
-  const p: Parsed = { force: false, system: false, passthrough: [] };
+  const p: Parsed = { force: false, passthrough: [] };
+  const seen = new Set<string>();
+  const bare: string[] = [];
+  let afterDash = false;
   for (let i = 0; i < args.length; i++) {
     const a = args[i] as string;
-    if (a === "--") {
-      p.passthrough.push(...args.slice(i + 1));
-      break;
+    if (!afterDash && a === "--") {
+      afterDash = true;
+      continue;
     }
-    if (a === "--force") p.force = true;
-    else if (a === "--system") p.system = true;
-    else if (a === "--project") {
+    if (!afterDash && a === "--force") {
+      p.force = true;
+      continue;
+    }
+    if (!afterDash && (a === "--project" || a === "--name")) {
       const v = args[++i];
-      if (v === undefined) return "--project needs a value";
-      p.project = v;
-    } else if (a.startsWith("-")) {
-      p.passthrough.push(a);
-      const v = args[i + 1];
-      if (VALUE_FLAGS.has(a) && v !== undefined) {
-        p.passthrough.push(v);
-        i++;
-      }
-    } else if (NAME_RE.test(a) && p.name === undefined) p.name = a;
-    else if (p.prompt === undefined) p.prompt = a;
-    else p.passthrough.push(a);
+      if (v === undefined) return `${a} needs a value`;
+      if (a === "--project") p.project = v;
+      else p.name = v;
+      continue;
+    }
+    if (!afterDash && a.startsWith("--name=")) {
+      p.name = a.slice(7);
+      continue;
+    }
+    if (!a.startsWith("-")) {
+      bare.push(a);
+      if (bare.length > 1) return "more than one prompt; quote the prompt as one argument";
+      continue;
+    }
+    const eq = a.indexOf("=");
+    const flag = a.startsWith("--") && eq > 0 ? a.slice(0, eq) : a;
+    const opt = OPTION.get(flag);
+    p.passthrough.push(a);
+    if (flag === "--append-system-prompt" || flag === "--append-system-prompt-file")
+      return `${flag} conflicts with the prime text flume always passes with --append-system-prompt`;
+    if (opt?.[1] === "-n")
+      return `${flag} conflicts with the --name <agent> flume always passes to claude`;
+    if (!opt) continue;
+    const [kind, canon] = opt;
+    if (kind === "one" && seen.has(canon)) return `${flag} given twice; claude keeps only the last`;
+    seen.add(canon);
+    if (eq > 0 && a.startsWith("--")) continue;
+    const takes = (v: string | undefined) => v !== undefined && !v.startsWith("-");
+    if (kind === "opt") {
+      if (takes(args[i + 1])) p.passthrough.push(args[++i] as string);
+    } else if (!takes(args[i + 1])) {
+      return `${flag} needs a value`;
+    } else {
+      p.passthrough.push(args[++i] as string);
+      if (kind === "many") while (takes(args[i + 1])) p.passthrough.push(args[++i] as string);
+    }
   }
+  p.prompt = bare[0];
   return p;
 }
 
@@ -187,7 +261,9 @@ export function prime(args: string[]): number {
   }
   const name = p.name ?? paneName();
   if (!name) {
-    process.stderr.write(`flume: no agent name given and none in the tmux pane\n\n${USAGE}`);
+    process.stderr.write(
+      `flume: no agent name given (use --name <name>) and none in the tmux pane\n\n${USAGE}`,
+    );
     return 2;
   }
   process.stdout.write(primeText(name, p.project ?? readEntry(name)?.project ?? ""));
@@ -210,7 +286,9 @@ export function agent(args: string[]): number {
   }
   const name = p.name ?? paneName();
   if (!name) {
-    process.stderr.write(`flume: no agent name given and none in the tmux pane\n\n${USAGE}`);
+    process.stderr.write(
+      `flume: this agent has no name; start again with --name <name>\n\n${["flume", "agent", ...args].map(shq).join(" ")}\n`,
+    );
     return 2;
   }
   const old = readEntry(name);
@@ -228,13 +306,15 @@ export function agent(args: string[]): number {
   writeFileSync(entryFile(name), `${JSON.stringify(entry, null, 2)}\n`);
   if (pane) tmux(["set-option", "-p", "-t", pane, "@flume_agent", name]);
 
-  const prime = primeText(name, project);
-  const claudeArgs = [...p.passthrough];
-  if (p.system) {
-    claudeArgs.push("--append-system-prompt", prime, p.prompt ?? KICKOFF);
-  } else {
-    claudeArgs.push(p.prompt ? `${prime}\n${p.prompt}` : prime);
-  }
+  const claudeArgs = [
+    "--append-system-prompt",
+    primeText(name, project),
+    "--name",
+    name,
+    ...p.passthrough,
+    "--",
+    p.prompt ?? DEFAULT_PROMPT,
+  ];
   const env: NodeJS.ProcessEnv = { ...process.env, AGENT_NAME: name };
   if (project) env.AGENT_PROJECT = project;
   const r = spawnSync("claude", claudeArgs, { stdio: "inherit", env });

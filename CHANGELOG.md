@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed
+
+- `flume agent`: the name is only `--name <n>` (or the tmux pane); one bare argument is the prompt, sent exactly (a short default when none); the prime text goes in `--append-system-prompt`, `--system` is gone, and claude gets `--name <agent>`. Claude's options are parsed by its own rules, also after `--`, and conflicts (two prompts, -n/--name, --append-system-prompt, a repeated single-value option, a missing value) exit 2 (fl-xv3z).
+
 ### Fixed
 
 - `flume agent alice --model opus` passes `opus` to claude as the flag's value instead of taking it as the prompt or name; covers claude's value-taking flags (fl-ttmw).
