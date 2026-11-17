@@ -2,9 +2,9 @@
 id = "fl-qgr7"
 title = "flume task: not-running message tells the agent to ask the human to run flume serve"
 kind = "fix"
-state = "open"
+state = "planned"
 created_at = "2026-11-17T13:46:02.688Z"
-updated_at = "2026-11-17T13:46:10.410326419Z"
+updated_at = "2026-11-17T13:52:22.683480186Z"
 created_by = "external:advisor"
 watchers = ["external:advisor"]
 ticket = "qgr7"

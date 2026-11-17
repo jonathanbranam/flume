@@ -115,3 +115,7 @@
 {"actor":"agent:manager","at":"2026-11-17T13:48:02.844744405Z","from":"built","task":"fl-zdqr","to":"integrated"}
 {"actor":"human","at":"2026-11-17T13:51:58.989Z","from":"","task":"fl-vpsb","to":"pending"}
 {"actor":"external:advisor","at":"2026-11-17T13:52:05.686729486Z","from":"pending","task":"fl-vpsb","to":"open"}
+{"actor":"external:orchestrator","at":"2026-11-17T13:52:22.683480186Z","from":"open","task":"fl-qgr7","to":"planned"}
+{"actor":"external:orchestrator","at":"2026-11-17T13:52:22.696625606Z","from":"open","task":"fl-5xjg","to":"planned"}
+{"actor":"external:orchestrator","at":"2026-11-17T13:52:22.708131974Z","from":"open","task":"fl-ha4p","to":"planned"}
+{"actor":"external:orchestrator","at":"2026-11-17T13:52:26.735182104Z","queue":"reprioritized"}
