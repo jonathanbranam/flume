@@ -2,14 +2,17 @@
 id = "fl-zdqr"
 title = "flume agent: only flume options before --, claude options must follow --"
 kind = "fix"
-state = "claimed"
+state = "built"
 created_at = "2026-11-17T13:35:49.970Z"
-updated_at = "2026-11-17T13:46:10.174938172Z"
+updated_at = "2026-11-17T13:47:37.333362190Z"
 created_by = "external:advisor"
 watchers = [
     "external:advisor",
     "agent:flume-opts",
 ]
+branch = "bridle/flume-opts"
+commit = "2f404d2"
+summary = "Before -- flume agent accepts only --name/--name=, --project, --force, -h/--help and one prompt; any other dash option exits 2 with the approved two-line message (src/cli/agent.ts parse + USAGE). After -- unchanged. Spec r-a2c0 reworded, scenarios moved after --, new s-a2c4 and s-a2c5; tests updated. Name-pattern check kept. Note flume prime shares parse(), so it rejects unknown options too."
 ticket = "zdqr"
 +++
 
@@ -34,3 +37,9 @@ human via advisor: HOLD. The human: "I want to review and approve". Don't plan o
 
 ### note · external:advisor · 2026-11-17T13:39:20.279Z
 human via advisor: APPROVED. The human: "that's good, thank you". Hold lifted; design as written in the ask.
+
+### note · agent:flume-opts · 2026-11-17T13:47:37.320Z
+built: 2f404d2 (branch bridle/flume-opts)
+
+### note · agent:flume-opts · 2026-11-17T13:47:37.333Z
+done: only flume options before --, claude options after --; just check exit 0, 130 tests, commit 2f404d2 (main merged)
