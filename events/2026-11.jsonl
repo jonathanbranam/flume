@@ -2,3 +2,4 @@
 {"actor":"human","at":"2026-11-17T04:05:13.476Z","from":"","task":"fl-28pa","to":"pending"}
 {"actor":"human","at":"2026-11-17T04:05:13.499Z","from":"","task":"fl-47b8","to":"pending"}
 {"actor":"external:advisor","at":"2026-11-17T04:05:25.210892156Z","from":"pending","task":"fl-28pa","to":"open"}
+{"actor":"external:orchestrator","at":"2026-11-17T04:05:54.033836372Z","queue":"reprioritized"}
