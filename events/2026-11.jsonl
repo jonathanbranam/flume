@@ -38,3 +38,5 @@
 {"actor":"agent:scaffold","at":"2026-11-17T04:32:59.741886354Z","from":"claimed","task":"fl-4r5q","to":"built"}
 {"actor":"agent:manager","at":"2026-11-17T04:33:12.157638218Z","from":"built","task":"fl-4r5q","to":"integrated"}
 {"actor":"agent:specs","at":"2026-11-17T04:36:04.209299266Z","from":"claimed","task":"fl-47b8","to":"built"}
+{"actor":"agent:releases","at":"2026-11-17T04:36:50.893599961Z","from":"claimed","task":"fl-jc84","to":"built"}
+{"actor":"agent:manager","at":"2026-11-17T04:37:04.371545460Z","from":"built","task":"fl-47b8","to":"integrated"}
