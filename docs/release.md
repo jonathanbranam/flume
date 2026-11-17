@@ -21,6 +21,14 @@ Updates reach the work machine by `git clone` / `git pull` from the public GitHu
   sandbox) to install the runtime dependencies (`yaml`).
 - Run: `node bin/flume.js` (or `npm run flume`). `flume version` prints `<version> (<commit>)`.
 
+## Using `flume agent`
+
+After the install above, no daemon is needed. Put a `flume` shim on PATH, e.g. `alias flume='node <checkout>/bin/flume.js'`
+(or `ln -s <checkout>/bin/flume.js ~/bin/flume`), with `claude` and (optionally) `tmux` on PATH.
+Then `flume agent <name> [--project <p>]` starts Claude as that agent; `flume agent list` shows them.
+Optional template overrides go in `~/.flume/templates/base.md` and `project.md`.
+Spec: `design/specs/agent.md`.
+
 ## Bug reports
 
 `flume bug` prints a template that starts with the version line. Fill it in and email it; the

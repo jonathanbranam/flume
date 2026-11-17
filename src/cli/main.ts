@@ -1,3 +1,4 @@
+import { agent, prime } from "./agent.ts";
 import { bugTemplate } from "./bug.ts";
 import { check } from "./check.ts";
 import { serve, status, stop } from "./daemon.ts";
@@ -17,6 +18,8 @@ Commands:
   task       new, show, list, update, note, close, reopen (flume task --help)
   roadmap    show, check (flume roadmap --help)
   check      validate the task files; one line per problem, exit 1 if any
+  agent      launch Claude as a named agent; list, show (flume agent --help)
+  prime      print the prime text flume agent would send
   bug        print a bug-report template to paste into an email
   --help     show this help
 `;
@@ -46,6 +49,8 @@ export async function main(args: string[]): Promise<number> {
   }
   if (command === "task") return task(process.cwd(), args.slice(1));
   if (command === "roadmap") return roadmap(process.cwd(), args.slice(1));
+  if (command === "agent") return agent(args.slice(1));
+  if (command === "prime") return prime(args.slice(1));
   if (command === "check") return check(process.cwd());
   process.stderr.write(`flume: unknown command '${command}'\n\n${HELP}`);
   return 2;
