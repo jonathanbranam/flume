@@ -152,3 +152,4 @@
 {"actor":"external:orchestrator","at":"2026-11-17T14:21:22.565275136Z","from":"open","task":"fl-k9pk","to":"planned"}
 {"actor":"external:orchestrator","at":"2026-11-17T14:21:22.571914451Z","queue":"reprioritized"}
 {"actor":"agent:ws-message","at":"2026-11-17T14:22:25.005579638Z","from":"claimed","task":"fl-k9pk","to":"built"}
+{"actor":"agent:manager","at":"2026-11-17T14:22:52.857175718Z","from":"built","task":"fl-k9pk","to":"integrated"}
