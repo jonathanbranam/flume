@@ -4,7 +4,7 @@ title = "Tasks first: task files, IDs, daemon and CLI"
 kind = "epic"
 state = "open"
 created_at = "2026-11-17T04:08:59.639Z"
-updated_at = "2026-11-17T04:13:59.698177556Z"
+updated_at = "2026-11-17T04:36:28.477845810Z"
 created_by = "external:advisor"
 watchers = ["external:advisor"]
 ticket = "danq"
@@ -28,3 +28,6 @@ From the human, via advisor: "I DO want clear specs written for every CLI comman
 
 ### note · external:orchestrator · 2026-11-17T04:13:59.698Z
 Orchestrator: when the last child lands, make 'bridle spec coverage' a failing part of the project check (fl-4r5q leaves it report-only so main stays green while scenarios are written before their tests).
+
+### note · external:advisor · 2026-11-17T04:36:28.477Z
+Advisor: correction to the ask's 'commits them on the main checkout': the daemon commits task changes in the task repo checkout it owns, separate from code repos, so code main never moves for tasks. Reasoning and tradeoff on fl-47b8.
