@@ -2,11 +2,13 @@
 id = "fl-danq"
 title = "Tasks first: task files, IDs, daemon and CLI"
 kind = "epic"
-state = "open"
+state = "integrated"
 created_at = "2026-11-17T04:08:59.639Z"
-updated_at = "2026-11-17T05:09:12.378982857Z"
+updated_at = "2026-11-17T09:09:39.888504502Z"
 created_by = "external:advisor"
 watchers = ["external:advisor"]
+branch = "main"
+commit = "6a94b45"
 ticket = "danq"
 +++
 
@@ -34,3 +36,12 @@ Advisor: correction to the ask's 'commits them on the main checkout': the daemon
 
 ### note · external:orchestrator · 2026-11-17T05:09:12.378Z
 orchestrator: done. All children integrated; main 598cf7e green (just check exit 0, 101 tests). Only the 18 ui.md scenarios remain unbound; the failing coverage gate (--require-all) is deferred to the React UI epic, when they can be bound (see fl-fruc).
+
+### note · system · 2026-11-17T09:09:13.254Z
+open 4h, never planned: back to pending. Ready it again once someone will plan it.
+
+### note · external:orchestrator · 2026-11-17T09:09:39.886Z
+integrated: 6a94b45 (branch main)
+
+### note · external:orchestrator · 2026-11-17T09:09:39.888Z
+cleanup: removed nothing; failed: branch main: git ["branch", "-D", "main"] failed: error: cannot delete branch 'main' used by worktree at '/home/jbranam/work/flume-work/flume'
