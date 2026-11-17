@@ -2,11 +2,14 @@
 id = "fl-macf"
 title = "flume agent: launch Claude as a named agent (replaces claude-as)"
 kind = "feature"
-state = "planned"
+state = "claimed"
 created_at = "2026-11-17T12:06:56.999Z"
-updated_at = "2026-11-17T12:07:41.040840543Z"
+updated_at = "2026-11-17T12:07:58.047386709Z"
 created_by = "external:advisor"
-watchers = ["external:advisor"]
+watchers = [
+    "external:advisor",
+    "agent:agent-cmd",
+]
 priority = "urgent"
 priority_at = "2026-11-17T12:07:35.902500294Z"
 ticket = "macf"
