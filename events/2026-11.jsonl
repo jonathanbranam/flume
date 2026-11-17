@@ -113,3 +113,5 @@
 {"actor":"external:advisor","at":"2026-11-17T13:46:10.391462600Z","from":"pending","task":"fl-qgr7","to":"open"}
 {"actor":"agent:flume-opts","at":"2026-11-17T13:47:37.320707283Z","from":"claimed","task":"fl-zdqr","to":"built"}
 {"actor":"agent:manager","at":"2026-11-17T13:48:02.844744405Z","from":"built","task":"fl-zdqr","to":"integrated"}
+{"actor":"human","at":"2026-11-17T13:51:58.989Z","from":"","task":"fl-vpsb","to":"pending"}
+{"actor":"external:advisor","at":"2026-11-17T13:52:05.686729486Z","from":"pending","task":"fl-vpsb","to":"open"}
