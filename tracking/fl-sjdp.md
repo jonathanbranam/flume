@@ -4,10 +4,13 @@ title = "Opt-in migrations are pending in this project"
 kind = "chore"
 state = "pending"
 created_at = "2026-11-17T03:23:46.955Z"
-updated_at = "2026-11-17T03:31:07.756227049Z"
+updated_at = "2026-11-17T03:31:36.355926141Z"
 created_by = "human"
 watchers = ["human"]
+ticket = "sjdp"
 +++
+
+docs/tickets/open/opt-in-migrations-are-pending-in-this-project-sjdp.md
 
 These migrations are opt-in: bridle does not run them at start-up, because they rewrite this project's files and want a review first. Decide whether this project needs each one, and if so run it on the trial or integration branch and commit the result:
 
