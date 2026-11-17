@@ -135,6 +135,12 @@ When a request names a path the daemon does not serve, it SHALL answer 404, and 
 - **WHEN** GET /api/nothing is requested
 - **THEN** the status is 404 and the body has an error message
 
+#### Scenario: Wrong method  {#s-5d0e}
+*Verification*: **executable**
+- **GIVEN** a running daemon
+- **WHEN** DELETE /api/status is requested
+- **THEN** the status is 405 and the body has an error message
+
 ### Requirement: Concurrent writes do not lose changes  {#r-89c2}
 When several create or update requests arrive at the same time, the daemon SHALL apply every one, and each created task SHALL get a different ID.
 
@@ -158,3 +164,9 @@ When a request creates or changes a task (create, update, note, close, reopen), 
 - **GIVEN** an open task and a clean working tree
 - **WHEN** POST /api/tasks/{id}/close is requested
 - **THEN** one new commit exists, it removes the file from open and adds it to resolved, and the working tree is clean
+
+#### Scenario: A note and an update commit  {#s-6f12}
+*Verification*: **executable**
+- **GIVEN** an open task and a clean working tree
+- **WHEN** a note is added and then the title is changed
+- **THEN** two new commits exist, each message contains the task ID, each holds only that task file, and the working tree is clean
