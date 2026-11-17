@@ -89,3 +89,4 @@
 {"actor":"external:orchestrator","at":"2026-11-17T12:22:29.506995606Z","queue":"reprioritized"}
 {"actor":"agent:flag-values","at":"2026-11-17T12:23:52.204095600Z","from":"claimed","task":"fl-ttmw","to":"built"}
 {"actor":"agent:manager","at":"2026-11-17T12:24:15.950071502Z","from":"built","task":"fl-ttmw","to":"integrated"}
+{"actor":"human","at":"2026-11-17T13:02:05.058Z","from":"","task":"fl-xv3z","to":"pending"}
