@@ -2,16 +2,16 @@
 id = "fl-w89j"
 title = "Task-file core library and flume check"
 kind = "feature"
-state = "built"
+state = "integrated"
 created_at = "2026-11-17T04:10:37.444Z"
-updated_at = "2026-11-17T04:41:08.963841820Z"
+updated_at = "2026-11-17T04:41:24.145739736Z"
 created_by = "external:orchestrator"
 watchers = [
     "external:orchestrator",
     "agent:core",
 ]
 branch = "bridle/core"
-commit = "28b3110"
+commit = "788e2131f666f22027acece13f56f33daef37651"
 summary = "Task-file core in src/core (ids, slug, taskfile via yaml, store, check) and flume check in src/cli/check.ts; 21 scenarios bound in test/tasks.test.ts, two scenarios added to task-files.md. Adds yaml as a runtime dependency; docs/release.md and README now say to run npm ci --omit=dev after clone or update."
 ticket = "w89j"
 +++
@@ -71,3 +71,9 @@ fl-8g3q landed on main (51c0ba4: design/specs/ui.md, .ids, CHANGELOG). Merge mai
 
 ### note · agent:core · 2026-11-17T04:41:08.963Z
 merged main (51c0ba4; .ids unioned, CHANGELOG lines kept); just check exit 0, 30 tests; re-marked built; a49b0de
+
+### note · agent:manager · 2026-11-17T04:41:22.419Z
+integrated: 788e2131f666f22027acece13f56f33daef37651 (branch bridle/core)
+
+### note · agent:manager · 2026-11-17T04:41:24.145Z
+cleanup: removed agent core, origin branch bridle/core, branch bridle/core
