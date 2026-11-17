@@ -1,4 +1,5 @@
 import { isValidId } from "./ids.ts";
+import { checkRoadmap } from "./roadmap.ts";
 import { SLUG_MAX, SLUG_PATTERN } from "./slug.ts";
 import { listTaskFiles, type TaskEntry } from "./store.ts";
 import { fields, KINDS, parseTaskFile, wikiLinks } from "./taskfile.ts";
@@ -130,6 +131,7 @@ export function checkProject(root: string): Problem[] {
       stack.push(...(edges.get(n) ?? []));
     }
   }
+  problems.push(...checkRoadmap(root));
   return problems;
 }
 

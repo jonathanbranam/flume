@@ -7,9 +7,11 @@ import {
   createTask,
   listTaskFiles,
   PATCH_FIELDS,
+  readRoadmap,
   reopenTask,
   resolveRef,
   resolveTask,
+  roadmapView,
   type TaskEntry,
   taskObject,
   updateTask,
@@ -86,6 +88,12 @@ export function startDaemon(opts: {
       allow("GET");
       const problems = checkProject(root);
       return [200, { ok: problems.length === 0, problems }];
+    }
+    if (a === "roadmap" && parts.length === 2) {
+      allow("GET");
+      const text = readRoadmap(root);
+      if (text === undefined) throw new HttpError(404, "there is no flume/roadmap.md");
+      return [200, { sections: roadmapView(root, text) }];
     }
     if (a === "stop" && parts.length === 2) {
       allow("POST");

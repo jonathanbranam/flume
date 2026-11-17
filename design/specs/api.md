@@ -117,6 +117,21 @@ When GET /api/check is requested, the daemon SHALL answer 200 with ok (true when
 - **WHEN** GET /api/check is requested
 - **THEN** the status is 200, ok is false, and problems has an entry with that file's path
 
+### Requirement: Read the roadmap through the daemon  {#r-3bf6}
+When GET /api/roadmap is requested, the daemon SHALL answer 200 with sections, a list of objects with heading and entries, where each entry has link (the file name stem), label (the text after the bar, or null), note (the text after the link on the item, or null), and either the task's id, title and state (open or resolved) or state null when no task has that file name; when the roadmap file does not exist it SHALL answer 404 with an error message.
+
+#### Scenario: Entries carry task state  {#s-b25e}
+*Verification*: **executable**
+- **GIVEN** a roadmap listing an open task, a resolved task and a link to no task
+- **WHEN** GET /api/roadmap is requested
+- **THEN** the status is 200 and the entries have state open, resolved and null, and the first two have the task's id and title
+
+#### Scenario: No roadmap file  {#s-5c0d}
+*Verification*: **executable**
+- **GIVEN** a running daemon and no flume/roadmap.md
+- **WHEN** GET /api/roadmap is requested
+- **THEN** the status is 404 and the body has an error message
+
 ### Requirement: Stop  {#r-23b5}
 When POST /api/stop is requested, the daemon SHALL answer 200 and then exit, and a later request to its address SHALL fail to connect.
 
