@@ -1,0 +1,5 @@
+2026-11-17T03:23:46Z 0000-baseline (bridle 0.8.0): Start tracking migrations in this project; changes nothing else. baseline: nothing to change; no files changed
+2026-11-17T03:23:46Z 0006-backfill-ticket-kind (bridle 0.8.0): Give every ticket without a `kind:` the kind of its task row, else `chore` (ticket v3dk). every ticket already has a kind; no files changed
+2026-11-17T03:23:46Z 0007-gitignore-agent-site (bridle 0.8.0): Add `.agent-site/` (throwaway dev sites) to .gitignore (ticket tgxy). added .agent-site/ to .gitignore; files: .gitignore
+2026-11-17T03:23:46Z 0008-gitignore-bridle-tmp (bridle 0.8.0): Add `.bridle/tmp/` (agent scratch) to .gitignore (ticket 6wff). .gitignore already ignores .bridle/tmp/; no files changed
+2026-11-17T03:23:46Z 0009-gitignore-review-documents (bridle 0.8.0): Add `.bridle/review-documents.txt` (the review list) to .gitignore (ticket v54x). .gitignore already ignores .bridle/review-documents.txt; no files changed
