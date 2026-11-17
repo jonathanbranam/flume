@@ -49,3 +49,5 @@
 {"actor":"agent:manager","at":"2026-11-17T04:44:40.243579257Z","from":"built","task":"fl-brmx","to":"integrated"}
 {"actor":"agent:task-cli","at":"2026-11-17T04:47:53.039733941Z","from":"claimed","task":"fl-yt5q","to":"built"}
 {"actor":"agent:manager","at":"2026-11-17T04:48:19.996597749Z","from":"built","task":"fl-yt5q","to":"integrated"}
+{"actor":"agent:roadmap","at":"2026-11-17T04:50:41.695684967Z","from":"claimed","task":"fl-s52x","to":"built"}
+{"actor":"agent:manager","at":"2026-11-17T04:51:08.998809209Z","from":"built","task":"fl-s52x","to":"integrated"}
