@@ -148,3 +148,4 @@
 {"actor":"external:orchestrator","at":"2026-11-17T14:17:45.552048020Z","from":"open","task":"fl-hh6x","to":"planned"}
 {"actor":"external:orchestrator","at":"2026-11-17T14:17:45.563980398Z","queue":"reprioritized"}
 {"actor":"agent:no-templates","at":"2026-11-17T14:19:01.200181925Z","from":"claimed","task":"fl-hh6x","to":"built"}
+{"actor":"agent:manager","at":"2026-11-17T14:19:31.973631232Z","from":"built","task":"fl-hh6x","to":"integrated"}
