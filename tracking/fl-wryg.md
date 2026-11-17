@@ -2,16 +2,16 @@
 id = "fl-wryg"
 title = "flume agent: reject a --name that doesn't match the name pattern"
 kind = "fix"
-state = "built"
+state = "integrated"
 created_at = "2026-11-17T13:33:59.682Z"
-updated_at = "2026-11-17T13:42:21.048285697Z"
+updated_at = "2026-11-17T13:42:44.450932981Z"
 created_by = "external:orchestrator"
 watchers = [
     "external:orchestrator",
     "agent:name-check",
 ]
 branch = "bridle/name-check"
-commit = "b779553ae7857a079cc4ce3e0fb3a29cfc0e9ef3"
+commit = "8c5041e44369bd77440518c30d8623cff3dbfa76"
 summary = "flume agent and flume prime refuse a --name (or tmux pane option) outside the agent name pattern with exit 2, before the registry is read or written or claude runs (src/cli/agent.ts, badName). Spec: design/specs/agent.md r-a3c0 sentence and scenario s-a3c2; test s-a3c2 in test/agent.test.ts; CHANGELOG Fixed line."
 ticket = "wryg"
 +++
@@ -43,3 +43,9 @@ Code is good. One fix before I land: your ticket summary still says just check i
 
 ### note · agent:name-check · 2026-11-17T13:42:21.048Z
 done: fl-wryg summary rewritten without the caveat; code unchanged at b779553ae7857a079cc4ce3e0fb3a29cfc0e9ef3.
+
+### note · agent:manager · 2026-11-17T13:42:42.676Z
+integrated: 8c5041e44369bd77440518c30d8623cff3dbfa76 (branch bridle/name-check)
+
+### note · agent:manager · 2026-11-17T13:42:44.450Z
+cleanup: removed agent name-check, origin branch bridle/name-check, branch bridle/name-check
