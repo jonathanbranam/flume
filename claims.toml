@@ -1,1 +1,9 @@
-claim = []
+[[claim]]
+task = "fl-5xjg"
+claimed_by = "agent:prime-help"
+claimed_at = "2026-11-17T13:53:22.752396647Z"
+
+[[claim]]
+task = "fl-qgr7"
+claimed_by = "agent:not-running"
+claimed_at = "2026-11-17T13:53:14.065976377Z"

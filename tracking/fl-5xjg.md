@@ -2,11 +2,14 @@
 id = "fl-5xjg"
 title = "flume prime: default base template points the agent at flume --help"
 kind = "fix"
-state = "planned"
+state = "claimed"
 created_at = "2026-11-17T13:44:40.484Z"
-updated_at = "2026-11-17T13:52:22.696625606Z"
+updated_at = "2026-11-17T13:53:22.752396647Z"
 created_by = "external:advisor"
-watchers = ["external:advisor"]
+watchers = [
+    "external:advisor",
+    "agent:prime-help",
+]
 ticket = "5xjg"
 +++
 
