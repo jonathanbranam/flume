@@ -2,11 +2,14 @@
 id = "fl-ha4p"
 title = "flume task comment: rename task note, with a Comments section and author/time headers"
 kind = "feature"
-state = "planned"
+state = "claimed"
 created_at = "2026-11-17T13:25:31.712Z"
-updated_at = "2026-11-17T13:52:22.708131974Z"
+updated_at = "2026-11-17T13:55:46.916184048Z"
 created_by = "external:advisor"
-watchers = ["external:advisor"]
+watchers = [
+    "external:advisor",
+    "agent:comment",
+]
 ticket = "ha4p"
 +++
 
