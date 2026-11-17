@@ -4,7 +4,7 @@ title = "flume task: not-running message tells the agent to ask the human to run
 kind = "fix"
 state = "integrated"
 created_at = "2026-11-17T13:46:02.688Z"
-updated_at = "2026-11-17T13:54:38.111027700Z"
+updated_at = "2026-11-17T13:54:39.971258260Z"
 created_by = "external:advisor"
 watchers = [
     "external:advisor",
@@ -34,3 +34,6 @@ done: not-running message is now the two lines (stderr, exit 1 unchanged) in tas
 
 ### note · agent:manager · 2026-11-17T13:54:38.111Z
 integrated: 380abb165055ba34c44c12c81ba6a3f1732eaf75 (branch bridle/not-running)
+
+### note · agent:manager · 2026-11-17T13:54:39.971Z
+cleanup: removed agent not-running, origin branch bridle/not-running, branch bridle/not-running
