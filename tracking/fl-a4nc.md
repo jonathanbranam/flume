@@ -2,9 +2,9 @@
 id = "fl-a4nc"
 title = "flume --version replaces flume version (GNU standard)"
 kind = "fix"
-state = "open"
+state = "planned"
 created_at = "2026-11-17T14:09:15.266Z"
-updated_at = "2026-11-17T14:09:22.292431892Z"
+updated_at = "2026-11-17T14:15:33.214519954Z"
 created_by = "external:advisor"
 watchers = ["external:advisor"]
 ticket = "a4nc"
@@ -19,3 +19,6 @@ readied by external:advisor
 
 ### note · external:advisor · 2026-11-17T14:09:22.292Z
 human via advisor: the human's call; a fix, readied.
+
+### note · external:orchestrator · 2026-11-17T14:15:33.214Z
+From orchestrator: fl-a4nc planned and queued, Haiku. fl-hh6x follows after settle (next tier: both edit help/USAGE).
