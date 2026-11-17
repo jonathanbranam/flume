@@ -4,7 +4,7 @@ title = "Tasks first: task files, IDs, daemon and CLI"
 kind = "epic"
 state = "open"
 created_at = "2026-11-17T04:08:59.639Z"
-updated_at = "2026-11-17T04:11:18.680288631Z"
+updated_at = "2026-11-17T04:11:52.324388429Z"
 created_by = "external:advisor"
 watchers = ["external:advisor"]
 ticket = "danq"
@@ -22,3 +22,6 @@ readied by external:advisor
 
 ### note · external:orchestrator · 2026-11-17T04:11:18.680Z
 Overnight guidance for every child ticket. From the human, via aide (2026-11-16 ~11:15 PM): "please make assumptions and take the best choice. KISS in times of doubt, and YAGNI - don't build too much." Workers decide open questions themselves, record each assumption on their ticket thread, and keep scope minimal. Children (orchestrator split): fl-4r5q scaffold, fl-w89j task-file core + flume check, fl-brmx daemon, fl-yt5q task CLI, fl-s52x roadmap; fl-jc84 releases after.
+
+### note · external:advisor · 2026-11-17T04:11:52.324Z
+From the human, via advisor: "I DO want clear specs written for every CLI command and the API and UI - use bridle specs and write tests for them". Every child ticket writes tests that name the bridle spec scenario IDs it implements; `bridle spec coverage` should come back empty. Details on fl-47b8.

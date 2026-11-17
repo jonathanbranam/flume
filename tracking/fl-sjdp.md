@@ -2,9 +2,9 @@
 id = "fl-sjdp"
 title = "Opt-in migrations are pending in this project"
 kind = "chore"
-state = "pending"
+state = "dropped"
 created_at = "2026-11-17T03:23:46.955Z"
-updated_at = "2026-11-17T03:31:36.355926141Z"
+updated_at = "2026-11-17T04:12:00.443504530Z"
 created_by = "human"
 watchers = ["human"]
 ticket = "sjdp"
@@ -24,3 +24,6 @@ Run one with `bridle migrate --only <id>` (add --dry-run to see what it would ch
 
 ### note · external:aide · 2026-11-17T03:31:07.756Z
 From the human, via aide (2026-11-16 ~10:35 PM ET): "yes run them all" — approval to run all three opt-in migrations: 0002-standard-ticket-fields, 0004-ticket-links-in-frontmatter, 0005-a-ticket-for-every-active-task. Dry runs: 0002 and 0004 no-op; 0005 adds one stub ticket (for fl-sjdp).
+
+### note · external:orchestrator · 2026-11-17T04:12:00.443Z
+dropped: Done: the opt-in migrations ran (commit 2f2dfb4) and the ticket file is resolved; this row stayed pending. Dropped by orchestrator so the list is accurate.

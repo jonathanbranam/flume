@@ -20,3 +20,4 @@
 {"actor":"external:orchestrator","at":"2026-11-17T04:10:52.474559668Z","from":"pending","task":"fl-yt5q","to":"open"}
 {"actor":"external:orchestrator","at":"2026-11-17T04:10:52.508935143Z","from":"pending","task":"fl-s52x","to":"open"}
 {"actor":"external:orchestrator","at":"2026-11-17T04:10:57.683197160Z","queue":"reprioritized"}
+{"actor":"external:orchestrator","at":"2026-11-17T04:12:00.443504530Z","from":"pending","task":"fl-sjdp","to":"dropped"}
