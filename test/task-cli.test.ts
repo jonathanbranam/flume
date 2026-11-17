@@ -85,7 +85,7 @@ describe("flume task commands", () => {
     const r = flume(repo, ["task", "list"]);
     expect(r.status).toBe(1);
     expect(r.stderr).toBe(
-      "flume: the flume daemon is not running for this project.\nAsk the human to start it: flume serve (in its own pane).\n",
+      "flume: the flume daemon is not running for this workspace.\nAsk the human to start it: flume serve (in its own pane).\n",
     );
   });
 

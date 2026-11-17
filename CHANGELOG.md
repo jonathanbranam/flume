@@ -4,6 +4,7 @@
 
 ### Changed
 
+- The not-running message (`flume task`, `flume roadmap show`) now says "the flume daemon is not running for this workspace." instead of "for this project", since the server is per workspace (fl-k9pk).
 - `flume agent` and `flume prime` no longer read `~/.flume/templates/` (base.md, project.md): the prime is always the built-in base text, plus the built-in project text when there is a project. `~/.flume/agents/` is unchanged; no workspace overrides yet (fl-hh6x).
 - `flume version` is now `flume --version` (GNU style; same output, exit 0); `flume version` is an unknown command (exit 2), no alias. Top-level help lists `--version` and `--help` under Options (fl-a4nc).
 - `flume serve` runs per workspace: from any folder (it need not be a git repo), with `.flume/` (own `.gitignore` of `*`) holding `daemon.json` and `config.toml` (`root = ...`, relative to the workspace folder). `--root` is saved and wins; with neither, the current repo. Commands find the server by walking up to the nearest `.flume/daemon.json`; `.git/flume-daemon.json` is gone, no migration (fl-4dgp).

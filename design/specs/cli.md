@@ -31,13 +31,13 @@ When a command needs the daemon, flume SHALL use the address in the FLUME_URL en
 - **THEN** it prints the daemon's address and exits with code 0
 
 ### Requirement: Without a daemon, commands say so  {#r-67a9}
-When a command needs the daemon and none answers, flume SHALL print to standard error exactly these two lines: "flume: the flume daemon is not running for this project." and "Ask the human to start it: flume serve (in its own pane)." and exit with code 1. flume SHALL NOT start a daemon itself.
+When a command needs the daemon and none answers, flume SHALL print to standard error exactly these two lines: "flume: the flume daemon is not running for this workspace." and "Ask the human to start it: flume serve (in its own pane)." and exit with code 1. flume SHALL NOT start a daemon itself.
 
 #### Scenario: Daemon not running  {#s-41e6}
 *Verification*: **executable**
 - **GIVEN** a project with no daemon running and FLUME_URL unset
 - **WHEN** flume task list is run
-- **THEN** standard error is exactly the two lines "flume: the flume daemon is not running for this project." and "Ask the human to start it: flume serve (in its own pane).", and the exit code is 1
+- **THEN** standard error is exactly the two lines "flume: the flume daemon is not running for this workspace." and "Ask the human to start it: flume serve (in its own pane).", and the exit code is 1
 
 ### Requirement: Version prints the version  {#r-5465}
 When flume --version is run, it SHALL print the Flume version and git commit on one line to standard output and exit with code 0, without needing the daemon.

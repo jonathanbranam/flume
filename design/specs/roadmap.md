@@ -34,7 +34,7 @@ When flume roadmap show is run, it SHALL print each section heading followed by 
 *Verification*: **executable**
 - **GIVEN** no daemon running and a roadmap file
 - **WHEN** flume roadmap show is run
-- **THEN** standard error is the two not-running lines ("flume: the flume daemon is not running for this project." and "Ask the human to start it: flume serve (in its own pane).") and the exit code is 1
+- **THEN** standard error is the two not-running lines ("flume: the flume daemon is not running for this workspace." and "Ask the human to start it: flume serve (in its own pane).") and the exit code is 1
 
 #### Scenario: Show without a roadmap  {#s-a870}
 *Verification*: **executable**

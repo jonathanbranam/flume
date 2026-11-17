@@ -1,7 +1,7 @@
 import { readRecord } from "./record.ts";
 
 export const NOT_RUNNING =
-  "flume: the flume daemon is not running for this project.\nAsk the human to start it: flume serve (in its own pane).\n";
+  "flume: the flume daemon is not running for this workspace.\nAsk the human to start it: flume serve (in its own pane).\n";
 
 /** The daemon address: FLUME_URL if set, else the one in the nearest .flume/daemon.json above `cwd`. */
 export function daemonUrl(cwd: string): string | undefined {
