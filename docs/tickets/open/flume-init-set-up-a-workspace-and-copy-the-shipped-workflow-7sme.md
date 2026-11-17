@@ -27,6 +27,26 @@ On advisor's proposal: "1. yes flume init is the right name 2. yes 3. no, it fai
 
 > I'll send my agent workflow over when I have a chance; it will say things like "coding work always happens in a claude worktree; enter/exit etc; merge main before exit..." and specific things for work like "agents don't push" and "avoid these commands they trigger a permissions prompt"
 
+## Revision 2 (supersedes the paths in Revision 1)
+
+The human, 2026-11-17:
+
+```
+workspace-1/
+  flume/
+    workflow/ # workspace level workflow
+  project-a/
+    workflow/ # project level workflow files
+```
+
+Read (advisor): `workspace-1/flume/` is the task repo (`--root`); `workflow/` sits at the top of each repo.
+
+- **Workspace rules:** `<root>/workflow/*.md`.
+- **Base (shipped):** `<root>/workflow/base/` (assumed: inside the workspace folder so it is versioned with it; `flume init --force` rewrites only `base/`).
+- **Project rules:** `<repo>/workflow/*.md` at the top of each project repo.
+- Reading order unchanged: base, workspace, project (then the project's CLAUDE.md); later overrides earlier.
+- Task files stay where they are (`<root>/flume/tasks/`); moving them is out of scope.
+
 ## Revision (supersedes the workflow location below)
 
 The human, 2026-11-17: "workspace level rules should live in the --root repo and git versioned; sorry just realizing that oversight. project level rules live in each projects git repo. Neither should use hidden folders."
