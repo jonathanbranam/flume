@@ -2,11 +2,14 @@
 id = "fl-a4nc"
 title = "flume --version replaces flume version (GNU standard)"
 kind = "fix"
-state = "planned"
+state = "claimed"
 created_at = "2026-11-17T14:09:15.266Z"
-updated_at = "2026-11-17T14:15:33.214519954Z"
+updated_at = "2026-11-17T14:15:44.364668239Z"
 created_by = "external:advisor"
-watchers = ["external:advisor"]
+watchers = [
+    "external:advisor",
+    "agent:version-flag",
+]
 ticket = "a4nc"
 +++
 
