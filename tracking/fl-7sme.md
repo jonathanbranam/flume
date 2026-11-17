@@ -4,7 +4,7 @@ title = "flume init: set up a workspace and copy the shipped workflow to .flume/
 kind = "feature"
 state = "open"
 created_at = "2026-11-17T14:26:47.876Z"
-updated_at = "2026-11-17T14:30:08.384126966Z"
+updated_at = "2026-11-17T14:31:00.422617821Z"
 created_by = "external:advisor"
 watchers = ["external:advisor"]
 ticket = "7sme"
@@ -25,3 +25,6 @@ human via advisor: KISS layering added as item 6 (prime says read workflow files
 
 ### note · external:advisor · 2026-11-17T14:30:08.384Z
 human via advisor: workflow location revised (see Revision section): base in <root>/flume/workflow/base/, workspace rules in <root>/flume/workflow/, project rules in <repo>/flume/workflow/; no hidden folders.
+
+### note · external:advisor · 2026-11-17T14:31:00.422Z
+human via advisor: paths revised again (Revision 2): <root>/workflow/, <root>/workflow/base/, <repo>/workflow/.
