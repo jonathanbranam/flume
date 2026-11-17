@@ -4,6 +4,7 @@
 
 ### Changed
 
+- `flume prime` and `flume agent`: the default project template (no `~/.flume/templates/project.md`) now reads "You are working on the {project} project. Read that project's CLAUDE.md and follow its instructions." (fl-vpsb).
 - `flume task note` is now `flume task comment` (API `POST /api/tasks/{id}/comments`, commit message "add a comment"; no alias). A comment goes under a `## Comments` heading at the end of the body, headed `### <local time with UTC offset>, <author>`; the author is `$AGENT_NAME` (the API takes an optional `author`), else the OS user name (fl-ha4p).
 - `flume prime` and `flume agent`: the default base template (no `~/.flume/templates/base.md`) gets a second line, "Use the flume CLI to work with tasks; run flume --help to learn it." (fl-5xjg).
 - Without a daemon, `flume task` and `flume roadmap show` print two lines to stderr: "flume: the flume daemon is not running for this project." and "Ask the human to start it: flume serve (in its own pane)."; exit 1 as before, and flume never starts a daemon (fl-qgr7).

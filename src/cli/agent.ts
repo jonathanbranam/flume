@@ -20,7 +20,8 @@ with --append-system-prompt, and flume always passes --name <name>.
 
 const DEFAULT_BASE =
   "You are agent {name}, stored in $AGENT_NAME.\nUse the flume CLI to work with tasks; run flume --help to learn it.\n";
-const DEFAULT_PROJECT = "You are working on project {project}.\n";
+const DEFAULT_PROJECT =
+  "You are working on the {project} project. Read that project's CLAUDE.md and follow its instructions.\n";
 const DEFAULT_PROMPT = "Check your tickets and status, suggest next steps, and follow up.";
 const NAME_RE = /^[a-z0-9][a-z0-9-]*$/;
 
