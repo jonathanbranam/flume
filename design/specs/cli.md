@@ -1,0 +1,184 @@
+# Command line
+
+The flume command is a thin client of the daemon (see the api spec). It writes no task files itself; only version and check work without the daemon. Ticket: fl-47b8.
+
+Assumptions (recorded on fl-47b8): exit code 0 is success, 1 is a refused or failed request, 2 is wrong usage; errors go to standard error and results to standard output; commands take a bare task ID; the daemon commits each task change in the task root's repository and never pushes (see the api spec); the task root may be a separate task repository. Not yet specified (open questions on fl-47b8): prime, guide, rules, step, workflow, roadmap, task start, projects, tmux and agent commands.
+
+## Requirements
+
+### Requirement: Usage errors exit 2  {#r-2faf}
+When flume is run with an unknown command, a missing required argument or an unknown option, it SHALL print a usage message to standard error and exit with code 2.
+
+#### Scenario: Unknown command  {#s-2c86}
+*Verification*: **executable**
+- **GIVEN** any project
+- **WHEN** flume frobnicate is run
+- **THEN** standard error holds a usage message and the exit code is 2
+
+### Requirement: The CLI finds the daemon from any checkout  {#r-656f}
+When a command needs the daemon, flume SHALL use the address in the FLUME_URL environment variable if set, and otherwise the address recorded by the running daemon for the project, found from the project's main checkout, a git worktree of it, or any folder inside either.
+
+#### Scenario: From a worktree  {#s-bdbc}
+*Verification*: **executable**
+- **GIVEN** a daemon running for a project and a git worktree of that project
+- **WHEN** flume task list is run inside the worktree
+- **THEN** it prints the project's open tasks and exits with code 0
+
+### Requirement: Without a daemon, commands say so  {#r-67a9}
+When a command needs the daemon and none answers, flume SHALL print a message naming flume serve to standard error and exit with code 1.
+
+#### Scenario: Daemon not running  {#s-41e6}
+*Verification*: **executable**
+- **GIVEN** a project with no daemon running and FLUME_URL unset
+- **WHEN** flume task list is run
+- **THEN** standard error says the daemon is not running and suggests flume serve, and the exit code is 1
+
+### Requirement: Version prints the version  {#r-5465}
+When flume version is run, it SHALL print the Flume version on one line to standard output and exit with code 0, without needing the daemon.
+
+#### Scenario: Version offline  {#s-129b}
+*Verification*: **executable**
+- **GIVEN** no daemon running
+- **WHEN** flume version is run
+- **THEN** one non-empty line is printed and the exit code is 0
+
+### Requirement: Serve starts the daemon  {#r-495d}
+When flume serve is run in a project, it SHALL start the daemon on the local machine only, record its address for the project, print one line stating the address, and keep running until stopped; with --port N it SHALL listen on port N, and otherwise on a free port; with --root PATH it SHALL use PATH as the task root, and otherwise the project's main checkout.
+
+#### Scenario: Serve prints its address  {#s-a4db}
+*Verification*: **executable**
+- **GIVEN** a project with no daemon running
+- **WHEN** flume serve --port 0 is run
+- **THEN** the first output line holds an address beginning http://127.0.0.1: and flume status then exits with code 0
+
+### Requirement: A second serve is refused  {#r-6579}
+When flume serve is run in a project that already has a running daemon, it SHALL print a message naming the running daemon's address to standard error and exit with code 1.
+
+#### Scenario: Two serves  {#s-7e28}
+*Verification*: **executable**
+- **GIVEN** a daemon running for a project
+- **WHEN** flume serve is run again in the project
+- **THEN** the exit code is 1 and standard error names the first daemon's address
+
+### Requirement: Status reports whether the daemon runs  {#r-4ebf}
+When flume status is run, it SHALL print the daemon's address and the project root and exit with code 0 if the daemon answers, and otherwise print "not running" and exit with code 1.
+
+#### Scenario: Status when stopped  {#s-62cc}
+*Verification*: **executable**
+- **GIVEN** no daemon running
+- **WHEN** flume status is run
+- **THEN** it prints not running and exits with code 1
+
+### Requirement: Stop ends the daemon  {#r-563a}
+When flume stop is run, it SHALL ask the daemon to exit, wait until it has, and exit with code 0; when no daemon runs it SHALL print "not running" and exit with code 1.
+
+#### Scenario: Stop then status  {#s-8ee4}
+*Verification*: **executable**
+- **GIVEN** a daemon running
+- **WHEN** flume stop is run, then flume status
+- **THEN** stop exits with code 0 and status prints not running with exit code 1
+
+### Requirement: Task new creates a task  {#r-9812}
+When flume task new is run with a title, flume SHALL create the task and print its ID and the path of its file relative to the project root, separated by one space, on one line; options are -k or --kind (default feature), --parent ID, and --body-file PATH (a dash means standard input).
+
+#### Scenario: New with a body from standard input  {#s-f616}
+*Verification*: **executable**
+- **GIVEN** a daemon running for a project
+- **WHEN** flume task new "Fix redirect" -k bug --body-file - is run with the text Users land on the home page on standard input
+- **THEN** one line is printed with a 4 character ID and a path under flume/tasks/open, and that file's body is Users land on the home page
+
+#### Scenario: Default kind  {#s-803e}
+*Verification*: **executable**
+- **GIVEN** a daemon running for a project
+- **WHEN** flume task new "Add search" is run
+- **THEN** the new task's kind is feature
+
+#### Scenario: Bad parent  {#s-a33e}
+*Verification*: **executable**
+- **GIVEN** a daemon running and no task with ID abcd
+- **WHEN** flume task new "Child" --parent abcd is run
+- **THEN** the exit code is 1, standard error says no task abcd, and no file is written
+
+### Requirement: Task show prints the task  {#r-c36b}
+When flume task show is run with an ID, flume SHALL print the task file exactly as stored (front matter and body) to standard output and exit with code 0; for an ID that names no task it SHALL print a message to standard error and exit with code 1.
+
+#### Scenario: Show by bare ID  {#s-e485}
+*Verification*: **executable**
+- **GIVEN** an open task with ID k7tm
+- **WHEN** flume task show k7tm is run
+- **THEN** the output equals the contents of that file
+
+#### Scenario: Show finds a resolved task  {#s-13df}
+*Verification*: **executable**
+- **GIVEN** a resolved task with ID k7tm
+- **WHEN** flume task show k7tm is run
+- **THEN** the output equals the contents of the file in resolved
+
+### Requirement: Task list prints one line per task  {#r-1a8b}
+When flume task list is run, it SHALL print one line per task, ordered by created date and then ID, each with the ID, kind, state (open or resolved), and title separated by single tabs; it SHALL list open tasks unless --closed (resolved only) or --all (both) is given, and --kind K and --parent ID SHALL keep only matching tasks.
+
+#### Scenario: Default is open only  {#s-9e76}
+*Verification*: **executable**
+- **GIVEN** two open tasks and one resolved task
+- **WHEN** flume task list is run
+- **THEN** two lines are printed, both with state open
+
+#### Scenario: Filter by parent  {#s-c56f}
+*Verification*: **executable**
+- **GIVEN** an epic with two children and one unrelated open task
+- **WHEN** flume task list --parent with the epic's ID is run
+- **THEN** exactly the two children are printed
+
+#### Scenario: Closed and all  {#s-fcb0}
+*Verification*: **executable**
+- **GIVEN** two open tasks and one resolved task
+- **WHEN** flume task list --closed is run, and then flume task list --all
+- **THEN** the first prints one line with state resolved and the second prints three lines
+
+### Requirement: Task update changes one field  {#r-6eca}
+When flume task update is run with an ID, a field and a value, flume SHALL set that field in the task's front matter and print nothing else; the fields are title, kind, parent, blocked-by and related; for blocked-by and related the value is a comma separated list of IDs, and an empty value clears a field; an unknown field or a value that would break a rule of the task-files spec SHALL be refused with exit code 1 and the file left unchanged.
+
+#### Scenario: Set blocked-by  {#s-9277}
+*Verification*: **executable**
+- **GIVEN** open tasks k7tm and q3rp
+- **WHEN** flume task update k7tm blocked-by q3rp is run
+- **THEN** the front matter of k7tm has blocked_by holding q3rp
+
+#### Scenario: Unknown field refused  {#s-4fd6}
+*Verification*: **executable**
+- **GIVEN** an open task k7tm
+- **WHEN** flume task update k7tm color red is run
+- **THEN** the exit code is 1 and the file is byte for byte unchanged
+
+#### Scenario: Clear the parent  {#s-cf95}
+*Verification*: **executable**
+- **GIVEN** an open task with a parent
+- **WHEN** flume task update with that task's ID, the field parent and an empty value is run
+- **THEN** the front matter has no parent field
+
+### Requirement: Task note appends to the body  {#r-52c7}
+When flume task note is run with an ID and text (as an argument after --text, or from standard input with --body-file -), flume SHALL append the text to the end of the body after one blank line and leave everything else unchanged.
+
+#### Scenario: Two notes in order  {#s-2660}
+*Verification*: **executable**
+- **GIVEN** an open task with the default body
+- **WHEN** flume task note adds First and then adds Second
+- **THEN** the body ends with First, a blank line, and Second, in that order
+
+### Requirement: Task close and reopen change the state  {#r-7226}
+When flume task close is run with an ID, flume SHALL resolve the task, and when flume task reopen is run it SHALL reopen it, per the task-files spec; closing a resolved task or reopening an open task SHALL exit with code 1 and change nothing.
+
+#### Scenario: Close twice  {#s-b27b}
+*Verification*: **executable**
+- **GIVEN** an open task
+- **WHEN** flume task close is run twice with its ID
+- **THEN** the first exits with code 0 and the second with code 1, and the file is in resolved
+
+### Requirement: Check runs the task file check  {#r-b850}
+When flume check is run, it SHALL print the result of the check described in the task-files spec, one problem per line, and exit with code 0 when there are none and 1 otherwise; it SHALL work without a running daemon.
+
+#### Scenario: Check offline  {#s-8645}
+*Verification*: **executable**
+- **GIVEN** no daemon running and a project with one task whose id differs from its file name
+- **WHEN** flume check is run
+- **THEN** one problem line names that file and the exit code is 1

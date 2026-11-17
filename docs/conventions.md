@@ -22,6 +22,13 @@ human-readable record.
   `specs-implementation-agnostic`.
   The human: "we should be writing language-agnostic specs for this anyway!!" and "The specs
   should be clear and as language and implementation-agnostic as possible."
+- Where and how (fl-47b8): one file per capability in `design/specs/` (`task-files.md`, `cli.md`,
+  `api.md`; the UI spec follows in fl-8g3q as `ui.md`). Heading shape: `### Requirement: <name>`
+  with the EARS sentence as the paragraph below, then `#### Scenario: <name>` with a
+  `*Verification*: **executable**` line and GIVEN/WHEN/THEN bullets. Run `bridle spec id` to assign
+  IDs, then `bridle spec check --require-ids`. Each file opens with its recorded assumptions and
+  open questions. Terms: the unit is a task; a command is written `flume task list`; paths are
+  relative to the project root; no language, library or module names.
 
 ## Stack
 

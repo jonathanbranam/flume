@@ -1,4 +1,6 @@
 {
   "formatter": { "indentStyle": "space", "lineWidth": 100 },
-  "files": { "includes": ["**", "!node_modules", "!package-lock.json", "!.bridle", "!docs"] }
+  "files": {
+    "includes": ["**", "!node_modules", "!package-lock.json", "!.bridle", "!docs", "!design"]
+  }
 }
