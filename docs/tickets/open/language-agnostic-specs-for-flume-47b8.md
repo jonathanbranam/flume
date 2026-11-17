@@ -24,6 +24,8 @@ Scope to start: the task file format (front matter, IDs, slugs, folders), the CL
 their output, and the daemon's HTTP API. Sources: `docs/brief/project-note.md`,
 `docs/brief/tickets-lite.md`.
 
-Open question for the human: the spec style. The brief says "I struggle between EARS, which is
+Spec style (decided 2026-11-16, the human: "yes, that's it"): each requirement is one EARS
+sentence with an ID, with Given/When/Then scenarios under it as examples and acceptance checks.
+The question as first asked: The brief says "I struggle between EARS, which is
 pretty nice, and Givens (Given/When/Then), which I also really like. I want to be flexible on
 those." Pick one for Flume's own specs, or allow both?
