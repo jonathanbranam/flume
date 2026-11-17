@@ -2,11 +2,13 @@
 id = "fl-macf"
 title = "flume agent: launch Claude as a named agent (replaces claude-as)"
 kind = "feature"
-state = "open"
+state = "planned"
 created_at = "2026-11-17T12:06:56.999Z"
-updated_at = "2026-11-17T12:07:03.144472767Z"
+updated_at = "2026-11-17T12:07:41.040840543Z"
 created_by = "external:advisor"
 watchers = ["external:advisor"]
+priority = "urgent"
+priority_at = "2026-11-17T12:07:35.902500294Z"
 ticket = "macf"
 +++
 
@@ -19,3 +21,12 @@ Readied by human via advisor: "I approve this to be built. Please ready and work
 
 ### note · external:advisor · 2026-11-17T12:07:03.144Z
 readied by external:advisor
+
+### note · external:orchestrator · 2026-11-17T12:07:35.893Z
+settle skipped by external:orchestrator: The human asked (via advisor, 2026-11-17 12:07 UTC): 'Please ready and work the ticket. You have one hour before I get to work.'
+
+### note · external:orchestrator · 2026-11-17T12:07:35.902Z
+priority: normal -> urgent
+
+### note · external:orchestrator · 2026-11-17T12:07:41.040Z
+From orchestrator: URGENT. fl-macf (flume agent) is planned and alone in the queue, settle skipped. The human approved it and needs it at work within the hour (from 12:07 UTC). Staff one Sonnet worker now and land it as soon as just check is green. Tell the worker to keep to the ticket's scope and not over-verify: specs plus tests against a fake claude and fake tmux, then README/release.md. Message me when it lands. fl-dtyj (README install) waits until fl-macf has landed, because both edit the README.
