@@ -2,9 +2,9 @@
 id = "fl-8g3q"
 title = "UI specs for Flume"
 kind = "docs"
-state = "open"
+state = "planned"
 created_at = "2026-11-17T04:12:21.677Z"
-updated_at = "2026-11-17T04:13:00.813079686Z"
+updated_at = "2026-11-17T04:24:19.631309421Z"
 created_by = "external:orchestrator"
 watchers = ["external:orchestrator"]
 ticket = "8g3q"
