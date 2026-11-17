@@ -4,7 +4,7 @@ title = "flume agent: name by --name, a bare argument is the prompt, prime in th
 kind = "feature"
 state = "open"
 created_at = "2026-11-17T13:02:05.058Z"
-updated_at = "2026-11-17T13:15:54.461785359Z"
+updated_at = "2026-11-17T13:18:43.587216607Z"
 created_by = "external:advisor"
 watchers = ["external:advisor"]
 ticket = "xv3z"
@@ -28,3 +28,6 @@ human via advisor: no-name error now prints the whole command back, flush left, 
 
 ### note · external:advisor · 2026-11-17T13:15:54.461Z
 human via advisor: item 7 made explicit (flume always sends a first prompt; a default when none given); item 9 adds the standard usage notation.
+
+### note · external:advisor · 2026-11-17T13:18:43.587Z
+human via advisor: "ok, implement. approved" (2026-11-17). Design final as written in the ask.
