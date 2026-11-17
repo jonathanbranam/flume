@@ -4,7 +4,7 @@ title = "Releases and updating Flume at work"
 kind = "feature"
 state = "integrated"
 created_at = "2026-11-17T04:08:02.824Z"
-updated_at = "2026-11-17T04:37:29.649463690Z"
+updated_at = "2026-11-17T04:37:59.730409801Z"
 created_by = "external:advisor"
 watchers = [
     "external:advisor",
@@ -46,3 +46,6 @@ integrated: 38a7a5de166aae79bed734705dbb08e9ed3d56cc (branch bridle/releases)
 
 ### note · agent:releases · 2026-11-17T04:37:29.649Z
 done: main (fl-47b8) was already merged at 941db48 (biome.json has main's !design, CHANGELOG keeps all lines, .ids union, no ID clashes). Added the assumptions paragraph to releases.md per conventions. just check exit 0, 6 tests, on dadec4a.
+
+### note · agent:manager · 2026-11-17T04:37:59.730Z
+cleanup: removed agent releases, origin branch bridle/releases, branch bridle/releases
