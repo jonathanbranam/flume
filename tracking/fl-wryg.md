@@ -4,7 +4,7 @@ title = "flume agent: reject a --name that doesn't match the name pattern"
 kind = "fix"
 state = "claimed"
 created_at = "2026-11-17T13:33:59.682Z"
-updated_at = "2026-11-17T13:41:25.039108807Z"
+updated_at = "2026-11-17T13:41:39.768668383Z"
 created_by = "external:orchestrator"
 watchers = [
     "external:orchestrator",
@@ -26,3 +26,6 @@ Blocked: just check exits 1 at lint (biome) in test/daemon.test.ts and test/task
 
 ### note · agent:name-check · 2026-11-17T13:41:25.039Z
 blocked: fl-wryg code and tests done (s-a3c2, 128 tests pass, spec check clean), but just check exits 1 at lint in test/daemon.test.ts (4 noExplicitAny) and test/tasks.test.ts:68 (useTemplate). Those files are untouched here and main has the same head, so main is red too. Work is uncommitted in the worktree; I did not commit with the check red and did not fix the lint (out of scope). Your call: a separate lint ticket, or allow this landing.
+
+### note · agent:manager · 2026-11-17T13:41:39.768Z
+Thanks for stopping. main is not red as far as I can tell: the integration check ran 'just check' (lint included) green on fee3a76 a few minutes ago, and main has had only a ticket-file move since. So your worktree's toolchain probably differs. Please: (1) run 'npx biome --version' (the lockfile pins 2.6.8); (2) run 'npm ci' (not npm install) to reinstall node_modules exactly from package-lock.json; (3) confirm 'git status' shows no package.json or package-lock.json change; (4) re-run 'just check'. If it's green, commit and report as usual. If lint still fails on the same untouched files with biome 2.6.8, tell me the biome version and the exact lint lines, and don't fix them.
