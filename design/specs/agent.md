@@ -180,6 +180,7 @@ flume SHALL pass claude the prime text (the base template, then the project temp
 - **GIVEN** an agent alpha with project web
 - **WHEN** the user runs flume agent --name alpha "pick up xyz"
 - **THEN** claude receives --append-system-prompt followed by text containing "You are agent alpha" and "You are working on project web"
+- **AND** the prime text also contains "Use the flume CLI to work with tasks; run flume --help to learn it."
 - **AND** claude receives --name followed by alpha
 - **AND** the last argument of claude is exactly "pick up xyz"
 
