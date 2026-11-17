@@ -103,3 +103,4 @@
 {"actor":"external:advisor","at":"2026-11-17T13:35:57.126684193Z","from":"pending","task":"fl-zdqr","to":"open"}
 {"actor":"external:orchestrator","at":"2026-11-17T13:39:36.206672997Z","from":"open","task":"fl-wryg","to":"planned"}
 {"actor":"external:orchestrator","at":"2026-11-17T13:39:40.922924504Z","queue":"reprioritized"}
+{"actor":"agent:name-check","at":"2026-11-17T13:42:11.600739730Z","from":"claimed","task":"fl-wryg","to":"built"}

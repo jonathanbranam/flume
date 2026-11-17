@@ -2,15 +2,17 @@
 id = "fl-wryg"
 title = "flume agent: reject a --name that doesn't match the name pattern"
 kind = "fix"
-state = "claimed"
+state = "built"
 created_at = "2026-11-17T13:33:59.682Z"
-updated_at = "2026-11-17T13:41:39.768668383Z"
+updated_at = "2026-11-17T13:42:21.048285697Z"
 created_by = "external:orchestrator"
 watchers = [
     "external:orchestrator",
     "agent:name-check",
 ]
-summary = "flume agent and flume prime refuse a --name (or pane option) outside NAME_RE with exit 2, before reading, writing or launching claude (src/cli/agent.ts badName). Spec: design/specs/agent.md r-a3c0 sentence and scenario s-a3c2; test s-a3c2 in test/agent.test.ts; CHANGELOG Fixed line. Caveat: just check is red on main too, from lint in test/daemon.test.ts (4 noExplicitAny) and test/tasks.test.ts:68 (useTemplate); not fixed here (out of scope). Uncommitted in the worktree until the manager decides."
+branch = "bridle/name-check"
+commit = "b779553ae7857a079cc4ce3e0fb3a29cfc0e9ef3"
+summary = "flume agent and flume prime refuse a --name (or tmux pane option) outside the agent name pattern with exit 2, before the registry is read or written or claude runs (src/cli/agent.ts, badName). Spec: design/specs/agent.md r-a3c0 sentence and scenario s-a3c2; test s-a3c2 in test/agent.test.ts; CHANGELOG Fixed line."
 ticket = "wryg"
 +++
 
@@ -29,3 +31,15 @@ blocked: fl-wryg code and tests done (s-a3c2, 128 tests pass, spec check clean),
 
 ### note · agent:manager · 2026-11-17T13:41:39.768Z
 Thanks for stopping. main is not red as far as I can tell: the integration check ran 'just check' (lint included) green on fee3a76 a few minutes ago, and main has had only a ticket-file move since. So your worktree's toolchain probably differs. Please: (1) run 'npx biome --version' (the lockfile pins 2.6.8); (2) run 'npm ci' (not npm install) to reinstall node_modules exactly from package-lock.json; (3) confirm 'git status' shows no package.json or package-lock.json change; (4) re-run 'just check'. If it's green, commit and report as usual. If lint still fails on the same untouched files with biome 2.6.8, tell me the biome version and the exact lint lines, and don't fix them.
+
+### note · agent:name-check · 2026-11-17T13:42:11.600Z
+built: b779553ae7857a079cc4ce3e0fb3a29cfc0e9ef3 (branch bridle/name-check)
+
+### note · agent:name-check · 2026-11-17T13:42:11.615Z
+done: fl-wryg; b779553ae7857a079cc4ce3e0fb3a29cfc0e9ef3. just check exit 0 on this tree (biome 2.6.8, npm ci, package files unchanged); 128 tests pass including s-a3c2; lint shows 4 warnings and 1 info, no errors. Earlier red was a stale toolchain in my worktree. Main was merged (already up to date). Note: the run also printed the workspace last-full-test-count as 0; I did not compare against it.
+
+### note · agent:manager · 2026-11-17T13:42:19.028Z
+Code is good. One fix before I land: your ticket summary still says just check is red on main and the work is uncommitted; the summary becomes the landing commit's body. Rewrite it ('bridle ticket summary fl-wryg --text ...') without the caveat (the red was your worktree's stale toolchain), then message me. No code change needed.
+
+### note · agent:name-check · 2026-11-17T13:42:21.048Z
+done: fl-wryg summary rewritten without the caveat; code unchanged at b779553ae7857a079cc4ce3e0fb3a29cfc0e9ef3.
