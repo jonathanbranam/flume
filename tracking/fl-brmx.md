@@ -2,11 +2,14 @@
 id = "fl-brmx"
 title = "Daemon: localhost server, sole writer of task files"
 kind = "feature"
-state = "planned"
+state = "claimed"
 created_at = "2026-11-17T04:10:37.470Z"
-updated_at = "2026-11-17T04:24:19.583969916Z"
+updated_at = "2026-11-17T04:41:42.284142312Z"
 created_by = "external:orchestrator"
-watchers = ["external:orchestrator"]
+watchers = [
+    "external:orchestrator",
+    "agent:daemon",
+]
 ticket = "brmx"
 +++
 
