@@ -2,11 +2,14 @@
 id = "fl-xv3z"
 title = "flume agent: name by --name, a bare argument is the prompt, prime in the system prompt"
 kind = "feature"
-state = "planned"
+state = "claimed"
 created_at = "2026-11-17T13:02:05.058Z"
-updated_at = "2026-11-17T13:29:21.955676349Z"
+updated_at = "2026-11-17T13:30:11.295122688Z"
 created_by = "external:advisor"
-watchers = ["external:advisor"]
+watchers = [
+    "external:advisor",
+    "agent:agent-name",
+]
 ticket = "xv3z"
 +++
 
