@@ -122,3 +122,4 @@
 {"actor":"agent:not-running","at":"2026-11-17T13:54:00.612739644Z","from":"claimed","task":"fl-qgr7","to":"built"}
 {"actor":"agent:prime-help","at":"2026-11-17T13:54:09.030019502Z","from":"claimed","task":"fl-5xjg","to":"built"}
 {"actor":"agent:manager","at":"2026-11-17T13:54:38.111027700Z","from":"built","task":"fl-qgr7","to":"integrated"}
+{"actor":"agent:manager","at":"2026-11-17T13:55:19.995153879Z","from":"built","task":"fl-5xjg","to":"integrated"}
