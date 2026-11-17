@@ -3,3 +3,6 @@
 2026-11-17T03:23:46Z 0007-gitignore-agent-site (bridle 0.8.0): Add `.agent-site/` (throwaway dev sites) to .gitignore (ticket tgxy). added .agent-site/ to .gitignore; files: .gitignore
 2026-11-17T03:23:46Z 0008-gitignore-bridle-tmp (bridle 0.8.0): Add `.bridle/tmp/` (agent scratch) to .gitignore (ticket 6wff). .gitignore already ignores .bridle/tmp/; no files changed
 2026-11-17T03:23:46Z 0009-gitignore-review-documents (bridle 0.8.0): Add `.bridle/review-documents.txt` (the review list) to .gitignore (ticket v54x). .gitignore already ignores .bridle/review-documents.txt; no files changed
+2026-11-17T03:31:36Z 0002-standard-ticket-fields (bridle 0.8.0): Rename ticket frontmatter fields to the standard names and qualify ticket ids with the project prefix (ticket syqn). every ticket already has the standard fields; no files changed
+2026-11-17T03:31:36Z 0004-ticket-links-in-frontmatter (bridle 0.8.0): Carry the daemon's blocks, parent and related edges between tickets into their frontmatter and drop the `tasks:` list (ticket 3v75). no ticket links to carry; no files changed
+2026-11-17T03:31:36Z 0005-a-ticket-for-every-active-task (bridle 0.8.0): Give every active task without a ticket a stub ticket, and every extra task of a ticket a child ticket, so each piece of work has one (ticket 72t9). 1 stub tickets, 0 child tickets; files: ticket for task fl-sjdp

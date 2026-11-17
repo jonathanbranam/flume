@@ -24,3 +24,18 @@ bridle_version = "0.8.0"
 id = "0009-gitignore-review-documents"
 applied_at = "2026-11-17T03:23:46.126350957Z"
 bridle_version = "0.8.0"
+
+[[applied]]
+id = "0002-standard-ticket-fields"
+applied_at = "2026-11-17T03:31:36.307089841Z"
+bridle_version = "0.8.0"
+
+[[applied]]
+id = "0004-ticket-links-in-frontmatter"
+applied_at = "2026-11-17T03:31:36.317016574Z"
+bridle_version = "0.8.0"
+
+[[applied]]
+id = "0005-a-ticket-for-every-active-task"
+applied_at = "2026-11-17T03:31:36.330063947Z"
+bridle_version = "0.8.0"
