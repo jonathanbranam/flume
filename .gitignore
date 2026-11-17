@@ -8,3 +8,4 @@
 .claude/skills/bridle-*/
 .claude/.bridle-sync-hooks.json
 .agent-site/
+node_modules/

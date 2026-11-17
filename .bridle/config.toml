@@ -18,14 +18,14 @@ integration = "main"
 
 [commands]
 # What a role runs to check its work.
-# check = "just check"
+check = "just check"
 
 [worktrees]
 # Run in each new worktree (install dependencies, build caches).
-# setup = "npm ci"
+setup = "npm ci"
 # Untracked files to copy into each worktree.
 # copy = [".env"]
 
 [integration]
 # The gate `bridle land` runs before moving the integration branch.
-# check = "just check"
+check = "just check"
