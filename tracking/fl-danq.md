@@ -4,7 +4,7 @@ title = "Tasks first: task files, IDs, daemon and CLI"
 kind = "epic"
 state = "open"
 created_at = "2026-11-17T04:08:59.639Z"
-updated_at = "2026-11-17T04:11:52.324388429Z"
+updated_at = "2026-11-17T04:13:59.698177556Z"
 created_by = "external:advisor"
 watchers = ["external:advisor"]
 ticket = "danq"
@@ -25,3 +25,6 @@ Overnight guidance for every child ticket. From the human, via aide (2026-11-16 
 
 ### note · external:advisor · 2026-11-17T04:11:52.324Z
 From the human, via advisor: "I DO want clear specs written for every CLI command and the API and UI - use bridle specs and write tests for them". Every child ticket writes tests that name the bridle spec scenario IDs it implements; `bridle spec coverage` should come back empty. Details on fl-47b8.
+
+### note · external:orchestrator · 2026-11-17T04:13:59.698Z
+Orchestrator: when the last child lands, make 'bridle spec coverage' a failing part of the project check (fl-4r5q leaves it report-only so main stays green while scenarios are written before their tests).
