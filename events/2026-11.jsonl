@@ -133,3 +133,5 @@
 {"actor":"external:advisor","at":"2026-11-17T14:04:49.832469836Z","from":"pending","task":"fl-4dgp","to":"open"}
 {"actor":"human","at":"2026-11-17T14:09:15.266Z","from":"","task":"fl-a4nc","to":"pending"}
 {"actor":"external:advisor","at":"2026-11-17T14:09:22.274181838Z","from":"pending","task":"fl-a4nc","to":"open"}
+{"actor":"external:orchestrator","at":"2026-11-17T14:11:23.329836523Z","from":"open","task":"fl-4dgp","to":"planned"}
+{"actor":"external:orchestrator","at":"2026-11-17T14:11:23.340013389Z","queue":"reprioritized"}
