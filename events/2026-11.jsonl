@@ -121,3 +121,4 @@
 {"actor":"external:orchestrator","at":"2026-11-17T13:52:26.735182104Z","queue":"reprioritized"}
 {"actor":"agent:not-running","at":"2026-11-17T13:54:00.612739644Z","from":"claimed","task":"fl-qgr7","to":"built"}
 {"actor":"agent:prime-help","at":"2026-11-17T13:54:09.030019502Z","from":"claimed","task":"fl-5xjg","to":"built"}
+{"actor":"agent:manager","at":"2026-11-17T13:54:38.111027700Z","from":"built","task":"fl-qgr7","to":"integrated"}
