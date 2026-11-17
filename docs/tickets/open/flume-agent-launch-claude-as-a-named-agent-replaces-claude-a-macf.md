@@ -51,9 +51,10 @@ stopping consuming args."; "remove the custom --prompt, I stopped using it after
 1. Registry: one JSON file per name, `~/.flume/agents/<name>.json`: name, project (may be empty),
    pane, created, last_launch. Machine-wide. No daemon needed for any `flume agent` command.
 2. `--project <p>` saves the project on the entry; without it, the saved project is used.
-3. Pane check: if the entry's pane is another pane that still exists (tmux), refuse with a message
-   naming it, unless `--force`. If that pane no longer exists, take the entry over and print a
-   note. Record the current pane.
+3. Pane check (as `claude-as`): if the entry is associated with a different pane than the current
+   one, refuse with a message naming that pane, unless `--force`, which claims the entry. No
+   check of whether the other pane exists or is live (the human: "\"stale\" panes is not a good
+   check at all, just remove that"). Record the current pane.
 4. Set the pane option `@flume_agent=<name>` on the current pane.
 5. Environment for claude: `AGENT_NAME=<name>`, and `AGENT_PROJECT=<project>` when set.
 6. Default mode (as `claude-as` does today, "concat everything and pass to the interactive
