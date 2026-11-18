@@ -44,3 +44,27 @@ Today (fl-7sme): tasks in `<root>/flume/tasks/`, workflow in `<root>/workflow/` 
 5. **Migration:** existing repos from fl-7sme (tasks in flume/tasks, workflow at top) are a mixed layout; flume is days old, so a one-time manual move is fine.
 
 Separate, not in this ticket: multi-project task layout (distinct projects' tasks in one tasks repo), to be talked through next.
+
+## Decisions, 2026-11-17 (the human, verbatim)
+
+> Good point on the config. It should indicate whether we're using top level or nested structure. It can just list the folder name. "." For top level or "flume".
+
+> Ok. I think for v1 let's put all the flume stuff in the flume repo. I'm not sure on the structure for workflow yet but let's try Flume-root/project/* for project level overrides. Base is Flume-root/base
+
+## Resulting v1 layout (advisor's reading; settles open points 1 and 2)
+
+`<flume-root>` is the flume folder in the tasks repo: the repo top (`.`) or `<repo>/flume/`.
+
+```
+<flume-root>/
+  base/          flume's shipped workflow (flume init writes; --force rewrites)
+  workflow/      workspace rules (assumed: unchanged from fl-7sme)
+  <project>/     project overrides, one folder per project, e.g. backend/
+  tasks/         task files (open/, resolved/)
+```
+
+- **Nothing flume-related in the project repos** for v1; project rules move from `<repo>/workflow/` to `<flume-root>/<project>/`.
+- **Layout recorded in a versioned file** in the tasks repo, so every clone agrees: assumed `<repo>/flume.toml` at the repo top with `dir = "flume"` or `dir = "."`. Written by `flume init`; read by serve, check and agent. `.flume/config.toml` (machine-local) keeps only `root`.
+- **Prime reading order:** `<flume-root>/base/`, then `<flume-root>/workflow/`, then `<flume-root>/<project>/`, then the project's CLAUDE.md; later overrides earlier.
+
+Open (advisor): a project named `base`, `workflow` or `tasks` would collide; init/check should refuse those names, or projects could live under `<flume-root>/projects/<project>/` instead. Workspace rules folder name is unconfirmed by the human.
