@@ -96,6 +96,7 @@ For whoever edits this ticket (the human, 2026-11-17): "the design at the top is
 ### Role, folder name, projects' tasks
 
 - `flume agent --role <role>` passes the role to prime. With no role, prime prints no role part; that is not an error.
+- The agent's entry (`~/.flume/agents/<name>.yaml`) stores `role` beside `project`. Like `project`, a launch without `--role` keeps the role from the last launch; empty when never given.
 - `flume init --root <repo> [--dir <name>]` picks the flume-root folder, default `flume`, and writes `flume.yaml` when missing (full init steps: fl-pshd).
 - Tasks of all projects share the one `tasks/` folder; `task.yaml` has a `project` field.
 
@@ -359,3 +360,5 @@ The TOML-to-YAML switch for today's `.flume/config.toml` is split out as its own
 The human, 2026-11-17, confirming the advisor's three assumptions (role via `flume agent --role`, `flume init --dir`, one tasks folder with a `project` field): "1. yes - missing role is ok 2. yes 3. yes"
 
 Advisor: init no longer creates empty `tasks/open/` and `resolved/` (git can't hold empty folders; fl-pshd's init steps), so that clause was dropped.
+
+The human, 2026-11-17, on the agent entry fields (name, project, pane, created, last_launch): "it should have role also"
