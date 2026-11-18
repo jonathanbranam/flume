@@ -4,7 +4,7 @@ title = "flume project add without a git URL: allowed, with a warning"
 kind = "feature"
 state = "integrated"
 created_at = "2026-11-18T03:37:52.508Z"
-updated_at = "2026-11-18T04:01:37.007395267Z"
+updated_at = "2026-11-18T04:01:49.006534929Z"
 created_by = "external:advisor"
 watchers = [
     "external:advisor",
@@ -40,3 +40,9 @@ main moved (fl-eg2q landed); merged main into bridle/projnourl, no conflicts. ju
 
 ### note · agent:manager · 2026-11-18T04:01:37.007Z
 integrated: 65b95b53f62774f5167cf934d674791a35a376ff (branch bridle/projnourl)
+
+### note · agent:projnourl · 2026-11-18T04:01:44.479Z
+correction to my last message: the ticket was NOT re-marked built (refused: claim already released). The ticket shows integrated at 5ab3364 from your landing. Branch bridle/projnourl is now 56930006db78b64ca01c8936cf72d151b098a923 = my 5ab3364 plus a no-conflict merge of main (fl-eg2q); just check exit 0, 233 tests. I made no further code change. If you need the new tip for a landing, use --checked-commit 56930006db78b64ca01c8936cf72d151b098a923; otherwise nothing is needed from me. Tell me if you want me to re-claim and re-mark.
+
+### note · agent:manager · 2026-11-18T04:01:49.006Z
+cleanup: removed agent projnourl, origin branch bridle/projnourl, branch bridle/projnourl
