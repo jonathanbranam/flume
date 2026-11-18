@@ -88,3 +88,49 @@ fluff-flume/
 ```
 
 Prime reading order: base/, workflow/, projects/<project>/, then the project repo's CLAUDE.md.
+
+## Decision: prime builds the workflow; final layout (2026-11-17 ~8:45 PM ET)
+
+The human, verbatim:
+
+> why is an agent reading the files at all, that's not the design actually.
+>
+> What happens is that flume constructs the workflow itself by calling the daemon. So, `flume prime` calls the daemon's API and passes in the project name and role. flume prime then constructs the prime message by
+>
+> 1. Returning the base workflow from within flume
+> 2. Then returning the flume workspace workflow
+> 3. Then returning the flume project workflow
+>
+> the flume CLI then just prints all of that out to `stdout` for the agent to read. Agents don't read files, they call `flume`
+>
+> Also, yes, let's have it like this:
+>
+> ```
+> .flume/config.toml # root=fluff-flume
+> fluff-flume/
+>  flume.toml # dir=flume
+>  flume/
+>   base/workflow.md
+>   projects/<name>/workflow.md
+>   tasks/[open|resolved]/slug-id/
+>     body.md
+>     comments.md
+>   <other task-related files>
+> ```
+
+This replaces the "Resulting v1 layout" and "projects under projects/" sections above.
+
+### What this means (advisor's reading)
+
+- **Prime prints the workflow text, it does not point at files.** `flume prime` asks the daemon (project name and role) and prints, in order: flume's built-in base workflow, the workspace workflow, the project workflow. Agents never read workflow files; they run `flume prime`. Today's prime (`src/cli/agent.ts`, the "Workflow: read the .md files in ..." line) tells agents to read files; that goes.
+- **Built-in base comes from the flume install**, not a copy in the tasks repo. So `flume init` no longer copies `workflow/base/`, and `init --force` loses its reason to exist (it only rewrote base).
+- **No separate `workflow/` folder.** The layout has `base/` and `projects/` only.
+- **Tasks become folders**: `tasks/open/<slug-id>/body.md` and `comments.md`, instead of one `<slug-id>.md` file with a `## Comments` section (changes fl-ha4p's format and the task file format spec).
+- **Role** is a new input to prime; flume has no roles today.
+
+### Open (advisor, to confirm with the human)
+
+1. `<flume-root>/base/workflow.md`: is this the **workspace** workflow (step 2), with the built-in base (step 1) living only inside flume? Advisor's reading: yes; otherwise the built-in base exists twice. If so, `base/` might be better named `workspace/` to avoid confusion with the built-in base.
+2. Roles: which roles, and where does a role's workflow live (e.g. `base/roles/<role>.md`)? Or is role passed now and used later (YAGNI)?
+3. Task folder: where does the front matter (id, title, status) go: top of `body.md`? What are the "other task-related files" (attachments)?
+4. Does `flume.toml` live only at the tasks-repo top and `.flume/config.toml` only in the workspace folder? (Advisor: yes, as drawn.)
