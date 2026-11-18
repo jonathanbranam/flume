@@ -4,7 +4,7 @@ Status: decided (2026-11-16, by the human). Ticket fl-28pa.
 
 ## Decision
 
-Flume is built in **TypeScript on Node**: the daemon, the CLI and the React UI.
+Flume is built in **TypeScript on Node**: the daemon ([[docs/design/daemon]]), the CLI and the React UI.
 
 **Go** was the runner-up and is the recorded alternative (see below).
 
