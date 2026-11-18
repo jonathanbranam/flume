@@ -132,10 +132,18 @@ The human: "'other task related files' should be indented to indicate they are i
     |-- flume.toml             dir = "flume"   (versioned; "." = repo top)
     `-- flume/                 <flume-root>
         |-- base/
-        |   `-- workflow.md    workspace-wide workflow
+        |   |-- workflow.md    workspace-wide workflow
+        |   |-- roles/
+        |   |   `-- <role>.md
+        |   `-- guides/
+        |       `-- <guide>.md
         |-- projects/
         |   `-- <project>/
-        |       `-- workflow.md
+        |       |-- workflow.md
+        |       |-- roles/
+        |       |   `-- <role>.md
+        |       `-- guides/
+        |           `-- <guide>.md
         `-- tasks/
             |-- open/
             |   `-- <slug>-<id>/
@@ -218,3 +226,14 @@ Advisor's reading:
 The human, 2026-11-17: "could also be attachments as well, yes. Images, CSVs, etc"
 
 So a task folder may also hold attachments (any file type). Same v1 rule: flume leaves files it doesn't own alone and moves them with the folder.
+
+### Roles and guides (2026-11-17)
+
+The human, verbatim: "roles are a folder inside base/ and projects/<name>; so are guides."
+
+Advisor's reading:
+
+- `base/roles/`, `base/guides/`, `projects/<project>/roles/`, `projects/<project>/guides/` (tree above updated). Same layering as the workflow: project overrides workspace.
+- Assumed file naming: one file per role or guide, `roles/<role>.md`, `guides/<guide>.md`.
+- Prime: given a role, prints the role's text from base/ then from projects/<project>/, after the workflow layers.
+- Open: how guides reach agents. Agents don't read files, so presumably a flume command prints one (e.g. `flume guide <name>`), and prime lists the guides available. Which roles exist is up to the workspace (they are files), so flume does not need a fixed list.
