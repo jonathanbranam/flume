@@ -60,9 +60,16 @@ For whoever edits this ticket (the human, 2026-11-17): "the design at the top is
 - `flume task next ID`: the current plan group, then the guides the group names and the guides pushed to `implement`, each in its own `<guide>` element.
 - A pushed guide that has since disappeared is reported in the output, not an error.
 
+### Agents find the instructions without knowing to look
+
+- `flume task show ID` is the task's data (fields, parts, pushed guides) for humans and scripts; `flume task instructions ID` is what to do now, for the agent.
+- `flume task claim ID` (and `assign` to yourself) prints the current phase's instructions right after claiming, as `instructions` would. Claiming a task you already hold prints them again (resuming).
+- `flume task phase ID PHASE` ends with one line: `next: flume task instructions ID`.
+- `flume task show ID` text output ends with one line: `For what to do now: flume task instructions ID`. Not in `--json`.
+
 ### Built-in text (fl-fu3v)
 
-- Step 1 becomes: claim the task, then get your phase's instructions (flume task instructions ID).
+- Step 1 becomes: claim the task (flume task claim ID); it prints your instructions for the task's current phase. Follow them. To see them again, run flume task instructions ID, not flume task show (that prints the task's data, not what to do).
 - In every phase: if you see guides (flume guide) that matter for a later phase of this task, push them (flume task guide ID NAME --phase PHASE). Read any guide that matters for your own work now (flume guide NAME).
 - Plan phase: decide which guides apply to each group and name them with `Guide:` lines.
 
@@ -70,10 +77,6 @@ For whoever edits this ticket (the human, 2026-11-17): "the design at the top is
 
 - Guides are pushed per phase or per plan group, not per plan item: `flume task next` hands out one group at a time.
 - A guide's own `stage` (fl-x6xn) stays a hint shown in lists; pushing is what ties a guide to a task's step.
-
-### Open (for the human)
-
-1. A new `flume task instructions ID` for "the instructions for this step", or put them in `flume task show ID`? Advisor recommends the new command: `show` stays the task's data, `instructions` is agent text (as OpenSpec's `openspec instructions`).
 
 ## Discussion (for reference, not authoritative)
 
@@ -108,3 +111,7 @@ Advisor asked lowercase or capitalized phase keys (phase names are lowercase els
 > Agents are too black and white. Yes keep it flat that doesn't mean at the cost of usability
 
 Advisor's reading: nesting stays; keys stay lowercase, matching the phase names.
+
+> What difference between show and instruction? It sounds right but I'm worried agents will run show. It needs to be made clear and explocit
+
+Advisor: kept the new command, and made claim print the instructions, phase and show point to it, and the built-in text say which to run.
