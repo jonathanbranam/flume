@@ -173,3 +173,4 @@
 {"actor":"human","at":"2026-11-18T02:01:06.414Z","from":"","task":"fl-pshd","to":"pending"}
 {"actor":"external:orchestrator","at":"2026-11-18T02:05:17.580469506Z","from":"open","task":"fl-c9n9","to":"planned"}
 {"actor":"external:orchestrator","at":"2026-11-18T02:05:17.591627610Z","queue":"reprioritized"}
+{"actor":"agent:yaml-config","at":"2026-11-18T02:06:48.960202882Z","from":"claimed","task":"fl-c9n9","to":"built"}
