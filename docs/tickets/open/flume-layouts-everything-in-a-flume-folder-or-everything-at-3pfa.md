@@ -93,11 +93,14 @@ For whoever edits this ticket (the human, 2026-11-17): "the design at the top is
 
 - `flume init` no longer copies a base workflow; the built-in text lives in flume. With nothing to rewrite, `init --force` goes.
 
+### Role, folder name, projects' tasks
+
+- `flume agent --role <role>` passes the role to prime. With no role, prime prints no role part; that is not an error.
+- `flume init --root <repo> [--dir <name>]` picks the flume-root folder, default `flume`, and writes `flume.yaml` when missing (full init steps: fl-pshd).
+- Tasks of all projects share the one `tasks/` folder; `task.yaml` has a `project` field.
+
 ### Assumed (advisor; change if wrong)
 
-- How the role gets to prime: `flume agent --role <role>` passes it; with no role, prime prints no role part.
-- How init picks the folder: `flume init --root <repo> [--dir <name>]`, default `flume`; init writes `flume.yaml` if missing and creates `<flume-root>/tasks/open/` and `resolved/`.
-- Tasks of several projects share the one `tasks/` folder, with a `project` field in `task.yaml` (advisor's pick, not yet confirmed by the human).
 - `.flume/daemon.json` stays JSON: it is the daemon's state, not config.
 
 ### Not in this ticket
@@ -352,3 +355,7 @@ This overrules the task.toml decision above. Advisor notes: flume already depend
 The human, 2026-11-17: "and, no migration or backwards compatibility needed; just replace toml with yaml; remove the toml library. No projects have onboarded."
 
 The TOML-to-YAML switch for today's `.flume/config.toml` is split out as its own chore (so it lands now, not with this held ticket).
+
+The human, 2026-11-17, confirming the advisor's three assumptions (role via `flume agent --role`, `flume init --dir`, one tasks folder with a `project` field): "1. yes - missing role is ok 2. yes 3. yes"
+
+Advisor: init no longer creates empty `tasks/open/` and `resolved/` (git can't hold empty folders; fl-pshd's init steps), so that clause was dropped.
