@@ -263,3 +263,4 @@
 {"actor":"agent:manager","at":"2026-11-18T05:54:40.999342645Z","from":"pending","task":"fl-4d6q","to":"open"}
 {"actor":"external:orchestrator","at":"2026-11-18T06:05:24.328772102Z","from":"open","task":"fl-7tyx","to":"planned"}
 {"actor":"external:orchestrator","at":"2026-11-18T06:05:24.339898770Z","queue":"reprioritized"}
+{"actor":"agent:specids","at":"2026-11-18T06:06:49.685132960Z","from":"claimed","task":"fl-7tyx","to":"built"}
