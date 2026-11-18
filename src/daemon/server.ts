@@ -21,6 +21,7 @@ import {
   type TaskEntry,
   taskObject,
   updateTask,
+  workflowParts,
   workflowText,
 } from "../core/index.ts";
 import { commitPaths, inRepo } from "./git.ts";
@@ -110,6 +111,7 @@ export function startDaemon(opts: {
         200,
         {
           text: bad(() => workflowText(root, project, role)),
+          parts: bad(() => workflowParts(root, project, role)),
           guides: bad(() => listGuides(root, project)),
         },
       ];

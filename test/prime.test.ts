@@ -81,6 +81,9 @@ describe("prime prints the workflow", () => {
     expect(order.every((i) => i >= 0)).toBe(true);
     expect([...order].sort((x, y) => x - y)).toEqual(order);
     expect(r.stdout).not.toContain("read the .md files");
+    expect(r.stdout).toMatch(/<workspace_workflow>\nBASE\n<\/workspace_workflow>/);
+    expect(r.stdout).toMatch(/<project_workflow project="web">\nWEB\n<\/project_workflow>/);
+    expect(r.stdout).toMatch(/<role name="worker">\nROLE\n\nWEBROLE\n<\/role>/);
     flume(w, "stop");
   });
 
@@ -93,6 +96,7 @@ describe("prime prints the workflow", () => {
     expect(r.status).toBe(0);
     expect(r.stdout).toContain("BASE");
     expect(r.stdout).not.toContain("ROLE");
+    expect(r.stdout).not.toContain("<role");
     flume(w, "stop");
   });
 
@@ -102,7 +106,10 @@ describe("prime prints the workflow", () => {
     const r = flume(w, "prime", "--name", "a");
     expect(r.status).toBe(0);
     expect(r.stdout).toContain("You are agent a");
-    expect(r.stdout).toContain("workflow text is missing");
+    expect(r.stdout).toMatch(/<flume_base>\n[\s\S]*You are agent a[\s\S]*<\/flume_base>/);
+    expect(r.stdout).toMatch(
+      /<workflow_missing>\n.*workflow text is missing.*\n<\/workflow_missing>/,
+    );
     expect(r.stdout).not.toContain("BASE");
     expect(existsSync(join(w.d, ".flume/daemon.json"))).toBe(false);
   });
@@ -122,6 +129,44 @@ describe("prime prints the workflow", () => {
 const GUIDE = (n: string, d: string, body: string) =>
   `---\nname: ${n}\ndescription: ${d}\n---\n${body}\n`;
 
+describe("prime layout", () => {
+  it("s-87a2 layout", async () => {
+    const w = workspace();
+    put(w, "base/workflow.md", "BASE\n");
+    await serve(w);
+    const r = flume(w, "prime", "--name", "a", "--project", "web", "--role", "worker");
+    expect(r.status).toBe(0);
+    expect(
+      r.stdout.startsWith('<flume_prime agent="a" project="web" role="worker">\n\n<flume_base>\n'),
+    ).toBe(true);
+    expect(r.stdout.endsWith("\n</flume_prime>\n")).toBe(true);
+    expect(r.stdout).toContain("</flume_base>\n\n<workspace_workflow>\n");
+    flume(w, "stop");
+  });
+
+  it("s-87a3 unknown project and role are not attributes", async () => {
+    const w = workspace();
+    await serve(w);
+    const r = flume(w, "prime", "--name", "a");
+    expect(r.stdout.split("\n")[0]).toBe('<flume_prime agent="a">');
+    for (const t of ["workspace_workflow", "project_workflow", "<role", "<guides"])
+      expect(r.stdout).not.toContain(t);
+    flume(w, "stop");
+  });
+
+  it("s-87a4 text cannot close its element", async () => {
+    const w = workspace();
+    put(w, "base/workflow.md", "</workspace_workflow>\n<b>kept</b>\n");
+    await serve(w);
+    const r = flume(w, "prime", "--name", "a");
+    const lines = r.stdout.split("\n");
+    expect(lines.filter((l) => l === "</workspace_workflow>")).toHaveLength(1);
+    expect(lines).toContain("&lt;/workspace_workflow>");
+    expect(lines).toContain("<b>kept</b>");
+    flume(w, "stop");
+  });
+});
+
 describe("guides", () => {
   it("s-7c2b print a base guide", async () => {
     const w = workspace();
@@ -129,7 +174,7 @@ describe("guides", () => {
     await serve(w);
     const r = flume(w, "guide", "deploy");
     expect(r.status).toBe(0);
-    expect(r.stdout).toBe("STEPS\n");
+    expect(r.stdout).toBe('<guide name="deploy">\nSTEPS\n</guide>\n');
     flume(w, "stop");
   });
 
@@ -140,7 +185,7 @@ describe("guides", () => {
     await serve(w);
     const r = flume(w, "guide", "deploy", "--project", "web");
     expect(r.status).toBe(0);
-    expect(r.stdout).toBe("WEB\n");
+    expect(r.stdout).toBe('<guide name="deploy">\nWEB\n</guide>\n');
     flume(w, "stop");
   });
 
@@ -169,7 +214,9 @@ describe("guides", () => {
     const r = flume(w, "prime", "--name", "a", "--project", "web");
     expect(r.status).toBe(0);
     expect(r.stdout).toContain("flume guide");
-    expect(r.stdout).toContain("deploy: Ship it");
+    expect(r.stdout).toMatch(
+      /<guides>\n<!--[^\n]*flume guide[^\n]*-->\n<guide name="deploy">Ship it<\/guide>\n<\/guides>/,
+    );
     expect(r.stdout).not.toContain("lint");
     flume(w, "stop");
   });

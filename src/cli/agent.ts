@@ -2,6 +2,7 @@ import { spawnSync } from "node:child_process";
 import { readdirSync } from "node:fs";
 import { stringify } from "yaml";
 import { agentsDir, type Entry, readEntry, writeEntry } from "../core/agents.ts";
+import { xmlBlock, xmlOpen, xmlText } from "../core/prime.ts";
 import { daemonUrl, request } from "../daemon/index.ts";
 
 const USAGE = `Usage:
@@ -178,32 +179,50 @@ function fill(text: string, vars: Record<string, string>): string {
 }
 
 /**
- * The prime text: flume's built-in text, then the workflow text the daemon builds from the
- * flume-root files for this project and role. With no daemon (or a refusal) the built-in text
- * is printed with one line saying why the rest is missing.
+ * The prime text: one flume_prime element holding flume's built-in text, then the workflow parts
+ * the daemon builds from the flume-root files for this project and role, then the guides; empty
+ * parts are left out. With no daemon (or a refusal) the built-in text is printed with a
+ * workflow_missing element saying why the rest is missing.
  */
 async function primeText(name: string, project: string, role: string): Promise<string> {
   const vars = { name, project };
-  let text = fill(DEFAULT_BASE, vars);
-  if (project) text += `\n${fill(DEFAULT_PROJECT, vars)}`;
+  let base = fill(DEFAULT_BASE, vars);
+  if (project) base += `\n${fill(DEFAULT_PROJECT, vars)}`;
+  const parts: string[] = [xmlBlock("flume_base", {}, base)];
   const url = daemonUrl(process.cwd());
   const q = new URLSearchParams({ project, role });
   const r = url ? await request(url, "GET", `/api/prime?${q}`) : undefined;
   if (!r) {
-    text +=
-      "\nThe workflow text is missing because the flume server is not running. Ask the human to start it: flume serve (in its own pane).\n";
+    parts.push(
+      xmlBlock(
+        "workflow_missing",
+        {},
+        "The workflow text is missing because the flume server is not running. Ask the human to start it: flume serve (in its own pane).",
+      ),
+    );
   } else if (r.status !== 200) {
-    text += `\nThe workflow text is missing: ${r.body?.error ?? `request failed (${r.status})`}\n`;
+    parts.push(
+      xmlBlock(
+        "workflow_missing",
+        {},
+        `The workflow text is missing: ${r.body?.error ?? `request failed (${r.status})`}`,
+      ),
+    );
   } else {
-    if (r.body.text) text += `\n${r.body.text}`;
+    const w = (r.body.parts ?? {}) as { workspace?: string; project?: string; role?: string };
+    if (w.workspace) parts.push(xmlBlock("workspace_workflow", {}, w.workspace));
+    if (w.project) parts.push(xmlBlock("project_workflow", { project }, w.project));
+    if (w.role) parts.push(xmlBlock("role", { name: role }, w.role));
     const guides = (r.body.guides ?? []) as { name: string; description: string; stage?: string }[];
     if (guides.length > 0) {
-      text += "\nGuides available (print one with: flume guide <name>):\n";
-      for (const g of guides)
-        text += `- ${g.name}${g.stage ? ` [stage: ${g.stage}]` : ""}: ${g.description}\n`;
+      let g = "<guides>\n<!-- Print one with: flume guide <name> -->\n";
+      for (const x of guides)
+        g += `${xmlOpen("guide", { name: x.name, stage: x.stage })}${xmlText(x.description)}</guide>\n`;
+      parts.push(`${g}</guides>\n`);
     }
   }
-  return text;
+  const root = xmlOpen("flume_prime", { agent: name, project, role });
+  return `${root}\n\n${parts.join("\n")}\n</flume_prime>\n`;
 }
 
 /** Refuse a name outside NAME_RE before anything is read or written; undefined when it is fine. */
@@ -321,8 +340,13 @@ export async function guide(args: string[]): Promise<number> {
     process.stderr.write(`flume: ${r.body?.error ?? `request failed (${r.status})`}\n`);
     return 1;
   }
-  const body = r.body.body as string;
-  process.stdout.write(body.endsWith("\n") ? body : `${body}\n`);
+  process.stdout.write(
+    xmlBlock(
+      "guide",
+      { name: r.body.name as string, stage: r.body.stage as string | undefined },
+      r.body.body as string,
+    ),
+  );
   return 0;
 }
 

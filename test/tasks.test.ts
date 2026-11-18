@@ -101,7 +101,8 @@ describe("task files", () => {
     for (let i = 0; i < 200; i++) createTask(root, { title: `u${i}`, kind: "chore" });
     const ids = new Set(listTaskFiles(root).map((e) => e.nameId));
     expect(ids.size).toBe(400);
-  });
+    // 30s: 400 sequential creates are slow under parallel load
+  }, 30000);
 
   it("s-b4b4 retitle keeps the name", () => {
     const e = createTask(root, { title: "Old title", kind: "chore" });

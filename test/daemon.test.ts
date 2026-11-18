@@ -323,6 +323,11 @@ describe("daemon api", () => {
     const r = await call("GET", "/api/prime?project=web&role=worker");
     expect(r.status).toBe(200);
     expect(r.body.text).toBe("BASE\n\nWEB\n\nROLE\n\nWEBROLE\n");
+    expect(r.body.parts).toEqual({
+      workspace: "BASE\n",
+      project: "WEB\n",
+      role: "ROLE\n\nWEBROLE\n",
+    });
   });
 
   it("s-3fa0 prime skips missing files", async () => {

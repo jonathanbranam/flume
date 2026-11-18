@@ -154,13 +154,14 @@ When GET /api/roadmap is requested, the daemon SHALL answer 200 with sections, a
 - **THEN** the status is 404 and the body has an error message
 
 ### Requirement: Prime text from the flume root  {#r-216d}
-When GET /api/prime is requested with the optional query parameters project and role, the daemon SHALL answer 200 with an object whose text is the concatenation, in this order and each separated from the next by a blank line, of those of these files in the flume root that exist: base/workflow.md; projects/PROJECT/workflow.md (when project is given); base/roles/ROLE.md (when role is given); projects/PROJECT/roles/ROLE.md (when both are given); text is empty when none exists; a project or role that is not one plain name (letters, digits, dots, hyphens and underscores, starting with a letter or digit) SHALL answer 400 with an error message.
+When GET /api/prime is requested with the optional query parameters project and role, the daemon SHALL answer 200 with an object whose text is the concatenation, in this order and each separated from the next by a blank line, of those of these files in the flume root that exist: base/workflow.md; projects/PROJECT/workflow.md (when project is given); base/roles/ROLE.md (when role is given); projects/PROJECT/roles/ROLE.md (when both are given); text is empty when none exists; the object SHALL also hold parts, an object with workspace (base/workflow.md), project (projects/PROJECT/workflow.md) and role (base/roles/ROLE.md then projects/PROJECT/roles/ROLE.md, separated by a blank line), each "" when it has no file; a project or role that is not one plain name (letters, digits, dots, hyphens and underscores, starting with a letter or digit) SHALL answer 400 with an error message.
 
 #### Scenario: Layers in order  {#s-1581}
 *Verification*: **executable**
 - **GIVEN** a flume root with base/workflow.md holding BASE, projects/web/workflow.md holding WEB, base/roles/worker.md holding ROLE and projects/web/roles/worker.md holding WEBROLE
 - **WHEN** GET /api/prime is requested with project web and role worker
 - **THEN** the status is 200 and text holds BASE, WEB, ROLE and WEBROLE in that order
+- **AND** parts.workspace holds BASE, parts.project holds WEB and parts.role holds ROLE then WEBROLE
 
 #### Scenario: Missing files are skipped  {#s-3fa0}
 *Verification*: **executable**

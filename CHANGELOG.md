@@ -16,6 +16,8 @@
 
 ### Changed
 
+- `flume prime` (and the text `flume agent` sends) and `flume guide` print XML sections: one `flume_prime` root with `flume_base`, `workspace_workflow`, `project_workflow`, `role`, `guides` parts (empty ones left out, tags that would forge an element neutralized); a guide prints inside `<guide name stage>`. With no daemon a `workflow_missing` element says the rest is missing. `GET /api/prime` also returns `parts` (fl-87h9).
+
 - `flume init` can be run again in a set-up workspace instead of failing with "already set up": it repeats its steps, reports projects missing from the workspace (without `--clone`) and changes nothing else (fl-pshd).
 
 - New layout, no migration (fl-3pfa): the tasks repo holds a versioned `flume.yaml` (`dir: flume`, or `.`) naming the flume-root; a task is a folder `tasks/open/<slug>-<id>/` with `task.yaml` (flat fields, now including `status`), `body.md` (the ask, no front matter) and `comments.md`; other files in the folder are left alone and move with it on close. `flume init` writes `flume.yaml` (`--dir NAME`) and no longer copies a base workflow, `init --force` and the shipped `workflow/base/` folder are gone, and `roadmap.md` now sits in the flume-root. `flume task show` prints task.yaml, body.md and comments.md; the API task object has `body`, `comments` and `fields` instead of `file`.
