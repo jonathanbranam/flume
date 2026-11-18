@@ -13,64 +13,68 @@ related: [fl-fu3v, fl-4tx8, fl-87h9]
 
 ## The ask
 
-A project's workflow must be able to replace the base workflow, not only add to it. Today flume's base text is built into the code and every layer (workspace, project, role) is appended, so a docs repo still tells agents to make a task and use a worktree for a one-line doc edit. Make the base workflow a Markdown file, and let each layer's workflow.md merge into the layers below it by heading: replace a section, add one, append to one, remove one, or replace the whole file. Keep it really simple. Pending: the human asked for the ticket and feedback, not a build.
+A project's workflow must be able to replace the base workflow, not only add to it. Today flume's base text is built into the code and every layer (workspace, project, role) is appended, so a docs repo still tells agents to make a task and use a worktree for a one-line doc edit. Make the base workflow a Markdown file, and let each layer's workflow.md merge into the layers below it by heading: replace a section, add one, append to one, remove one, or replace the whole file. The same rule for roles, guides and templates. Keep it really simple and hard to get wrong. Pending: the human asked for the ticket and feedback, not a build.
 
 ## Design
 
-### The base workflow is a Markdown file
+One rule for every layered document in flume: the workflow, roles, guides and templates. It should be hard to get wrong: anything flume cannot place exactly is an error, never a silent guess.
 
-- Flume ships its base workflow as one Markdown file (today's DEFAULT_BASE overview, plus PHASE_STEPS and COMMON_STEPS, word for word), read at run time, no build step.
-- Shape: one H1; H2 sections for the overview parts; an H2 Phases with one H3 per phase (proposal, design, specs, plan, implement) holding that phase's steps; an H2 for the steps of every phase.
-- flume prime prints the merged document minus the Phases detail (the overview); flume task instructions ID prints the merged Phases section for the task's current phase plus the every-phase section, the template and pushed guides (fl-4tx8 unchanged otherwise). A phase with no section left prints a line saying the workflow has no steps for it.
+### Documents are Markdown files that pass the linter
+
+- Flume ships its base workflow as one Markdown file (today's DEFAULT_BASE overview, plus PHASE_STEPS and COMMON_STEPS, word for word), read at run time, no build step. Base roles, guides and templates are Markdown files too.
+- Every layered file passes rumdl (markdownlint rules): in particular exactly one H1 per document.
+- The workflow's shape: H2 sections for the overview parts; an H2 Phases with one H3 per phase (proposal, design, specs, plan, implement) holding that phase's steps; an H2 for the steps of every phase.
+- flume prime prints the merged workflow minus the Phases detail; flume task instructions ID prints the merged section for the task's current phase, the every-phase section, the template and pushed guides (fl-4tx8 otherwise unchanged). A phase with no section left prints a line saying the workflow has no steps for it.
 - Placeholders ({name}, {project}) work as today.
 
 ### Layers, in order
 
-base (shipped) -> workspace (flume/base/workflow.md in the tasks repo) -> project (flume/projects/P/workflow.md) -> role (base/roles/R.md, then projects/P/roles/R.md). Each merges into the result of the ones before it.
+base (shipped with flume) -> workspace (flume/base/ in the tasks repo) -> project (flume/projects/P/). For each document (workflow.md, roles/R.md, guides/G.md, the templates), each layer's file of the same name merges into the result of the layers before it. The role layer is the role file in base, then in the project, merged the same way.
 
-### Merging by heading
+### Merging: replace is the default
 
-- Sections are matched by heading path: the H2 text, then the H3 text under it, and so on; case-insensitive, surrounding spaces ignored. The H1 is the document root; its text is not matched.
-- Default (no tag), "replace at the level with content": a matched section's own text (between its heading and its first sub-heading) replaces the lower layer's own text when the override has any; with none, the lower text stays. Sub-sections merge the same way, one by one. So an override with an empty "## Phases" and a filled "### implement" changes only implement.
-- A section that matches nothing is added, at the end of its parent section, in the override's order.
-- Order otherwise follows the lower layer.
+- Headings are matched by path: the H1, then the H2 under it, then the H3, and so on. Matching ignores case and surrounding spaces, and ignores the tag.
+- A heading with no tag is a replace: it must match a heading in the layers below, or it is an error. Its own text (between it and its first sub-heading) replaces the lower section's own text. Its sub-headings are then handled one by one, each by the same rule; lower sub-headings it does not mention stay.
+- A heading with no tag, no text and sub-headings is only a path to them: the lower text stays.
+- A heading with no tag, no text and no sub-headings is an error (use @remove).
 
-### Tags (a word in braces at the end of a heading, stripped from the output)
+### Tags: an @ word at the end of the heading, stripped from the output
 
-- {append}: the section's own text is added after the lower layer's text instead of replacing it.
-- {replace}: the whole section, with all its sub-sections, replaces the lower one; lower sub-sections not repeated are dropped.
-- {remove}: the section and its sub-sections are dropped; any text under it is ignored.
+- `## Name @add`: a new section, added at the end of its parent, in the file's order. Error if it matches a lower heading.
+- `## Name @append`: its text is added after the lower section's text. Error if it matches nothing. Sub-headings follow the usual rules.
+- `## Name @remove`: drops the lower section and all its sub-sections. Error if it matches nothing, or if it has any text or sub-headings of its own.
+- `## Name @replace`: the whole section, sub-sections and all, replaces the lower one; lower sub-sections it does not repeat are dropped. Error if it matches nothing.
+- On the H1, `# Workflow @replace` replaces the whole document: the file stands alone and lower layers are not read. No front matter.
+- An unknown @ word at the end of a heading is an error.
 
-### Replacing the whole file
+### Preview and check
 
-- Front matter `replace: true` at the top of a layer's file: the file replaces everything below it; lower layers are not read.
-
-### Seeing and checking the result
-
-- flume workflow show [--project P] [--role R] prints the merged document; --layers marks which layer each section came from.
-- flume check reports a {append}, {replace} or {remove} heading that matches no section in the layers below (a typo, or a base heading that was renamed), naming the file and heading.
+- Preview: `flume preview workflow`, `flume preview role R`, `flume preview guide G`, `flume preview template PART`, each with --project P; prints the merged document. `--layers` marks which file each section came from. `--json` gives the sections with their source.
+- `flume check` checks every layered file in the tasks repo by the rules above and reports each error with file, line and heading.
+- When a layer has an error, prime, instructions and guide print the error (file, line, heading) to standard error and exit 1, instead of guessing.
 - Prime's XML (fl-87h9) changes: the merged workflow is one element instead of flume_base plus workspace_workflow, project_workflow and role (spec updated in the same change).
 
-### Example: a docs repo
+### Example: a docs repo (flume/projects/docs/workflow.md)
 
 ```
 # Workflow
 
-## Working a task {replace}
+## Working a task @replace
 
 This repo is documents. When the human asks for an edit, make it directly on main.
 No task, no worktree, unless the human asks for one.
 
-## Phases {remove}
+## Phases @remove
 ```
 
 ### Assumed (advisor; change if wrong)
 
-- Default is replace-at-content, not append: the human leaned that way ("it would only replace at the level that has distinct content"), and append is one tag away.
-- Tags in braces at the heading's end: visible in the file and easy to type. Alternative: an HTML comment after the heading (<!-- flume: remove -->), invisible when rendered but easy to miss.
-- No prepend, no section moves, no per-paragraph edits (YAGNI).
-- Templates keep their own rule (a project template replaces the base one, fl-fu3v).
-- Markdown, not XML, for the files; prime still wraps the result in its XML elements.
+- The @ word goes at the end of the heading (`## Phases @remove`), so the heading reads first and matches by its words. Alternative: at the start (`## @remove Phases`).
+- No tag means "replace this section's own text, then go through its sub-sections"; @replace means "replace the whole section". Both are replaces; @replace is the one that drops unmentioned sub-sections, and on the H1 it is the whole file.
+- @add of a heading that already exists, and @remove with content under it, are errors: they are almost always mistakes.
+- Templates follow the same rule: a project template now merges by heading, and `# ... @replace` gives today's whole replacement (fl-fu3v).
+- A broken layer stops prime and instructions (exit 1) rather than being skipped: a skipped layer would silently give agents the wrong instructions. Alternative: warn and skip that layer.
+- No prepend, no moving sections, no per-paragraph edits (YAGNI).
 
 ## Discussion (for reference, not authoritative)
 
@@ -89,3 +93,19 @@ The human, 2026-11-18 (to advisor), verbatim:
 > Actually, I'm not sure. The default's either going to be to replace or to add if the heading matches. We would match all the headings up, and then we need a default. I feel like it would only replace at the level that has distinct content, if that makes sense. Write a ticket up for this, think through it, and give me some feedback.
 
 Context: advisor had just given the human the base workflow as Markdown (DEFAULT_BASE in src/cli/agent.ts, PHASE_STEPS and COMMON_STEPS in src/core/instructions.ts); the tasks repo's workflow.md files are only appended today.
+
+Advisor's first draft used {replace}-style tags, front matter for whole-file replace, and an untagged unmatched heading as an addition. The human, 2026-11-18, verbatim:
+
+> Yeah, the markdown files should all pass the rumdml (whatever that is) linting, and that's 1H1 per document. Yeah, I think so. The curly braces, to me, look like a substitution, so I don't like that. I use a lot of Python, and other languages use that too, with the dollar sign curly braces.
+>
+> I'm thinking either an @ sign at the beginning, or that's probably my preference: the @ sign. My other thought would be a colon and then the word replace.
+>
+> Let's drop the front matter. We can have replace at the H1, right? If the first line of the file is replace, then we replace it. I think that makes sense
+>
+> yeah, I agree that replace should be the default, and I definitely want the check method and a preview. Definitely need a preview.
+>
+> By the way, this is the same for roles. This is the same for guides. This is just going to be one rule that's applied to every document in the system, and I want it to be kind of hard to mess it up.
+>
+> Let's do replace as the default, and anything that isn't a replace, you have to give it a tag. If you have a header and you're not going to replace the header, then you have to put a tag: either add, append, or remove. If you remove a header and then have subheaders below it, that's an error. Any header that doesn't have an add tag must be a replace. If there's a header that doesn't match and it doesn't say add, remove, or append, then that's an error.
+
+("rumdml" read as rumdl, the Markdown linter.)
