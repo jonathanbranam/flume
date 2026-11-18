@@ -134,3 +134,9 @@ This replaces the "Resulting v1 layout" and "projects under projects/" sections 
 2. Roles: which roles, and where does a role's workflow live (e.g. `base/roles/<role>.md`)? Or is role passed now and used later (YAGNI)?
 3. Task folder: where does the front matter (id, title, status) go: top of `body.md`? What are the "other task-related files" (attachments)?
 4. Does `flume.toml` live only at the tasks-repo top and `.flume/config.toml` only in the workspace folder? (Advisor: yes, as drawn.)
+
+### The human, 2026-11-17 (on open point 1)
+
+> This will be the same structure once we add rules, they will be inside of base/ or project/<project>/
+
+Advisor's reading: the folder stays named `base/` (no rename to `workspace/`). It is the workspace-wide layer in the tasks repo; `projects/<project>/` is the project layer. Rules, when they come, go in the same two places (e.g. `base/rules/`, `projects/<project>/rules/`), and prime prints them the same way. Flume's built-in text (step 1) stays inside flume and is printed first.
