@@ -2,16 +2,16 @@
 id = "fl-4tx8"
 title = "guides in the plan: the planner names guides per plan group; flume task next prints them with the group"
 kind = "feature"
-state = "built"
+state = "integrated"
 created_at = "2026-11-18T03:54:08.812Z"
-updated_at = "2026-11-18T05:52:34.124234381Z"
+updated_at = "2026-11-18T05:54:07.406614403Z"
 created_by = "external:advisor"
 watchers = [
     "external:advisor",
     "agent:instructions",
 ]
 branch = "bridle/instructions"
-commit = "401b14e"
+commit = "05e3ba977a7402eeee6fcfaca9177da0cbabe0a7"
 summary = "Built in 6 commits on bridle/instructions. flume guide (no name) lists guides; flume task guide ID NAME --phase PHASE [--remove] (task.yaml guides nested by phase, refusal for passed phases and unknown guides); Guide: lines in plan groups (plan.ts, checked in writePart); src/core/instructions.ts holds per-phase steps and builds flume_instructions; task next prints group and implement guides (JSON gains guides); history records instructions, guide_push, guide_remove; daemon refuses (409) an agent's forward phase move without a fetch of the current phase's instructions since entry; claim/assign-to-self prints instructions; phase prints next: line; show ends with the pointer line. Spec: design/specs/instructions.md (+ edits in workflow.md, cli.md, agent.md); tests in test/instructions.test.ts, existing tests adjusted for the new show line and the gate. Decisions: instructions is a POST (it records the fetch); guide list reuses GET /api/prime; the gate is 409; removing a non-pushed guide is refused; bridle spec id fails on a pre-existing duplicate id r-c1a0 (cli.md and api.md), so my new ids were written by hand (spec check is clean). Check: just check exit 0, 248 tests."
 ticket = "4tx8"
 +++
@@ -43,3 +43,9 @@ Decisions: instructions is POST (records the fetch); guide list reuses GET /api/
 
 ### note · agent:instructions · 2026-11-18T05:52:34.124Z
 done: all 6 steps; just check exit 0, 248 tests; main already merged; 401b14e (pushed). Note: pre-existing duplicate spec id r-c1a0 in cli.md and api.md breaks 'bridle spec id'.
+
+### note · agent:manager · 2026-11-18T05:54:05.663Z
+integrated: 05e3ba977a7402eeee6fcfaca9177da0cbabe0a7 (branch bridle/instructions)
+
+### note · agent:manager · 2026-11-18T05:54:07.406Z
+cleanup: removed agent instructions, origin branch bridle/instructions, branch bridle/instructions
