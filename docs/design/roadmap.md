@@ -44,6 +44,27 @@ bridle's aide, 2026-11-18). It lives only on the main bridle project.
   the machine.
 - The roadmap was a notes file kept by hand by the product manager, "treated as a database".
 
+### Bridle's tickets-lite proposal (docs/portable/tickets-lite.md, bridle main d61fb607)
+
+A proposal for other tools, not how bridle works; flume's roadmap today follows it, minus the
+epic rules. Its roadmap section:
+
+- One file that sequences epics; the list order is the plan; edited by hand (or the CLI) and
+  reviewed like any change.
+- **Only epics** go on it; "a lone ticket that matters enough becomes an epic of one".
+- Now / Next / Later / Done are enough. **Numbers in Now and Next are the sequence; Later is
+  unordered on purpose.**
+- A checker verifies: every entry is an epic that exists; **every open epic appears exactly once**;
+  Done entries are resolved.
+- For machine-readable order without the file, add `blocked_by` between epics; keep the file as
+  the human view.
+- Its epics: "An epic resolves when its children are resolved and its goal is met; resolving it is
+  a person's decision, not automatic." Order inside an epic is `blocked_by` between children, only
+  where it matters. Too big: split into two epics and order them on the roadmap.
+
+Differences from flume today: flume's roadmap takes any task, does not require every open epic to
+be listed, and has no numbered-sequence rule.
+
 ## Open (to talk through)
 
 - **What the roadmap orders**: epics only (brief, bridle) or any task.
@@ -57,5 +78,3 @@ bridle's aide, 2026-11-18). It lives only on the main bridle project.
 - **Status from the tasks**: an epic's progress and what it needs from the human, derived from its
   children instead of written by hand.
 - **Who keeps it**: a product manager role (bridle's trial) or the human by hand.
-- **Not yet read**: bridle's docs/portable/tickets-lite.md (sections Epics and Roadmap), asked of
-  bridle's aide.
