@@ -182,3 +182,4 @@
 {"actor":"external:advisor","at":"2026-11-18T02:16:38.060824692Z","from":"pending","task":"fl-89z2","to":"open"}
 {"actor":"external:orchestrator","at":"2026-11-18T02:18:18.267208465Z","from":"open","task":"fl-35bq","to":"planned"}
 {"actor":"external:orchestrator","at":"2026-11-18T02:18:18.278778860Z","queue":"reprioritized"}
+{"actor":"agent:daemon-doc","at":"2026-11-18T02:19:14.901227821Z","from":"claimed","task":"fl-35bq","to":"built"}
