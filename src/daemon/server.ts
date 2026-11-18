@@ -43,7 +43,7 @@ import { commitPaths, inRepo } from "./git.ts";
 
 /**
  * Who made a request, for the task history: the X-Flume-Agent header every command sends from
- * AGENT_NAME, else "human". The one place that decides it (fl-6hkt will change how it is found).
+ * AGENT_NAME, else "human". Clients decide it with actorName (src/daemon/actor.ts); this is the one place the daemon reads it.
  */
 const actorOf = (req: IncomingMessage): string => {
   const who = req.headers["x-flume-agent"];

@@ -13,6 +13,8 @@ const env = {
   GIT_COMMITTER_EMAIL: "t@example.com",
   FLUME_URL: "",
   AGENT_NAME: "",
+  CLAUDECODE: "",
+  CLAUDE_CODE_SESSION_ID: "",
 };
 const dirs: string[] = [];
 const pids: number[] = [];
@@ -101,6 +103,34 @@ describe("workflow fields and assignment", () => {
     const id = mk(repo);
     expect(flume(repo, ["task", "assign", id]).status).toBe(2);
     expect(show(repo, id).assignee).toBe("");
+    flume(repo, ["stop"]);
+  });
+
+  it("s-c7d1 an unnamed Claude Code agent is an agent", async () => {
+    const repo = await project();
+    const id = mk(repo);
+    flume(repo, ["task", "assign", id, "scout"]);
+    const cc = { CLAUDECODE: "1", CLAUDE_CODE_SESSION_ID: "abcdef0123456789" };
+    const r = flume(repo, ["task", "claim", id], undefined, cc);
+    expect(r.status).toBe(2);
+    expect(r.stderr).toContain("AGENT_NAME");
+    expect(show(repo, id).assignee).toBe("scout");
+    const r2 = flume(repo, ["task", "assign", id, "rook"], undefined, cc);
+    expect(r2.status).toBe(1);
+    expect(r2.stderr).toContain("--force");
+    expect(flume(repo, ["task", "assign", id, "rook", "--force"], undefined, cc).status).toBe(0);
+    flume(repo, ["task", "comment", id, "--text", "hi"], undefined, cc);
+    flume(repo, ["task", "phase", id, "design"], undefined, { CLAUDECODE: "1" });
+    flume(repo, ["task", "phase", id, "specs"]);
+    const h = JSON.parse(flume(repo, ["task", "history", id, "--json"]).stdout);
+    const by = (a: string) =>
+      h.filter((x: { action: string }) => x.action === a).map((x: { by: string }) => x.by);
+    expect(by("assign")).toEqual(["human", "agent-abcdef01"]);
+    expect(by("comment")).toEqual(["agent-abcdef01"]);
+    expect(by("phase")).toEqual(["agent-unknown", "human"]);
+    expect(
+      show(repo, id).comments ?? flume(repo, ["task", "show", id, "comments"]).stdout,
+    ).toContain("agent-abcdef01");
     flume(repo, ["stop"]);
   });
 

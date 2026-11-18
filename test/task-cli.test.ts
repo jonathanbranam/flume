@@ -21,6 +21,9 @@ const env = {
   GIT_COMMITTER_NAME: "t",
   GIT_COMMITTER_EMAIL: "t@example.com",
   FLUME_URL: "",
+  AGENT_NAME: "",
+  CLAUDECODE: "",
+  CLAUDE_CODE_SESSION_ID: "",
 };
 const git = (cwd: string, ...args: string[]) =>
   execFileSync("git", args, { cwd, encoding: "utf8", env }).trim();

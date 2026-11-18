@@ -2,7 +2,7 @@
 
 A task moves through five phases, and records who holds it. This spec covers the task fields assignee, agent and phase and the commands that change them. Ticket: fl-fu3v. The history of changes (fl-eg2q) is specified at the end.
 
-Assumptions (recorded on fl-fu3v): an agent is a command run with AGENT_NAME set, the human is a command run without it; flume task assign with no name and no AGENT_NAME is a usage error (exit 2); a task created before phases existed counts as being in phase proposal.
+Assumptions (recorded on fl-fu3v, widened by fl-6hkt): an agent is a command run with AGENT_NAME set, or run under Claude Code (CLAUDECODE set) without it; the human is a command run with neither; flume task assign with no name and no AGENT_NAME is a usage error (exit 2); a task created before phases existed counts as being in phase proposal.
 
 ## Requirements
 
@@ -16,7 +16,7 @@ A task's task.yaml SHALL hold the field phase (one of proposal, design, specs, p
 - **THEN** its task.yaml has phase proposal and no assignee and no agent
 
 ### Requirement: Assign sets the assignee and the agent  {#r-fe5b}
-When flume task assign ID NAME is run, flume SHALL set assignee to NAME, and agent to NAME as well unless NAME is human; when NAME is left out it SHALL use the value of AGENT_NAME, and when that is not set either it SHALL exit with code 2.
+When flume task assign ID NAME is run, flume SHALL set assignee to NAME, and agent to NAME as well unless NAME is human; when NAME is left out it SHALL use the value of AGENT_NAME, and when that is not set either it SHALL exit with code 2 with a message saying AGENT_NAME is not set and that the agent should be launched with flume agent (also when CLAUDECODE is set).
 
 #### Scenario: Assign to an agent, then to the human  {#s-8367}
 *Verification*: **executable**
@@ -37,7 +37,7 @@ When flume task assign ID NAME is run, flume SHALL set assignee to NAME, and age
 - **THEN** the exit code is 2 and the task is unchanged
 
 ### Requirement: An agent needs force to take a held task  {#r-02d4}
-When an agent (AGENT_NAME set) assigns a task whose assignee is someone else, flume SHALL, without --force, change nothing, exit with code 1 and say who holds the task and that --force takes it over; with --force it SHALL assign it. Assigning a task to its current holder SHALL succeed and change nothing. The human (AGENT_NAME not set) SHALL never need --force.
+When an agent (AGENT_NAME set, or CLAUDECODE set without it) assigns a task whose assignee is someone else, flume SHALL, without --force, change nothing, exit with code 1 and say who holds the task and that --force takes it over; with --force it SHALL assign it. Assigning a task to its current holder SHALL succeed and change nothing. The human (neither set) SHALL never need --force.
 
 #### Scenario: Refused without force  {#s-55e0}
 *Verification*: **executable**
@@ -56,6 +56,15 @@ When an agent (AGENT_NAME set) assigns a task whose assignee is someone else, fl
 - **GIVEN** a task assigned to scout
 - **WHEN** the human assigns it to rook without AGENT_NAME, and rook then assigns it to rook
 - **THEN** both exit with code 0 and the assignee is rook
+
+### Requirement: An unnamed Claude Code agent is never the human  {#r-c7d0}
+Flume SHALL decide who runs a command in this order: the value of AGENT_NAME when set; else, when CLAUDECODE is set, the unnamed agent agent-<first 8 characters of CLAUDE_CODE_SESSION_ID> (agent-unknown when that is not set); else human. Flume SHALL use that actor, and never human for an agent, for the author of task comments, the actor of assign and claim (so an unnamed agent needs --force like a named one), the by of task history, and the X-Flume-Agent header sent to the daemon.
+
+#### Scenario: Unnamed agent  {#s-c7d1}
+*Verification*: **executable**
+- **GIVEN** a task assigned to scout, CLAUDECODE set, CLAUDE_CODE_SESSION_ID set to abcdef0123456789 and AGENT_NAME not set
+- **WHEN** flume task claim is run, then flume task assign to rook with and without --force, then a comment is added and a phase changed
+- **THEN** claim exits 2 mentioning AGENT_NAME, assign without --force exits 1 naming --force, with --force exits 0, the comment is headed agent-abcdef01, and history shows by agent-abcdef01 for the comment and agent-unknown for a phase change made without a session id
 
 ### Requirement: Claim is assign to yourself  {#r-5dfb}
 When flume task claim ID [--force] is run, flume SHALL behave exactly as flume task assign ID [--force] with no name: the same checks, messages and exit codes.
@@ -193,7 +202,7 @@ flume prime SHALL begin its flume_base section with text that names the agent (Y
 - **THEN** the flume_base section holds You are agent scout and each of the commands above, and holds none of the file names body.md, design.md, spec.md, plan.md, task.yaml
 
 ### Requirement: Every change to a task is appended to its history  {#r-1a7e}
-When a command changes a task (create, update of a field, assign or claim, phase, comment, plan done or skip, close, reopen, write or remove of a part), flume SHALL append one line to the file history.jsonl in the task's folder and never rewrite an earlier line; each line is a JSON object with time (UTC, ISO 8601 ending in Z), by (the name in AGENT_NAME of the agent that ran the command, or human when it is not set) and action, plus field, from and to for a field change (update, assign with field assignee, phase with field phase), part (the name only, not the text) for write and remove, items (and reason for a skip) for plan_done and plan_skip, and title and kind for create; a command that changes nothing or is refused SHALL append nothing; and the file SHALL move with the folder on close and reopen.
+When a command changes a task (create, update of a field, assign or claim, phase, comment, plan done or skip, close, reopen, write or remove of a part), flume SHALL append one line to the file history.jsonl in the task's folder and never rewrite an earlier line; each line is a JSON object with time (UTC, ISO 8601 ending in Z), by (the actor of the command per the actor requirement: the name in AGENT_NAME, else agent-<first 8 characters of CLAUDE_CODE_SESSION_ID> (agent-unknown without it) when CLAUDECODE is set, else human) and action, plus field, from and to for a field change (update, assign with field assignee, phase with field phase), part (the name only, not the text) for write and remove, items (and reason for a skip) for plan_done and plan_skip, and title and kind for create; a command that changes nothing or is refused SHALL append nothing; and the file SHALL move with the folder on close and reopen.
 
 #### Scenario: Changes are recorded with who and what  {#s-2b8c}
 *Verification*: **executable**

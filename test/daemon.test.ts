@@ -24,6 +24,9 @@ const gitEnv = {
   GIT_COMMITTER_NAME: "t",
   GIT_COMMITTER_EMAIL: "t@example.com",
   FLUME_URL: "",
+  AGENT_NAME: "",
+  CLAUDECODE: "",
+  CLAUDE_CODE_SESSION_ID: "",
 };
 const git = (cwd: string, ...args: string[]) =>
   execFileSync("git", args, { cwd, encoding: "utf8", env: gitEnv }).trim();
@@ -158,6 +161,31 @@ describe("agent last_seen", () => {
       ),
     );
     expect(parse(readFileSync(agentFile("alpha"), "utf8")).last_seen).toBeTruthy();
+  });
+
+  it("s-c7d2 an unnamed Claude Code agent sends agent-<session>", async () => {
+    writeFileSync(
+      agentFile("agent-abcdef01"),
+      'name: agent-abcdef01\nproject: web\npane: "%1"\ncreated: c1\nlast_launch: l1\n',
+    );
+    await new Promise<void>((done, fail) =>
+      execFile(
+        "node",
+        [bin, "task", "list"],
+        {
+          cwd: root,
+          env: {
+            ...gitEnv,
+            HOME: home,
+            FLUME_URL: d?.url,
+            CLAUDECODE: "1",
+            CLAUDE_CODE_SESSION_ID: "abcdef0123456789",
+          },
+        },
+        (err) => (err ? fail(err) : done()),
+      ),
+    );
+    expect(parse(readFileSync(agentFile("agent-abcdef01"), "utf8")).last_seen).toBeTruthy();
   });
 });
 

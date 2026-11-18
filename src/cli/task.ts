@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { formatHistory } from "../core/history.ts";
+import { actorName, isAgent } from "../daemon/actor.ts";
 import { daemonUrl, NOT_RUNNING, request } from "../daemon/index.ts";
 
 const err = (s: string) => process.stderr.write(`${s}\n`);
@@ -268,11 +269,14 @@ export async function task(cwd: string, args: string[]): Promise<number> {
       else for (const h of list) out(formatHistory(h));
     } else if (sub === "assign" || sub === "claim") {
       const who = pos[1] ?? process.env.AGENT_NAME;
-      if (!who) throw new Usage("AGENT_NAME is not set: name who to assign the task to");
+      if (!who)
+        throw new Usage(
+          '$AGENT_NAME is not set, so there is no "yourself" to assign to: name who to assign the task to, or launch the agent with flume agent',
+        );
       const t = await call("POST", `/api/tasks/${enc(pos[0] as string)}/assign`, {
         assignee: who,
         force: flag.has("--force"),
-        ...(process.env.AGENT_NAME ? { actor: process.env.AGENT_NAME } : {}),
+        ...(isAgent() ? { actor: actorName() } : {}),
       });
       if (json) out(JSON.stringify(t));
     } else if (sub === "update") {
@@ -287,7 +291,7 @@ export async function task(cwd: string, args: string[]): Promise<number> {
       const text = opt["--text"] ?? readText(opt["--body-file"] as string);
       const t = await call("POST", `/api/tasks/${enc(pos[0] as string)}/comments`, {
         text,
-        ...(process.env.AGENT_NAME ? { author: process.env.AGENT_NAME } : {}),
+        ...(isAgent() ? { author: actorName() } : {}),
       });
       if (json) out(JSON.stringify(t));
     } else {

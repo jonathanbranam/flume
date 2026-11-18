@@ -367,7 +367,7 @@ When the user runs "flume agent show <name>", flume SHALL print the entry as YAM
 
 ### Requirement: Last seen  {#r-e1c0}
 
-When the daemon receives a request carrying the header X-Flume-Agent with the name of an existing agent entry, the daemon SHALL set that entry's last_seen to the current time as an ISO 8601 UTC string, keeping the entry's other fields. The daemon SHALL NOT create an entry, and SHALL change nothing for a request without the header or naming an unknown agent. Every flume command that calls the daemon SHALL send that header with the value of the environment variable AGENT_NAME when it is set, and SHALL NOT send it otherwise. flume agent show and flume agent list SHALL show last_seen.
+When the daemon receives a request carrying the header X-Flume-Agent with the name of an existing agent entry, the daemon SHALL set that entry's last_seen to the current time as an ISO 8601 UTC string, keeping the entry's other fields. The daemon SHALL NOT create an entry, and SHALL change nothing for a request without the header or naming an unknown agent. Every flume command that calls the daemon SHALL send that header with the actor of the command (AGENT_NAME when set; else agent-<first 8 characters of CLAUDE_CODE_SESSION_ID>, or agent-unknown, when CLAUDECODE is set; else human). flume agent show and flume agent list SHALL show last_seen.
 
 #### Scenario: Request from an agent sets last_seen  {#s-e1c1}
 
@@ -392,6 +392,14 @@ When the daemon receives a request carrying the header X-Flume-Agent with the na
 - **GIVEN** a running daemon, an entry for alpha, and the environment variable AGENT_NAME set to alpha
 - **WHEN** the user runs flume task list
 - **THEN** the entry for alpha holds a last_seen
+
+#### Scenario: An unnamed Claude Code agent sends its session name  {#s-c7d2}
+
+*Verification*: **executable**
+
+- **GIVEN** a running daemon, an entry for agent-abcdef01, CLAUDECODE set, CLAUDE_CODE_SESSION_ID set to abcdef0123456789 and AGENT_NAME not set
+- **WHEN** the user runs flume task list
+- **THEN** the entry for agent-abcdef01 holds a last_seen
 
 #### Scenario: Show and list display last_seen  {#s-e1c4}
 

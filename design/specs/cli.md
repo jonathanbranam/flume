@@ -409,7 +409,7 @@ When flume task update is run with an ID, a field and a value, flume SHALL set t
 - **THEN** task.yaml has no parent field
 
 ### Requirement: Task comment adds a comment  {#r-52c7}
-When flume task comment is run with an ID and text (as an argument after --text, or from a file with --body-file PATH, where a dash means standard input), flume SHALL add the text as a comment per the task-files spec (appended to comments.md, each comment under a heading ### header), using the AGENT_NAME environment variable as the author when it is set and the operating system user name otherwise, and leave task.yaml and body.md unchanged; with neither --text nor --body-file it SHALL exit 2.
+When flume task comment is run with an ID and text (as an argument after --text, or from a file with --body-file PATH, where a dash means standard input), flume SHALL add the text as a comment per the task-files spec (appended to comments.md, each comment under a heading ### header), using the actor (AGENT_NAME when set; agent-<first 8 characters of CLAUDE_CODE_SESSION_ID> or agent-unknown when CLAUDECODE is set; see the workflow spec) as the author, and the operating system user name otherwise, and leave task.yaml and body.md unchanged; with neither --text nor --body-file it SHALL exit 2.
 
 #### Scenario: Two comments in order  {#s-2660}
 *Verification*: **executable**

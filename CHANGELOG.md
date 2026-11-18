@@ -20,6 +20,8 @@
 
 ### Changed
 
+- Actor (fl-6hkt): a command run under Claude Code (`CLAUDECODE` set) without `AGENT_NAME` is the unnamed agent `agent-<first 8 of CLAUDE_CODE_SESSION_ID>` (`agent-unknown` without one), never the human. One check feeds comment authors, assign/claim (the unnamed agent needs `--force`; `assign`/`claim` with no name and no `AGENT_NAME` exits 2), history `by` and the `X-Flume-Agent` header.
+
 - `flume project add` takes a git URL or a bare project name (fl-mvu7): a name adds the project to `flume.yaml` with no url, warns on stderr, and clones nothing; `flume check` no longer reports a project for having no url (only a bad name); `flume project clone` says "no url" when it skips one.
 
 - Projects are names (fl-gr36): `flume init` only sets up the workspace and no longer checks project folders or takes `--clone`; new `flume project clone [<name>...] [--json]` clones projects into `<workspace>/<name>` (skips existing folders and projects with no url, exit 1 if any clone fails, exit 2 for an unknown name); `flume project list` drops the present/missing column; `flume clone` runs init then project clone.

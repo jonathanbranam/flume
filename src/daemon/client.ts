@@ -1,3 +1,4 @@
+import { actorName } from "./actor.ts";
 import { readRecord } from "./record.ts";
 
 export const NOT_RUNNING =
@@ -28,7 +29,7 @@ export async function request(
       method,
       headers: {
         ...(body === undefined ? {} : { "content-type": "application/json" }),
-        ...(process.env.AGENT_NAME ? { "x-flume-agent": process.env.AGENT_NAME } : {}),
+        "x-flume-agent": actorName(),
       },
       body: body === undefined ? undefined : JSON.stringify(body),
       signal: AbortSignal.timeout(5000),
