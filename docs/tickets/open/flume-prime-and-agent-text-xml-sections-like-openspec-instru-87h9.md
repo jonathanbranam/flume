@@ -24,6 +24,7 @@ Modeled on `openspec instructions` (its text output, `src/commands/workflow/inst
 - Agent text is one root element with attributes, holding one child element per part. Each part's text inside is unchanged Markdown.
 - Element names are lowercase with underscores, as OpenSpec's (`project_context`, `success_criteria`), and stable: they are part of the CLI's spec.
 - An optional part with no text (missing file, no role, no guides) is left out, element and all.
+- Layout as OpenSpec prints it: each tag on its own line, the part's text on the lines between, and one blank line between parts.
 - A part may start with an XML comment telling the agent how to treat it, as OpenSpec does (`<!-- These are constraints for you to follow. -->`).
 - Text from files is escaped so it cannot end its element early or forge another one: a closing tag of an envelope element inside the text is neutralized, and attribute values are escaped (quotes). Everything else, including Markdown and other tags, passes through as written.
 
@@ -87,3 +88,42 @@ base/roles/reviewer.md, then projects/backend/roles/reviewer.md
 The human: "https://github.com/Fission-AI/OpenSpec/blob/main/src/commands/workflow/instructions.ts"
 
 Read via the raw file. `openspec instructions <artifact>` prints one root `<artifact id=".." change=".." schema="..">` whose children are flat siblings: `<warning>` (0..n), `<task>`, `<project_context>`, `<rules>`, `<dependencies>` (with `<dependency id status>` holding `<path>` and `<description>`), `<output>`, `<instruction>`, `<template>`, `<success_criteria>`, `<unlocks>`. Optional parts are left out when empty; `<task>`, `<output>`, `<template>` and `<success_criteria>` always appear. Some parts open with an XML comment addressed to the agent, e.g. `<!-- This is background information for you. Do NOT include this in your output. -->` in `<project_context>`. Text is escaped so content can't close the envelope's tags or forge attributes ("a quote in it would otherwise close the attribute and forge siblings on this tag"); templates keep their own `<!-- -->` and `<placeholder>` markers. Its `apply` and `archive` commands print Markdown headings instead, not XML. `--json` prints the same data as JSON.
+
+### OpenSpec's real output (advisor ran it, 2026-11-17)
+
+The human: "you can cd to ../openspec-demo and run some openspec commands". OpenSpec 2.1.0; advisor made a throwaway change (`openspec new change add-login`, removed afterwards) and ran `openspec instructions proposal|specs --change add-login`. Observed, matching the source:
+
+```
+<artifact id="proposal" change="add-login" schema="spec-driven">
+
+<task>
+Create the proposal artifact for change "add-login".
+Initial proposal document outlining the change
+</task>
+
+<output>
+Write to: /.../openspec/changes/add-login/proposal.md
+</output>
+
+<instruction>
+... long Markdown how-to (sections, IMPORTANT notes, which openspec commands to run) ...
+</instruction>
+
+<template>
+<!-- Use this as the structure for your output file. Fill in the sections. -->
+# Proposal
+...
+</template>
+
+<success_criteria>
+<!-- To be defined in schema validation rules -->
+</success_criteria>
+
+<unlocks>
+Completing this artifact enables: specs, design
+</unlocks>
+
+</artifact>
+```
+
+For `specs` (proposal not written yet) it adds `<warning>` ("unmet dependencies ... Missing: proposal") and `<dependencies>` with one `<dependency id="proposal" status="missing">` holding `<path>` and `<description>`, introduced by "Read the current contents of these files before creating this artifact (re-read them from disk even if you saw them earlier - they may have been edited)". The `<project_context>` and `<rules>` parts appear only when `openspec/config.yaml` sets `context` / `rules` (empty in the demo). Takeaways for flume: tags on their own lines with blank lines between parts; short fixed lead-ins and XML comments tell the agent how to use a part; the long how-to is plain Markdown inside one element.
