@@ -27,7 +27,7 @@ For whoever edits this ticket (the human, 2026-11-17): "the design at the top is
 ### Push to a phase
 
 - `flume task guide ID NAME --phase PHASE` records that guide NAME applies to PHASE of the task; `--remove` drops it. Refused (exit 1) when the guide does not exist for the task's project (project guide, else base).
-- Recorded in task.yaml as `guides`, nested by phase for readability (an exception to flat YAML), phases in workflow order, a phase with none left out:
+- Recorded in task.yaml as `guides`, nested by phase for readability (YAML is flat by default, not at the cost of usability), phase keys lowercase as the phase names, in workflow order, a phase with none left out:
 
   ```
   guides:
@@ -96,3 +96,15 @@ Advisor drafted guides named per plan group, printed by flume task next, and ask
 Advisor had `guides` as a flat list of `<phase>:<name>` strings. The human (voice; "tank" read as task):
 
 > Guides should be nested in the tank for readability
+
+> YAML
+>
+> guides:
+>   Design:
+>     - ABC
+
+Advisor asked lowercase or capitalized phase keys (phase names are lowercase elsewhere). The human:
+
+> Agents are too black and white. Yes keep it flat that doesn't mean at the cost of usability
+
+Advisor's reading: nesting stays; keys stay lowercase, matching the phase names.
