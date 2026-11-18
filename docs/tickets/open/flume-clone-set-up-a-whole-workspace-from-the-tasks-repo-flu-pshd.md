@@ -32,7 +32,7 @@ projects:
     branch: develop
 ```
 
-- `projects` maps each project's name to a dict with `url` (the git URL, required) and `branch` (optional, default `main`). Nothing deeper. The name is the project's folder in the workspace and its folder under `<flume-root>/projects/`.
+- `projects` maps each project's name to a dict with `url` (the git URL, required) and `branch` (optional; without it, the repo's own default branch). Nothing deeper. The name is the project's folder in the workspace and its folder under `<flume-root>/projects/`.
 - Edited by hand; `flume check` reports a project without a `url`, or a name that is not a valid folder name.
 
 ### flume init
@@ -45,7 +45,7 @@ projects:
 4. **Writes `flume.yaml`** at the task root's top with `dir: flume` when it has none, and commits it there as one commit. An existing `flume.yaml` is read, never changed.
 5. **Checks the projects** in `flume.yaml`'s `projects`: each one with no folder at `<workspace>/<name>/` is missing.
    - Without `--clone`: prints each missing project's name and URL, and a line saying `flume init --clone` clones them. Clones nothing.
-   - With `--clone`: clones each missing project into `<workspace>/<name>/` with `git clone --branch <branch> <url>`. A failed clone is reported on stderr with its name and URL; init carries on with the rest.
+   - With `--clone`: clones each missing project into `<workspace>/<name>/` with `git clone --branch <branch> <url>`, or plain `git clone <url>` when `branch` is not set. A failed clone is reported on stderr with its name and URL; init carries on with the rest.
    - A folder that already exists is left alone either way.
 6. **Prints** what it did (workspace, task root, each project cloned, already there or missing) and ends by telling the human to run `flume serve` in the workspace.
 
@@ -60,10 +60,10 @@ projects:
 
 ### flume project
 
-- `flume project list`: one line per project in `flume.yaml`: name, url, branch, and whether its folder is in the workspace (present or missing).
+- `flume project list`: one line per project in `flume.yaml`: name, url, branch (blank when not set), and whether its folder is in the workspace (present or missing).
 - `flume project add <git-url> [--name NAME] [--branch BRANCH]` sets the project up:
-  1. Adds it to `flume.yaml`'s `projects` (name defaults to the URL's last part without `.git`, as `git clone` names its folder; branch defaults to `main`) and commits `flume.yaml` in the tasks repo.
-  2. Clones it into `<workspace>/<name>/` with `git clone --branch <branch> <url>`.
+  1. Adds it to `flume.yaml`'s `projects` (name defaults to the URL's last part without `.git`, as `git clone` names its folder; `branch` is written only when `--branch` is given) and commits `flume.yaml` in the tasks repo.
+  2. Clones it into `<workspace>/<name>/` the same way `flume init --clone` does.
 - It refuses, changing nothing, when the name is already in `flume.yaml` or `<workspace>/<name>/` already exists and is not that repo.
 
 ### Assumed (advisor; change if wrong)
@@ -128,3 +128,7 @@ The human, 2026-11-17: "missing branch: defaults to `main`"
 Settled: no `branch` means `main` (not the repo's default branch).
 
 The human, 2026-11-17: "We need a command for project(s). I can't remember what is the best naming, singular or plural? `flume project list` `flume project add <git-url>` should set everything up"
+
+The human, 2026-11-17: "sorry, you're right, missing `branch:` should use the repo's own default branch"
+
+Settled: no `branch` means the repo's own default branch. This replaces "defaults to main" above.
