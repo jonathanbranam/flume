@@ -27,6 +27,28 @@ epic unless all the tickets are resolved. That's basically it for now."
    then close the epic.
 3. **An epic's children can be listed, with `--json`.** This exists today (above).
 
+## Decided: keep (the human, 2026-11-18)
+
+Behaviours to keep and make clear (not new builds):
+
+1. **An epic spans projects.** Its children may come from any project in the tasks repository,
+   so an epic can be a vertical slice across repos (a frontend and a backend both built), with one
+   "Done when" for the whole. Today's rule already allows it (a parent must be an epic; projects
+   are not compared).
+2. **A task belongs to one project; an epic to several.** An epic's projects are at least implied
+   by its children's projects.
+3. **Dependencies are free.** `blocked_by` between tasks may span epics; there is no rule tying
+   them to one epic, though in practice they are used within an epic.
+
+## Pinned (to talk through later)
+
+- **Ordering tasks within an epic.** The human: ordering "is basically like a priority ... Maybe
+  it should just be a priority system, but the net effect is an ordering of tickets." How
+  priority/ordering works is to be talked through; dependencies stay a separate thing.
+- **An epic's projects: stored or computed.** Whether an epic lists its projects in its fields, or
+  flume computes them from its children (the human leans computed: "Maybe the project that an
+  epic has is computed rather than stored. I don't know").
+
 ## Open (not decided)
 
 - **An epic's own workflow.** The human: epics "don't follow the same workflow". Either give

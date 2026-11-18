@@ -1,7 +1,7 @@
 # Roadmap
 
-Status: design notes, started 2026-11-18. Nothing here is decided beyond "keep what we have for
-now". The human (2026-11-18): "I don't think what we have is okay for now, but it'll probably
+Status: design notes, started 2026-11-18. Decided so far: keep what we have for now, and the
+items under "Decided" below. The human (2026-11-18): "I don't think what we have is okay for now, but it'll probably
 change pretty significantly. I was about to say we could just tear out everything we have. I'm not
 too concerned about having roadmaps in there right now, but I do want to." (Read with the rest of
 the talk: what exists stays for now; the roadmap is to be revised based on bridle's product
@@ -65,14 +65,23 @@ epic rules. Its roadmap section:
 Differences from flume today: flume's roadmap takes any task, does not require every open epic to
 be listed, and has no numbered-sequence rule.
 
+## Decided (the human, 2026-11-18)
+
+- **The roadmap lists epics.** In general it organizes epics (80-90% of entries), but it is not
+  strict: a single task on it is fine. The human: "I'm not convinced that it has to be an epic
+  ... I don't think I care. That's fine, but in general, we're organizing epics on the roadmap."
+  (So not tickets-lite's "only epics" rule, and no "every open epic listed" check for now.)
+- **Not organized by project.** The roadmap is not ordered or sectioned by project; drop that
+  idea from the brief. Projects come in through epics, which may span them
+  (docs/design/epics.md).
+
 ## Open (to talk through)
 
-- **What the roadmap orders**: epics only (brief, bridle) or any task.
 - **Where order lives**: a hand-edited file (today), or a rank on each epic that flume keeps, so
   tools can read and change it (`roadmap move`, the UI dragging).
 - **Themes**: whether flume adds a theme field, and whether the roadmap groups by it.
-- **Projects and products**: one roadmap per tasks repository (brief) with a section per project,
-  or per product, or per project.
+- **One roadmap or several**: one per tasks repository, or per product. (Sections per project
+  are dropped, above.)
 - **Does the order bind the work**: whether `flume task list` or the next-task choice follows epic
   rank, as bridle's lesson asks.
 - **Status from the tasks**: an epic's progress and what it needs from the human, derived from its
