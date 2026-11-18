@@ -2,7 +2,7 @@
 
 The daemon is the only writer of task files. It serves JSON over HTTP on the local machine. Ticket: fl-47b8.
 
-Assumptions (recorded on fl-47b8): paths start with /api; requests with a body and all responses are JSON (UTF-8); an error response has the status code and a body {"error": "<message>"}; there is no login because the daemon listens on 127.0.0.1 only (a work-sandbox rule: localhost works); one daemon serves one task root, the tasks repository whose flume.yaml names the flume root (a git repository in the workspace or a separate task repository); the daemon commits each change there (advisor note on fl-47b8) and never pushes. A task object has the fields id, title, kind, state (open or resolved), project (null when none), created, resolved (null when open), parent (null when none), blocked_by, related, path (the task folder, relative to the project root), body (body.md as stored), comments (comments.md as stored, empty when none) and fields (task.yaml as stored). A list omits body, comments and fields.
+Assumptions (recorded on fl-47b8): paths start with /api; requests with a body and all responses are JSON (UTF-8); an error response has the status code and a body {"error": "<message>"}; there is no login because the daemon listens on 127.0.0.1 only (a work-sandbox rule: localhost works); one daemon serves one task root, the tasks repository whose flume.yaml names the flume root (a git repository in the workspace or a separate task repository); the daemon commits each change there (advisor note on fl-47b8) and never pushes. A task object has the fields id, title, kind, state (open or resolved), project (null when none), created, resolved (null when open), parent (null when none), blocked_by, related, assignee (empty when none), agent (empty when none), phase, parts (the names of the parts the task has), path (the task folder, relative to the project root), body (body.md as stored), comments (comments.md as stored, empty when none) and fields (task.yaml as stored). A list omits body, comments and fields.
 
 ## Requirements
 
@@ -231,7 +231,7 @@ When several create or update requests arrive at the same time, the daemon SHALL
 - **THEN** all ten answer 201 with different IDs and ten folders exist in open
 
 ### Requirement: Each change is one commit  {#r-a89d}
-When a request creates or changes a task (create, update, comment, close, reopen), the daemon SHALL commit the changed files in the git repository of the task root as one commit whose message names the task ID and the change, and SHALL NOT push.
+When a request creates or changes a task (create, update, comment, assign, phase, write or remove a part, plan done or skip, close, reopen), the daemon SHALL commit the changed files in the git repository of the task root as one commit whose message names the task ID and the change, and SHALL NOT push.
 
 #### Scenario: A create commits  {#s-1c86}
 *Verification*: **executable**
@@ -262,3 +262,18 @@ When a request creates or changes a task (create, update, comment, close, reopen
 - **GIVEN** an open task and a clean working tree
 - **WHEN** a comment is added and then the title is changed
 - **THEN** two new commits exist, each message contains the task ID, each holds only that task folder, and the working tree is clean
+
+### Requirement: Workflow endpoints  {#r-a0d8}
+The daemon SHALL answer these and commit each change as one commit naming the task: POST /api/tasks/{id}/assign (JSON assignee, optional actor and force; an actor that takes a task held by someone else without force gets 400 and no change) and POST /api/tasks/{id}/phase (JSON phase); GET, PUT (JSON text) and DELETE /api/tasks/{id}/parts/{part}; GET /api/tasks/{id}/plan/next (answers complete, group and text), POST /api/tasks/{id}/plan/done (JSON items) and POST /api/tasks/{id}/plan/skip (JSON items and reason); GET /api/templates/{part} with an optional project query; GET /api/workflow (the list of phases); and GET /api/tasks takes assignee and phase queries.
+
+#### Scenario: Assign, phase, parts and plan over HTTP  {#s-409c}
+*Verification*: **executable**
+- **GIVEN** a running daemon and a task
+- **WHEN** it is assigned to scout with actor rook and no force, then with force, its phase is set to design, a plan is written with PUT and marked with plan/done, and the plan is read with plan/next
+- **THEN** the first assign answers 200 (nobody held it), a second assign by actor rook for another holder answers 400, the others answer 200, each change is one commit naming the task, and the plan/next answer is complete
+
+#### Scenario: Templates and workflow over HTTP  {#s-07c6}
+*Verification*: **executable**
+- **GIVEN** a running daemon
+- **WHEN** GET /api/templates/design, GET /api/templates/comments and GET /api/workflow are requested
+- **THEN** the first answers 200 with non-empty text, the second 400, and the third 200 with five phases

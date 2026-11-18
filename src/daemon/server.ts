@@ -5,24 +5,36 @@ import { version } from "../cli/version.ts";
 import { touchSeen } from "../core/agents.ts";
 import {
   addComment,
+  assignTask,
   checkProject,
   createTask,
+  formatGroup,
+  isPhase,
   listGuides,
   listTaskFiles,
+  markPlan,
+  nextGroup,
   PATCH_FIELDS,
+  PHASES,
   readGuide,
+  readPart,
   readRoadmap,
+  removePart,
   reopenTask,
   resolveRef,
   resolveTask,
   roadmapPath,
   roadmapView,
   SEGMENT_RE,
+  setPhase,
   type TaskEntry,
   taskObject,
+  templateFor,
   updateTask,
   workflowParts,
+  workflowSteps,
   workflowText,
+  writePart,
 } from "../core/index.ts";
 import { commitPaths, inRepo } from "./git.ts";
 
@@ -125,6 +137,16 @@ export function startDaemon(opts: {
       if (!r.ok) throw new HttpError(400, r.error);
       return [200, r.guide];
     }
+    if (a === "workflow" && parts.length === 2) {
+      allow("GET");
+      return [200, workflowSteps()];
+    }
+    if (a === "templates" && parts.length === 3) {
+      allow("GET");
+      const part = decodeURIComponent(parts[2] as string);
+      const project = url.searchParams.get("project") ?? "";
+      return [200, { part, text: bad(() => templateFor(root, project, part)) }];
+    }
     if (a === "stop" && parts.length === 2) {
       allow("POST");
       return [200, { ok: true }];
@@ -171,6 +193,10 @@ export function startDaemon(opts: {
         throw new HttpError(400, "state must be open, resolved or all");
       const kind = url.searchParams.get("kind");
       const parent = url.searchParams.get("parent");
+      const assignee = url.searchParams.get("assignee");
+      const phase = url.searchParams.get("phase");
+      if (phase !== null && !isPhase(phase))
+        throw new HttpError(400, `unknown phase '${phase}': phases are ${PHASES.join(", ")}`);
       const entries = listTaskFiles(root);
       const parentId = parent === null ? null : (resolveRef(entries, parent)?.nameId ?? parent);
       const tasks = entries
@@ -184,10 +210,64 @@ export function startDaemon(opts: {
           }
         })
         .filter(
-          (t) => (kind === null || t.kind === kind) && (parentId === null || t.parent === parentId),
+          (t) =>
+            (kind === null || t.kind === kind) &&
+            (parentId === null || t.parent === parentId) &&
+            (assignee === null || t.assignee === assignee) &&
+            (phase === null || t.phase === phase),
         )
         .sort((x, y) => x.created.localeCompare(y.created) || x.id.localeCompare(y.id));
       return [200, tasks];
+    }
+    if (parts.length === 5 && c === "plan") {
+      const e = find(id as string);
+      const what = parts[4];
+      if (what === "next") {
+        allow("GET");
+        const group = bad(() => nextGroup(root, e.nameId));
+        return [
+          200,
+          {
+            complete: group === undefined,
+            group: group ?? null,
+            text: group ? formatGroup(group) : "",
+          },
+        ];
+      }
+      if (what === "done" || what === "skip") {
+        allow("POST");
+        const items = body.items;
+        if (!Array.isArray(items)) throw new HttpError(400, "items must be a list");
+        const to = what === "done" ? "done" : "skipped";
+        const reason = typeof body.reason === "string" ? body.reason : undefined;
+        const u = bad(() => markPlan(root, e.nameId, items as string[], to, reason));
+        commit(e.nameId, `plan ${what} ${items.join(" ")}`, [u.path]);
+        return [200, taskObject(u)];
+      }
+      throw new HttpError(404, `no such path ${url.pathname}`);
+    }
+    if (parts.length === 5 && c === "parts") {
+      allow("GET", "PUT", "DELETE");
+      const e = find(id as string);
+      const part = decodeURIComponent(parts[4] as string);
+      if (method === "GET") {
+        const text = bad(() => readPart(root, e.nameId, part));
+        if (text === undefined)
+          throw new HttpError(
+            404,
+            `task ${e.nameId} has no ${part} yet; start from the template: flume task template ${part}`,
+          );
+        return [200, { part, text }];
+      }
+      if (method === "PUT") {
+        if (typeof body.text !== "string") throw new HttpError(400, "text is required");
+        const u = bad(() => writePart(root, e.nameId, part, body.text as string));
+        commit(e.nameId, `write ${part}`, [u.path]);
+        return [200, taskObject(u)];
+      }
+      const u = bad(() => removePart(root, e.nameId, part));
+      commit(e.nameId, `remove ${part}`, [u.path]);
+      return [200, taskObject(u)];
     }
     if (parts.length === 3 || (parts.length === 4 && c !== undefined)) {
       const ref = id as string;
@@ -212,6 +292,25 @@ export function startDaemon(opts: {
             : userInfo().username;
         const u = bad(() => addComment(root, ref, body.text as string, author));
         commit(e.nameId, "add a comment", [u.path]);
+        return [200, taskObject(u)];
+      }
+      if (c === "assign") {
+        allow("POST");
+        const e = find(ref);
+        const { assignee, actor, force } = body;
+        if (typeof assignee !== "string") throw new HttpError(400, "assignee is required");
+        if (actor !== undefined && typeof actor !== "string")
+          throw new HttpError(400, "actor must be a string");
+        const r = bad(() => assignTask(root, ref, assignee, actor, force === true));
+        if (r.changed) commit(e.nameId, `assign to ${assignee}`, [e.path]);
+        return [200, taskObject(r.entry)];
+      }
+      if (c === "phase") {
+        allow("POST");
+        const e = find(ref);
+        if (typeof body.phase !== "string") throw new HttpError(400, "phase is required");
+        const u = bad(() => setPhase(root, ref, body.phase as string));
+        commit(e.nameId, `phase ${body.phase}`, [e.path]);
         return [200, taskObject(u)];
       }
       if (c === "close" || c === "reopen") {

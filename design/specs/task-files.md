@@ -1,6 +1,6 @@
 # Task files
 
-A task is a folder holding task.yaml (its fields), body.md (the ask) and comments.md (the comments). The folder it sits in is its state. This spec covers the folder layout, the files, the IDs and the check that verifies them. Tickets: fl-47b8, fl-3pfa.
+A task is a folder holding task.yaml (its fields), body.md (the ask), comments.md (the comments) and, once written, design.md, spec.md and plan.md (see the workflow spec). The folder it sits in is its state. This spec covers the folder layout, the files, the IDs and the check that verifies them. Tickets: fl-47b8, fl-3pfa.
 
 In this spec the flume root is the folder named by the dir key of flume.yaml at the top of the tasks repository (flume, or . for the repository top itself); flume uses flume when there is no flume.yaml. The tasks repository root is called the project root below.
 
@@ -66,13 +66,13 @@ When a task's title changes or the task is resolved or reopened, flume SHALL kee
 - **THEN** the folder name is the same as before and the title line in task.yaml reads Brand new title
 
 ### Requirement: task.yaml holds the task's fields  {#r-770c}
-A task folder's task.yaml SHALL be a flat YAML mapping with these fields: id, title, kind, status (open or resolved, the same as the state folder), created (a date, YYYY-MM-DD, UTC), and optionally project (the name of the project the task belongs to), parent, blocked_by (a list of IDs), related (a list of IDs) and resolved (a UTC timestamp, YYYY-MM-DDTHH:MM:SSZ).
+A task folder's task.yaml SHALL be a flat YAML mapping with these fields: id, title, kind, status (open or resolved, the same as the state folder), phase (proposal for a new task; see the workflow spec), created (a date, YYYY-MM-DD, UTC), and optionally assignee, agent (see the workflow spec), project (the name of the project the task belongs to), parent, blocked_by (a list of IDs), related (a list of IDs) and resolved (a UTC timestamp, YYYY-MM-DDTHH:MM:SSZ).
 
 #### Scenario: A new task has the minimal fields  {#s-ee5a}
 *Verification*: **executable**
 - **GIVEN** a project with no tasks
 - **WHEN** a task titled Add a roadmap with kind feature is created on 2026-11-20 UTC
-- **THEN** its task.yaml has id equal to the ID in the folder name, title Add a roadmap, kind feature, status open and created 2026-11-20
+- **THEN** its task.yaml has id equal to the ID in the folder name, title Add a roadmap, kind feature, status open, phase proposal and created 2026-11-20
 - **THEN** its task.yaml has no resolved field
 
 #### Scenario: IDs in front matter are bare  {#s-9e99}

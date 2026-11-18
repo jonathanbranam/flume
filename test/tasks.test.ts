@@ -124,6 +124,7 @@ describe("task files", () => {
       title: "Add a roadmap",
       kind: "feature",
       status: "open",
+      phase: "proposal",
       created: "2026-11-20",
     });
   });

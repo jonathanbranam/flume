@@ -10,6 +10,7 @@ import {
   type TaskEntry,
 } from "./store.ts";
 import { deleteField, fields, KINDS, serializeTaskYaml, setField } from "./taskfile.ts";
+import { isPhase, PHASES } from "./workflow.ts";
 
 /** Fields `updateTask` may set. A null clears parent, blocked_by or related. */
 export interface TaskPatch {
@@ -72,6 +73,57 @@ export function updateTask(root: string, ref: string, patch: TaskPatch): TaskEnt
   return load(root, e.stem);
 }
 
+/** Write task.yaml after `edit` changed the parsed file; returns the reloaded entry. */
+function editYaml(
+  root: string,
+  ref: string,
+  edit: (file: ReturnType<typeof parseOrThrow>) => void,
+) {
+  const e = load(root, ref);
+  const file = parseOrThrow(e);
+  edit(file);
+  writeFileSync(join(root, e.path, TASK_YAML), serializeTaskYaml(file));
+  return load(root, e.stem);
+}
+
+/** Who holds the task now: an agent name, "human", or "" when nobody. */
+export function assigneeOf(e: TaskEntry): string {
+  const a = fields(parseOrThrow(e)).assignee;
+  return typeof a === "string" ? a : "";
+}
+
+/**
+ * Set assignee (and agent, when the assignee is an agent). `actor` is the agent running the
+ * command, or undefined for the human. An agent taking a task that someone else holds needs
+ * `force`; assigning to the current holder changes nothing.
+ */
+export function assignTask(
+  root: string,
+  ref: string,
+  assignee: string,
+  actor: string | undefined,
+  force: boolean,
+): { entry: TaskEntry; changed: boolean } {
+  if (typeof assignee !== "string" || assignee.trim() === "" || /\s/.test(assignee))
+    throw new Error("the assignee must be an agent name or human");
+  const e = load(root, ref);
+  const holder = assigneeOf(e);
+  if (holder === assignee) return { entry: e, changed: false };
+  if (actor !== undefined && holder !== "" && !force)
+    throw new Error(`task ${e.nameId} is held by ${holder}; use --force to take it over`);
+  const entry = editYaml(root, ref, (file) => {
+    setField(file, "assignee", assignee);
+    if (assignee !== "human") setField(file, "agent", assignee);
+  });
+  return { entry, changed: true };
+}
+
+/** Set the phase; any phase may follow any other. */
+export function setPhase(root: string, ref: string, phase: string): TaskEntry {
+  if (!isPhase(phase)) throw new Error(`unknown phase '${phase}': phases are ${PHASES.join(", ")}`);
+  return editYaml(root, ref, (file) => setField(file, "phase", phase));
+}
+
 /** Local time with its UTC offset, minutes precision: 2026-11-17 14:05 -05:00. */
 export function commentTime(d: Date): string {
   const p = (n: number) => String(n).padStart(2, "0");
@@ -108,10 +160,14 @@ export function taskObject(e: TaskEntry) {
     project: typeof f.project === "string" ? f.project : null,
     created: String(f.created ?? ""),
     resolved: typeof f.resolved === "string" ? f.resolved : null,
+    assignee: typeof f.assignee === "string" ? f.assignee : "",
+    agent: typeof f.agent === "string" ? f.agent : "",
+    phase: typeof f.phase === "string" && isPhase(f.phase) ? f.phase : "proposal",
     parent: typeof f.parent === "string" ? f.parent : null,
     blocked_by: list("blocked_by"),
     related: list("related"),
     path: e.path,
+    parts: e.parts,
     body: e.body ?? "",
     comments: e.comments,
     fields: e.yaml ?? "",

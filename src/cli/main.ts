@@ -7,6 +7,7 @@ import { cloneCmd, project } from "./project.ts";
 import { roadmap } from "./roadmap.ts";
 import { task } from "./task.ts";
 import { version } from "./version.ts";
+import { workflow } from "./workflow.ts";
 
 const HELP = `flume - a workflow tool for agents
 
@@ -19,7 +20,9 @@ Commands:
   serve      run the daemon in the foreground [--port N] (the human runs this; agents never do)
   status     show whether the daemon runs, its address and root [--json]
   stop       ask the daemon to exit
-  task       new, show, list, update, comment, close, reopen (flume task --help)
+  task       new, show, list, update, comment, assign, claim, phase, write, template, next, done,
+             skip, close, reopen (flume task --help)
+  workflow   print the phases: what each writes and requires [--json]
   roadmap    show, check (flume roadmap --help)
   check      validate the task files; one line per problem, exit 1 if any [--json]
   agent      launch Claude as a named agent; list, show (flume agent --help)
@@ -60,6 +63,7 @@ export async function main(args: string[]): Promise<number> {
     return stop(process.cwd());
   }
   if (command === "task") return task(process.cwd(), args.slice(1));
+  if (command === "workflow") return workflow(process.cwd(), args.slice(1));
   if (command === "roadmap") return roadmap(process.cwd(), args.slice(1));
   if (command === "agent") return await agent(args.slice(1));
   if (command === "prime") return await prime(args.slice(1));

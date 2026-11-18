@@ -23,6 +23,7 @@ import {
   setField,
   type TaskFile,
 } from "./taskfile.ts";
+import { PART_FILES } from "./workflow.ts";
 
 export type State = "open" | "resolved";
 
@@ -44,6 +45,8 @@ export interface TaskEntry {
   body: string | undefined;
   /** comments.md as stored; empty when the file is missing. */
   comments: string;
+  /** The names of the parts the folder holds (body, design, spec, plan, comments). */
+  parts: string[];
 }
 
 const dirOf = (root: string, state: State) => rel(root, "tasks", state);
@@ -69,6 +72,9 @@ export function listTaskFiles(root: string): TaskEntry[] {
         yaml: readOr(join(folder, TASK_YAML), undefined),
         body: readOr(join(folder, BODY_MD), undefined),
         comments: readOr(join(folder, COMMENTS_MD), "") as string,
+        parts: Object.entries(PART_FILES)
+          .filter(([, f]) => existsSync(join(folder, f)))
+          .map(([p]) => p),
       });
     }
   }
@@ -118,6 +124,7 @@ export function createTask(root: string, t: NewTask): TaskEntry {
   setField(file, "title", t.title);
   setField(file, "kind", t.kind);
   setField(file, "status", "open");
+  setField(file, "phase", "proposal");
   setField(file, "created", (t.now ?? new Date()).toISOString().slice(0, 10));
   if (t.project) setField(file, "project", t.project);
   if (t.parent !== undefined) setField(file, "parent", bare(entries, t.parent));

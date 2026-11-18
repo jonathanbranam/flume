@@ -662,3 +662,44 @@ describe("flume serve, status and stop", () => {
     expect(flume(tempRepo(), "serve", "--bogus").status).toBe(2);
   });
 });
+
+describe("workflow endpoints", () => {
+  const commits = () => git(root, "rev-list", "--count", "HEAD");
+  it("s-409c assign, phase, parts and plan over HTTP", async () => {
+    const t = await create("W");
+    const base = `/api/tasks/${t.id}`;
+    expect(
+      (await call("POST", `${base}/assign`, { assignee: "scout", actor: "rook" })).status,
+    ).toBe(200);
+    const before = commits();
+    const refused = await call("POST", `${base}/assign`, { assignee: "rook", actor: "rook" });
+    expect(refused.status).toBe(400);
+    expect(commits()).toBe(before);
+    expect(
+      (await call("POST", `${base}/assign`, { assignee: "rook", actor: "rook", force: true }))
+        .status,
+    ).toBe(200);
+    expect((await call("POST", `${base}/phase`, { phase: "design" })).body.phase).toBe("design");
+    expect(
+      (await call("PUT", `${base}/parts/plan`, { text: "## 1. G\n\n- [ ] 1.1 a\n" })).status,
+    ).toBe(200);
+    expect((await call("POST", `${base}/plan/done`, { items: ["1.1"] })).status).toBe(200);
+    const next = await call("GET", `${base}/plan/next`);
+    expect(next.body.complete).toBe(true);
+    expect((await call("GET", `${base}/parts/plan`)).body.text).toContain("[x] 1.1");
+    expect((await call("GET", `${base}/parts/design`)).status).toBe(404);
+    expect(commits()).toBe(String(Number(before) + 4));
+    expect(git(root, "log", "-1", "--format=%s")).toContain(t.id);
+    expect(git(root, "status", "--porcelain")).toBe("");
+  });
+
+  it("s-07c6 templates and workflow over HTTP", async () => {
+    const tpl = await call("GET", "/api/templates/design");
+    expect(tpl.status).toBe(200);
+    expect(tpl.body.text.length).toBeGreaterThan(0);
+    expect((await call("GET", "/api/templates/comments")).status).toBe(400);
+    const wf = await call("GET", "/api/workflow");
+    expect(wf.status).toBe(200);
+    expect(wf.body).toHaveLength(5);
+  });
+});

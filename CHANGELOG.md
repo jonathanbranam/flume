@@ -4,6 +4,8 @@
 
 ### Added
 
+- Workflow v1 (fl-fu3v): tasks have `phase` (proposal, design, specs, plan, implement), `assignee` and `agent`. New commands: `flume task assign ID [NAME|human] [--force]` and `claim` (an agent needs `--force` to take a task someone else holds), `phase`, `write ID PART [--file PATH|-] [--remove]` and `show ID PART` (parts body, design, spec, plan, comments, by name), `template PART [--project P]` (built-in, `base/templates/`, `projects/<p>/templates/`, whole replace), `next`, `done` and `skip --reason` for the plan checklist (checked on write), and `flume workflow [--json]`. `task list` gains `--assignee` and `--phase`. New API endpoints for all of them. History appends (fl-eg2q) are not built yet.
+
 - Guides: Markdown files with flat YAML front matter (`name`, `description`, optional `stage`) in `base/guides/` and `projects/<project>/guides/` of the flume-root (project overrides base). `flume guide <name> [--project P]` prints the body; `flume prime` lists each guide's name and description; `flume check` reports guides with bad front matter. New `GET /api/guides/<name>` and a `guides` list in `GET /api/prime`; both go through the daemon like prime (fl-x6xn).
 
 - `flume.yaml` can list `projects:` (name -> `url`, optional `branch`); `flume check` reports a project with no url or a bad folder name. `flume clone <git-url> [<workspace>]` clones the tasks repo into the workspace (current folder by default) and runs `flume init --clone`; `flume init --clone` clones each missing project into `<workspace>/<name>/` (a failed clone is reported, the rest go on, exit 1); `flume project list [--json]` and `flume project add <git-url> [--name N] [--branch B]`. None use the daemon (fl-pshd).
@@ -15,6 +17,8 @@
 - `flume init [--root PATH] [--force]` sets up a workspace folder: `.flume/` (`.gitignore`, `config.toml` root) and flume's shipped base workflow (one placeholder `workflow.md`) copied to `<root>/workflow/base/` in the task repo and committed there (never pushed). A second init fails and points at `--force`, which rewrites only `workflow/base/`. `flume prime` gains one line naming the reading order (base, workspace, project workflow files, then CLAUDE.md; later overrides earlier) when `<root>/workflow/` exists (fl-7sme).
 
 ### Changed
+
+- `flume task new` prints the ID only; `flume task show ID` prints task.yaml and a `parts:` line (use `show ID PART` for text); `task list` lines gain phase and assignee columns; the built-in prime text teaches the five-phase workflow (fl-fu3v).
 
 - `flume prime` (and the text `flume agent` sends) and `flume guide` print XML sections: one `flume_prime` root with `flume_base`, `workspace_workflow`, `project_workflow`, `role`, `guides` parts (empty ones left out, tags that would forge an element neutralized); a guide prints inside `<guide name stage>`. With no daemon a `workflow_missing` element says the rest is missing. `GET /api/prime` also returns `parts` (fl-87h9).
 

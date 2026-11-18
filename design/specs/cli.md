@@ -271,13 +271,13 @@ When flume stop is run, it SHALL ask the daemon to exit, wait until it has, and 
 - **THEN** stop exits with code 0 and status prints not running with exit code 1
 
 ### Requirement: Task new creates a task  {#r-9812}
-When flume task new is run with a title, flume SHALL create the task and print its ID and the path of its folder relative to the project root, separated by one space, on one line; options are -k or --kind (default feature), --project NAME, --parent ID, --blocked-by IDS and --related IDS (comma separated lists), and the body as --body TEXT or --body-file PATH (a dash means standard input).
+When flume task new is run with a title, flume SHALL create the task and print its ID alone on one line (no path in the tasks repository); options are -k or --kind (default feature), --project NAME, --parent ID, --blocked-by IDS and --related IDS (comma separated lists), and the body as --body TEXT or --body-file PATH (a dash means standard input).
 
 #### Scenario: New with a body from standard input  {#s-f616}
 *Verification*: **executable**
 - **GIVEN** a daemon running for a project
 - **WHEN** flume task new "Fix redirect" -k bug --body-file - is run with the text Users land on the home page on standard input
-- **THEN** one line is printed with a 4 character ID and a path under flume/tasks/open, and that task's body.md is Users land on the home page
+- **THEN** one line is printed holding only a 4 character ID, and that task's body is Users land on the home page
 
 #### Scenario: Default kind  {#s-803e}
 *Verification*: **executable**
@@ -313,22 +313,22 @@ When any flume task command is given --json, flume SHALL print the daemon's JSON
 - **THEN** both print a usage message to standard error and exit with code 2
 
 ### Requirement: Task show prints the task  {#r-c36b}
-When flume task show is run with an ID, flume SHALL print the task's task.yaml exactly as stored, then a blank line, then body.md exactly as stored, then (when comments.md exists) a blank line and comments.md exactly as stored, to standard output and exit with code 0; for an ID that names no task it SHALL print a message to standard error and exit with code 1.
+When flume task show is run with an ID, flume SHALL print the task's task.yaml exactly as stored, then a blank line, then the line "parts: " and the names of the parts the task has, separated by a comma and a space, to standard output and exit with code 0; for an ID that names no task it SHALL print a message to standard error and exit with code 1. (The text of one part: see the workflow spec.)
 
 #### Scenario: Show by bare ID  {#s-e485}
 *Verification*: **executable**
 - **GIVEN** an open task with ID k7tm
 - **WHEN** flume task show k7tm is run
-- **THEN** the output is task.yaml, a blank line and body.md of that task, as stored
+- **THEN** the output is task.yaml as stored, a blank line and the line parts: body
 
 #### Scenario: Show finds a resolved task  {#s-13df}
 *Verification*: **executable**
 - **GIVEN** a resolved task with ID k7tm
 - **WHEN** flume task show k7tm is run
-- **THEN** the output is task.yaml, a blank line and body.md of the task in resolved, as stored
+- **THEN** the output is task.yaml as stored, a blank line and the line parts: body
 
 ### Requirement: Task list prints one line per task  {#r-1a8b}
-When flume task list is run, it SHALL print one line per task, ordered by created date and then ID, each with the ID, kind, state (open or resolved), and title separated by single tabs; it SHALL list open tasks unless --closed (resolved only) or --all (both) is given, and --kind K and --parent ID SHALL keep only matching tasks.
+When flume task list is run, it SHALL print one line per task, ordered by created date and then ID, each with the ID, kind, state (open or resolved), phase, assignee (empty when none) and title separated by single tabs; it SHALL list open tasks unless --closed (resolved only) or --all (both) is given, and --kind K and --parent ID SHALL keep only matching tasks (more filters: the workflow spec).
 
 #### Scenario: Default is open only  {#s-9e76}
 *Verification*: **executable**

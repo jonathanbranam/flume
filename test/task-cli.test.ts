@@ -84,7 +84,8 @@ const read = (repo: string, folder: string) => {
 function mk(repo: string, ...args: string[]): { id: string; path: string } {
   const r = flume(repo, ["task", "new", ...args]);
   expect(r.status).toBe(0);
-  const [id, path] = r.stdout.trim().split(" ") as [string, string];
+  const id = r.stdout.trim();
+  const path = JSON.parse(flume(repo, ["task", "show", id, "--json"]).stdout).path as string;
   return { id, path };
 }
 
@@ -134,8 +135,9 @@ describe("flume task commands", () => {
       "Users land on the home page",
     );
     expect(r.status).toBe(0);
-    expect(r.stdout).toMatch(/^[a-z0-9]{4} flume\/tasks\/open\/[^ \n]+\n$/);
-    const path = r.stdout.trim().split(" ")[1] as string;
+    expect(r.stdout).toMatch(/^[a-z0-9]{4}\n$/);
+    const path = JSON.parse(flume(repo, ["task", "show", r.stdout.trim(), "--json"]).stdout)
+      .path as string;
     expect(readFile(repo, path, "task.yaml")).toMatch(/kind: bug/);
     expect(readFile(repo, path, "body.md").trim()).toBe("Users land on the home page");
     flume(repo, ["stop"]);
@@ -191,7 +193,7 @@ describe("flume task commands", () => {
     const t = mk(repo, "Shown", "--body", "Hello");
     const r = flume(repo, ["task", "show", t.id]);
     expect(r.status).toBe(0);
-    expect(r.stdout).toBe(read(repo, t.path));
+    expect(r.stdout).toBe(`${readFile(repo, t.path, "task.yaml")}\nparts: body\n`);
     const missing = flume(repo, ["task", "show", "abcd"]);
     expect(missing.status).toBe(1);
     expect(missing.stderr).toContain("abcd");
@@ -203,7 +205,9 @@ describe("flume task commands", () => {
     const t = mk(repo, "Done");
     flume(repo, ["task", "close", t.id]);
     const r = flume(repo, ["task", "show", t.id]);
-    expect(r.stdout).toBe(read(repo, t.path.replace("/open/", "/resolved/")));
+    expect(r.stdout).toBe(
+      `${readFile(repo, t.path.replace("/open/", "/resolved/"), "task.yaml")}\nparts: body\n`,
+    );
     flume(repo, ["stop"]);
   });
 
@@ -227,7 +231,14 @@ describe("flume task commands", () => {
     flume(repo, ["task", "close", three.id]);
     const closed = flume(repo, ["task", "list", "--closed"]).stdout.trim().split("\n");
     expect(closed).toHaveLength(1);
-    expect(closed[0]?.split("\t")).toEqual([three.id, "feature", "resolved", "Three"]);
+    expect(closed[0]?.split("\t")).toEqual([
+      three.id,
+      "feature",
+      "resolved",
+      "proposal",
+      "",
+      "Three",
+    ]);
     expect(flume(repo, ["task", "list", "--all"]).stdout.trim().split("\n")).toHaveLength(3);
     flume(repo, ["stop"]);
   });
@@ -342,7 +353,9 @@ describe("flume task commands", () => {
     expect(existsSync(join(repo, t.path))).toBe(true);
     expect(existsSync(join(wt, "flume"))).toBe(false);
     expect(flume(wt, ["task", "list"]).stdout).toContain("From the worktree");
-    expect(flume(wt, ["task", "show", t.id]).stdout).toBe(read(repo, t.path));
+    expect(flume(wt, ["task", "show", t.id]).stdout).toBe(
+      `${readFile(repo, t.path, "task.yaml")}\nparts: body\n`,
+    );
     expect(flume(wt, ["task", "update", t.id, "title", "Renamed"]).status).toBe(0);
     expect(flume(wt, ["task", "comment", t.id, "--text", "n"]).status).toBe(0);
     expect(flume(wt, ["task", "close", t.id]).status).toBe(0);
