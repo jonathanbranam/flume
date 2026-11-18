@@ -194,3 +194,5 @@
 {"actor":"external:advisor","at":"2026-11-18T02:33:01.665899595Z","from":"pending","task":"fl-t8xv","to":"open"}
 {"actor":"external:orchestrator","at":"2026-11-18T02:37:50.634494446Z","from":"open","task":"fl-cpcu","to":"planned"}
 {"actor":"external:orchestrator","at":"2026-11-18T02:37:50.645870030Z","queue":"reprioritized"}
+{"actor":"external:orchestrator","at":"2026-11-18T02:38:48.842302499Z","from":"open","task":"fl-t8xv","to":"planned"}
+{"actor":"external:orchestrator","at":"2026-11-18T02:38:48.854649278Z","queue":"reprioritized"}
