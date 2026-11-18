@@ -142,7 +142,7 @@ The human: "'other task related files' should be indented to indicate they are i
             |       |-- task.toml      fields: id, title, status, ...
             |       |-- body.md        the ask (root file of the task)
             |       |-- comments.md
-            |       `-- ...    other task files
+            |       `-- ...    spec artifacts (later: pluggable, e.g. OpenSpec)
             `-- resolved/
                 `-- <slug>-<id>/   (same as open/)
 ```
@@ -184,3 +184,33 @@ Result:
 - Flume writes `task.toml` (status changes, resolve) without touching `body.md`, so body edits and status flips never conflict.
 - Tradeoff accepted: Obsidian no longer shows the fields as properties.
 - Settles open point 3's front-matter question; what the other task files are stays open.
+
+### Other task files: spec artifacts (2026-11-17)
+
+The human, verbatim:
+
+> What are the other files you asked. They would be the artifacts for implementing the task, once we build that:
+>
+> proposal.md
+> design.md
+> specs/<spec-name>/spec.md
+> tasks.md
+>
+> Those are the openspec files. SpecKit would have
+>
+> spec.md
+> plan.md
+> tasks.md
+> research.md
+> quickstart.md
+> contracts/
+> data-model.md
+>
+> We'll have a pluggable spec solution similar to OpenSpec here.
+
+Advisor's reading:
+
+- The rest of a task folder is the spec tool's artifacts, written beside `task.toml`, `body.md` and `comments.md`. Which files depends on the spec plugin (OpenSpec-like or SpecKit-like).
+- Not in this ticket (YAGNI): the pluggable spec solution is later work and gets its own ticket. For v1 flume only needs to leave other files in a task folder alone (keep them on resolve, which moves the whole folder).
+- Note: both tools write a `tasks.md` (the implementation checklist) inside the flume task folder. No file clash with flume's own files (`task.toml`, `body.md`, `comments.md`), only a naming echo.
+- Settles open point 3.
