@@ -2,11 +2,14 @@
 id = "fl-mvu7"
 title = "flume project add without a git URL: allowed, with a warning"
 kind = "feature"
-state = "planned"
+state = "claimed"
 created_at = "2026-11-18T03:37:52.508Z"
-updated_at = "2026-11-18T03:54:21.909566945Z"
+updated_at = "2026-11-18T03:57:50.692085267Z"
 created_by = "external:advisor"
-watchers = ["external:advisor"]
+watchers = [
+    "external:advisor",
+    "agent:projnourl",
+]
 ticket = "mvu7"
 +++
 
