@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { formatHistory } from "../core/history.ts";
 import { daemonUrl, NOT_RUNNING, request } from "../daemon/index.ts";
 
 const err = (s: string) => process.stderr.write(`${s}\n`);
@@ -17,6 +18,7 @@ Commands:
   done ID ITEM...                               mark plan items done, as in: done ID 1.1 1.2
   skip ID ITEM... --reason TEXT                 mark plan items skipped, with the reason
   template PART [--project P]                   print the template to start a part from
+  history ID                                    print the task's change history, oldest first
   list [--closed | --all] [--kind K] [--parent ID] [--assignee NAME|human] [--phase PHASE]
                                                 one line per task (tab separated)
   update ID FIELD VALUE                         FIELD: title, kind, parent, blocked-by, related
@@ -77,6 +79,7 @@ const COMMANDS: Record<string, { opts: string[]; flags: string[]; pos: number; u
     usage:
       "flume task list [--closed | --all] [--kind K] [--parent ID] [--assignee NAME|human] [--phase PHASE]",
   },
+  history: { opts: [], flags: [], pos: 1, usage: "flume task history ID" },
   update: { opts: [], flags: [], pos: 3, usage: "flume task update ID FIELD VALUE" },
   comment: {
     opts: ["--text", "--body-file"],
@@ -259,6 +262,10 @@ export async function task(cwd: string, args: string[]): Promise<number> {
       const list: Task[] = await call("GET", `/api/tasks?${q}`);
       if (json) out(JSON.stringify(list));
       else for (const t of list) out(human(t));
+    } else if (sub === "history") {
+      const list: Task[] = await call("GET", `/api/tasks/${enc(pos[0] as string)}/history`);
+      if (json) out(JSON.stringify(list));
+      else for (const h of list) out(formatHistory(h));
     } else if (sub === "assign" || sub === "claim") {
       const who = pos[1] ?? process.env.AGENT_NAME;
       if (!who) throw new Usage("AGENT_NAME is not set: name who to assign the task to");

@@ -5,10 +5,12 @@ import { version } from "../cli/version.ts";
 import { touchSeen } from "../core/agents.ts";
 import {
   addComment,
+  appendHistory,
   assignTask,
   checkProject,
   createTask,
   formatGroup,
+  type HistoryData,
   isPhase,
   listGuides,
   listTaskFiles,
@@ -17,6 +19,7 @@ import {
   PATCH_FIELDS,
   PHASES,
   readGuide,
+  readHistory,
   readPart,
   readRoadmap,
   removePart,
@@ -37,6 +40,15 @@ import {
   writePart,
 } from "../core/index.ts";
 import { commitPaths, inRepo } from "./git.ts";
+
+/**
+ * Who made a request, for the task history: the X-Flume-Agent header every command sends from
+ * AGENT_NAME, else "human". The one place that decides it (fl-6hkt will change how it is found).
+ */
+const actorOf = (req: IncomingMessage): string => {
+  const who = req.headers["x-flume-agent"];
+  return typeof who === "string" && who.trim() !== "" ? who.trim() : "human";
+};
 
 class HttpError extends Error {
   readonly status: number;
@@ -93,7 +105,9 @@ export function startDaemon(opts: {
     }
   };
 
-  const handle = (method: string, url: URL, body: Json): [number, unknown] => {
+  const handle = (method: string, url: URL, body: Json, by: string): [number, unknown] => {
+    const log = (e: TaskEntry, action: string, data: HistoryData = {}) =>
+      appendHistory(root, e.path, by, action, data);
     const parts = url.pathname.split("/").filter(Boolean);
     if (parts[0] !== "api") throw new HttpError(404, `no such path ${url.pathname}`);
     const [, a, id, c] = parts;
@@ -185,6 +199,7 @@ export function startDaemon(opts: {
             related: related as string[] | undefined,
           }),
         );
+        log(e, "create", { title, kind: taskObject(e).kind });
         commit(e.nameId, `create ${title}`, [e.path]);
         return [201, taskObject(e)];
       }
@@ -219,6 +234,11 @@ export function startDaemon(opts: {
         .sort((x, y) => x.created.localeCompare(y.created) || x.id.localeCompare(y.id));
       return [200, tasks];
     }
+    if (parts.length === 4 && c === "history") {
+      allow("GET");
+      const e = find(id as string);
+      return [200, bad(() => readHistory(root, e.nameId))];
+    }
     if (parts.length === 5 && c === "plan") {
       const e = find(id as string);
       const what = parts[4];
@@ -241,6 +261,7 @@ export function startDaemon(opts: {
         const to = what === "done" ? "done" : "skipped";
         const reason = typeof body.reason === "string" ? body.reason : undefined;
         const u = bad(() => markPlan(root, e.nameId, items as string[], to, reason));
+        log(u, `plan_${what}`, { items: items as string[], ...(reason ? { reason } : {}) });
         commit(e.nameId, `plan ${what} ${items.join(" ")}`, [u.path]);
         return [200, taskObject(u)];
       }
@@ -262,10 +283,12 @@ export function startDaemon(opts: {
       if (method === "PUT") {
         if (typeof body.text !== "string") throw new HttpError(400, "text is required");
         const u = bad(() => writePart(root, e.nameId, part, body.text as string));
+        log(u, "write", { part });
         commit(e.nameId, `write ${part}`, [u.path]);
         return [200, taskObject(u)];
       }
       const u = bad(() => removePart(root, e.nameId, part));
+      log(u, "remove", { part });
       commit(e.nameId, `remove ${part}`, [u.path]);
       return [200, taskObject(u)];
     }
@@ -279,7 +302,12 @@ export function startDaemon(opts: {
           (k) => !(PATCH_FIELDS as readonly string[]).includes(k),
         );
         if (unknown.length) throw new HttpError(400, `unknown field ${unknown[0]}`);
+        const was = taskObject(e) as Json;
         const u = bad(() => updateTask(root, ref, body));
+        const now = taskObject(u) as Json;
+        for (const k of Object.keys(body))
+          if (JSON.stringify(was[k]) !== JSON.stringify(now[k]))
+            log(u, "update", { field: k, from: was[k], to: now[k] });
         commit(u.nameId, `update ${Object.keys(body).join(", ")}`, [u.path]);
         return [200, taskObject(u)];
       }
@@ -291,6 +319,7 @@ export function startDaemon(opts: {
             ? body.author.trim()
             : userInfo().username;
         const u = bad(() => addComment(root, ref, body.text as string, author));
+        log(u, "comment");
         commit(e.nameId, "add a comment", [u.path]);
         return [200, taskObject(u)];
       }
@@ -302,14 +331,23 @@ export function startDaemon(opts: {
         if (actor !== undefined && typeof actor !== "string")
           throw new HttpError(400, "actor must be a string");
         const r = bad(() => assignTask(root, ref, assignee, actor, force === true));
-        if (r.changed) commit(e.nameId, `assign to ${assignee}`, [e.path]);
+        if (r.changed) {
+          log(r.entry, "assign", {
+            field: "assignee",
+            from: taskObject(e).assignee,
+            to: assignee,
+          });
+          commit(e.nameId, `assign to ${assignee}`, [e.path]);
+        }
         return [200, taskObject(r.entry)];
       }
       if (c === "phase") {
         allow("POST");
         const e = find(ref);
         if (typeof body.phase !== "string") throw new HttpError(400, "phase is required");
+        const was = taskObject(e).phase;
         const u = bad(() => setPhase(root, ref, body.phase as string));
+        if (was !== body.phase) log(u, "phase", { field: "phase", from: was, to: body.phase });
         commit(e.nameId, `phase ${body.phase}`, [e.path]);
         return [200, taskObject(u)];
       }
@@ -321,6 +359,7 @@ export function startDaemon(opts: {
         if (c === "reopen" && e.state === "open")
           throw new HttpError(409, `task ${ref} is already open`);
         const u = c === "close" ? resolveTask(root, ref) : reopenTask(root, ref);
+        log(u, c);
         commit(e.nameId, c === "close" ? "close" : "reopen", [e.path, u.path]);
         return [200, taskObject(u)];
       }
@@ -373,7 +412,7 @@ export function startDaemon(opts: {
             throw new HttpError(400, "the request body is not a JSON object");
           }
         }
-        const [status, payload] = handle(req.method ?? "GET", url, body);
+        const [status, payload] = handle(req.method ?? "GET", url, body, actorOf(req));
         if (url.pathname === "/api/stop") {
           res.on("finish", () => opts.onStop?.());
         }

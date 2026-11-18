@@ -1,6 +1,6 @@
 # Workflow
 
-A task moves through five phases, and records who holds it. This spec covers the task fields assignee, agent and phase and the commands that change them. Ticket: fl-fu3v. The history of changes (fl-eg2q) is not built yet and is not specified here.
+A task moves through five phases, and records who holds it. This spec covers the task fields assignee, agent and phase and the commands that change them. Ticket: fl-fu3v. The history of changes (fl-eg2q) is specified at the end.
 
 Assumptions (recorded on fl-fu3v): an agent is a command run with AGENT_NAME set, the human is a command run without it; flume task assign with no name and no AGENT_NAME is a usage error (exit 2); a task created before phases existed counts as being in phase proposal.
 
@@ -191,3 +191,27 @@ flume prime SHALL begin its flume_base section with text that names the agent (Y
 - **GIVEN** any project with no daemon running
 - **WHEN** flume prime is run for the agent scout
 - **THEN** the flume_base section holds You are agent scout and each of the commands above, and holds none of the file names body.md, design.md, spec.md, plan.md, task.yaml
+
+### Requirement: Every change to a task is appended to its history  {#r-1a7e}
+When a command changes a task (create, update of a field, assign or claim, phase, comment, plan done or skip, close, reopen, write or remove of a part), flume SHALL append one line to the file history.jsonl in the task's folder and never rewrite an earlier line; each line is a JSON object with time (UTC, ISO 8601 ending in Z), by (the name in AGENT_NAME of the agent that ran the command, or human when it is not set) and action, plus field, from and to for a field change (update, assign with field assignee, phase with field phase), part (the name only, not the text) for write and remove, items (and reason for a skip) for plan_done and plan_skip, and title and kind for create; a command that changes nothing or is refused SHALL append nothing; and the file SHALL move with the folder on close and reopen.
+
+#### Scenario: Changes are recorded with who and what  {#s-2b8c}
+*Verification*: **executable**
+- **GIVEN** a running daemon and a new task made by the agent scout
+- **WHEN** scout updates the title, assigns the task to scout, sets the phase to design, writes the plan, marks item 1.1 done, adds a comment, closes the task and reopens it, and a request with no agent name sets the phase to plan
+- **THEN** history.jsonl in the task folder has one line per change in that order with the actions create, update, assign, phase, write, plan_done, comment, close, reopen and phase, every line has a time ending in Z, the first nine have by scout and the last has by human, the update line has field title with its from and to, the write line has part plan and no text, and the file is in the open folder
+
+#### Scenario: A refused or empty change adds no line  {#s-3c9d}
+*Verification*: **executable**
+- **GIVEN** a task in phase proposal with one history line
+- **WHEN** the phase is set to proposal again and an update with an unknown kind is refused
+- **THEN** history.jsonl still has one line
+
+### Requirement: Task history prints the history  {#r-4d0a}
+When flume task history ID is run, flume SHALL print the task's history oldest first, one line per entry holding the time, by and action and then the other keys as key=value, tab separated, and with --json SHALL print one JSON list of the entries as stored and nothing else; a task with no history prints nothing (an empty list for --json); an ID that names no task prints a message to standard error and exits with code 1. The daemon answers GET /api/tasks/{id}/history with the same list, and 404 for an unknown ID.
+
+#### Scenario: History as text and JSON  {#s-5e1f}
+*Verification*: **executable**
+- **GIVEN** a task created and put in phase design by the agent scout
+- **WHEN** flume task history is run for it, then with --json, then for an unknown ID, and GET /api/tasks/{id}/history is requested
+- **THEN** the first prints two lines whose second and third columns are scout and create, then scout and phase; the second is a JSON list of two objects with the same actions; the third exits with code 1; and the request answers 200 with the same list

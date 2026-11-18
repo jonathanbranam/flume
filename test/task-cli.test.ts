@@ -405,3 +405,30 @@ describe("flume check as JSON", () => {
     expect(problems[0]?.message).not.toBe("");
   });
 });
+
+describe("flume task history", () => {
+  it("s-5e1f history as text and JSON", async () => {
+    const repo = await project();
+    const scout = { AGENT_NAME: "scout" };
+    const r = flume(repo, ["task", "new", "Hist"], undefined, scout);
+    const id = r.stdout.trim();
+    flume(repo, ["task", "phase", id, "design"], undefined, scout);
+    const text = flume(repo, ["task", "history", id]);
+    const rows = text.stdout
+      .trim()
+      .split("\n")
+      .map((l) => l.split("\t"));
+    expect(rows).toHaveLength(2);
+    expect(rows.map((c) => [c[1], c[2]])).toEqual([
+      ["scout", "create"],
+      ["scout", "phase"],
+    ]);
+    const j = JSON.parse(flume(repo, ["task", "history", id, "--json"]).stdout);
+    expect(j.map((x: { action: string }) => x.action)).toEqual(["create", "phase"]);
+    expect(flume(repo, ["task", "history", "zzzz"]).status).toBe(1);
+    const url = JSON.parse(readFileSync(join(repo, ".flume/daemon.json"), "utf8")).url;
+    const api = await (await fetch(`${url}/api/tasks/${id}/history`)).json();
+    expect(api).toEqual(j);
+    flume(repo, ["stop"]);
+  });
+});

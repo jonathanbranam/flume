@@ -422,7 +422,12 @@ describe("daemon api", () => {
     expect(shas).toHaveLength(1);
     expect(
       git(root, "show", "--name-only", "--format=%s", "HEAD").split("\n").filter(Boolean),
-    ).toEqual([expect.stringContaining(t.id), `${t.path}/body.md`, `${t.path}/task.yaml`]);
+    ).toEqual([
+      expect.stringContaining(t.id),
+      `${t.path}/body.md`,
+      `${t.path}/history.jsonl`,
+      `${t.path}/task.yaml`,
+    ]);
     expect(clean()).toBe("");
   });
 
@@ -434,6 +439,7 @@ describe("daemon api", () => {
     expect(commitsSince(before)).toHaveLength(1);
     expect(git(root, "show", "--name-only", "--format=", "HEAD").trim().split("\n")).toEqual([
       `${t.path}/body.md`,
+      `${t.path}/history.jsonl`,
       `${t.path}/task.yaml`,
     ]);
     expect(t.blocked_by).toEqual([a.id]);
@@ -701,5 +707,58 @@ describe("workflow endpoints", () => {
     const wf = await call("GET", "/api/workflow");
     expect(wf.status).toBe(200);
     expect(wf.body).toHaveLength(5);
+  });
+});
+
+describe("task history", () => {
+  const as = (who: string) => ({ "x-flume-agent": who });
+  const lines = (path: string) =>
+    readFileSync(join(root, path, "history.jsonl"), "utf8")
+      .split("\n")
+      .filter(Boolean)
+      .map((l) => JSON.parse(l));
+
+  it("s-2b8c changes are recorded with who and what", async () => {
+    const t = (await raw("POST", "/api/tasks", as("scout"), { title: "H" })).body;
+    const base = `/api/tasks/${t.id}`;
+    const step = (m: string, p: string, b?: unknown, who = "scout") =>
+      raw(m, `${base}${p}`, who ? as(who) : {}, b);
+    await step("PATCH", "", { title: "H2" });
+    await step("POST", "/assign", { assignee: "scout" });
+    await step("POST", "/phase", { phase: "design" });
+    await step("PUT", "/parts/plan", { text: "## 1. G\n\n- [ ] 1.1 a\n" });
+    await step("POST", "/plan/done", { items: ["1.1"] });
+    await step("POST", "/comments", { text: "hi" });
+    await step("POST", "/close");
+    const re = await step("POST", "/reopen");
+    await step("POST", "/phase", { phase: "plan" }, "");
+    const h = lines(re.body.path);
+    expect(h.map((x) => x.action)).toEqual([
+      "create",
+      "update",
+      "assign",
+      "phase",
+      "write",
+      "plan_done",
+      "comment",
+      "close",
+      "reopen",
+      "phase",
+    ]);
+    for (const x of h) expect(x.time).toMatch(/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ$/);
+    expect(h.slice(0, 9).every((x) => x.by === "scout")).toBe(true);
+    expect(h[9].by).toBe("human");
+    expect(h[1]).toMatchObject({ field: "title", from: "H", to: "H2" });
+    expect(h[4]).toMatchObject({ part: "plan" });
+    expect(JSON.stringify(h[4])).not.toContain("1.1 a");
+    expect(re.body.path).toContain("/open/");
+    expect(git(root, "status", "--porcelain")).toBe("");
+  });
+
+  it("s-3c9d a refused or empty change adds no line", async () => {
+    const t = (await raw("POST", "/api/tasks", as("scout"), { title: "H" })).body;
+    await call("POST", `/api/tasks/${t.id}/phase`, { phase: "proposal" });
+    expect((await call("PATCH", `/api/tasks/${t.id}`, { kind: "nonsense" })).status).toBe(400);
+    expect(lines(t.path)).toHaveLength(1);
   });
 });
