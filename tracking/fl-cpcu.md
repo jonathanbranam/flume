@@ -4,7 +4,7 @@ title = "flume output: --json on every command that prints data; agent show prin
 kind = "chore"
 state = "built"
 created_at = "2026-11-18T02:31:54.718Z"
-updated_at = "2026-11-18T02:40:41.264124445Z"
+updated_at = "2026-11-18T02:40:54.737833050Z"
 created_by = "external:advisor"
 watchers = [
     "external:advisor",
@@ -31,3 +31,6 @@ From orchestrator: fl-cpcu planned and queued. Haiku (mechanical --json on 5 com
 
 ### note · agent:json-out · 2026-11-18T02:40:41.264Z
 built: 8123aaf (branch bridle/json-out)
+
+### note · agent:json-out · 2026-11-18T02:40:54.737Z
+done: --json on flume status, check, roadmap check, agent list and agent show; agent show prints YAML by default. just check exit 0 on 8123aaf (156 tests passed, 0 failed); bridle spec check --require-ids clean (0 errors). Branch bridle/json-out pushed and marked built; main is already an ancestor (no merge needed). Browser check N/A (CLI only). Caveat: no last-full-test-count file in the workspace, so the test-count band was not compared. Decisions: list --json includes live; other args to these commands are exit 2; status --json not-running is {running:false,address:null,root:null} with exit 1; help and usage text updated; CHANGELOG Changed line added; rule recorded in docs/conventions.md; README status line updated. Pre-existing biome warnings in test/tasks.test.ts and test/daemon.test.ts left alone.
