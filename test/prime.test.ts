@@ -100,18 +100,45 @@ describe("prime prints the workflow", () => {
     flume(w, "stop");
   });
 
-  it("s-3cd4 no daemon still prints the built-in text", () => {
+  it("s-3cd4 no daemon in a workspace points at flume serve", () => {
     const w = workspace();
     put(w, "base/workflow.md", "BASE\n");
     const r = flume(w, "prime", "--name", "a");
     expect(r.status).toBe(0);
-    expect(r.stdout).toContain("You are agent a");
     expect(r.stdout).toMatch(/<flume_base>\n[\s\S]*You are agent a[\s\S]*<\/flume_base>/);
     expect(r.stdout).toMatch(
-      /<workflow_missing>\n.*workflow text is missing.*\n<\/workflow_missing>/,
+      new RegExp(
+        `<server_not_running>\\n[^\\n]*${w.d}[\\s\\S]*flume serve[\\s\\S]*</server_not_running>`,
+      ),
     );
     expect(r.stdout).not.toContain("BASE");
     expect(existsSync(join(w.d, ".flume/daemon.json"))).toBe(false);
+  });
+
+  it("s-ad01 no daemon and no workspace explains flume", () => {
+    const w = workspace();
+    const bare = realpathSync(mkdtempSync(join(tmpdir(), "flume-bare-")));
+    dirs.push(bare);
+    const r = spawnSync("node", [bin, "prime", "--name", "a"], {
+      cwd: bare,
+      encoding: "utf8",
+      env: w.env,
+    });
+    expect(r.status).toBe(0);
+    expect(r.stdout).toMatch(/<flume_base>\n[\s\S]*You are agent a[\s\S]*<\/flume_base>/);
+    const m = r.stdout.match(/<flume_not_set_up>\n([\s\S]*)<\/flume_not_set_up>/);
+    expect(m).not.toBeNull();
+    for (const t of [
+      "flume init",
+      "flume project add",
+      "flume clone",
+      "flume serve",
+      "without the human",
+    ])
+      expect(m?.[1]).toContain(t);
+    expect(r.stdout).not.toContain("<server_not_running");
+    expect(existsSync(join(bare, ".flume"))).toBe(false);
+    expect(Buffer.from(r.stdout).every((b) => b < 128)).toBe(true);
   });
 
   it("s-afe2 launch passes the role to prime", async () => {

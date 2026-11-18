@@ -21,6 +21,18 @@ export function findWorkspace(cwd: string): string | undefined {
   }
 }
 
+/** The nearest folder at or above `cwd` that holds a `.flume/` folder, skipping `skip` (the home registry); undefined when none. */
+export function findFlumeFolder(cwd: string, skip?: string): string | undefined {
+  let dir = resolve(cwd);
+  for (;;) {
+    const f = join(dir, DIR);
+    if (existsSync(f) && f !== skip) return dir;
+    const up = dirname(dir);
+    if (up === dir) return undefined;
+    dir = up;
+  }
+}
+
 export function readRecord(cwd: string): DaemonRecord | undefined {
   const ws = findWorkspace(cwd);
   if (!ws) return undefined;

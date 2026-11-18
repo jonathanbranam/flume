@@ -53,6 +53,8 @@ const ENVELOPE = [
   "flume_prime",
   "flume_base",
   "workflow_missing",
+  "server_not_running",
+  "flume_not_set_up",
   "workspace_workflow",
   "project_workflow",
   "role",

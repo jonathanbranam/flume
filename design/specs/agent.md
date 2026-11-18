@@ -215,7 +215,7 @@ flume SHALL always give claude a first prompt as the last argument, after a clos
 - **AND** the argument before it is --
 
 ### Requirement: Prime prints the workflow from the daemon  {#r-1d13}
-When flume prime or flume agent builds the prime text, flume SHALL ask the daemon (the prime endpoint of the api spec) with the agent's project and role, and print the parts it returns after the built-in text, each in its own element (see the requirement on the XML layout), so that the order is: the built-in text (flume_base), base/workflow.md (workspace_workflow), the project's workflow.md (project_workflow, with attribute project), then base/roles/ROLE.md followed by the project's roles/ROLE.md in one role element (attribute name), of the flume root, later ones overriding earlier ones; a missing file is skipped without an error and a part with no text is left out, element and all; with no role flume SHALL print no role element, which is not an error. flume SHALL NOT tell the agent to read workflow files, SHALL NOT read them itself, and SHALL NOT start the daemon. When no daemon answers (or it refuses), flume SHALL print the built-in text followed by a workflow_missing element holding one line saying the workflow text is missing, and exit with code 0.
+When flume prime or flume agent builds the prime text, flume SHALL ask the daemon (the prime endpoint of the api spec) with the agent's project and role, and print the parts it returns after the built-in text, each in its own element (see the requirement on the XML layout), so that the order is: the built-in text (flume_base), base/workflow.md (workspace_workflow), the project's workflow.md (project_workflow, with attribute project), then base/roles/ROLE.md followed by the project's roles/ROLE.md in one role element (attribute name), of the flume root, later ones overriding earlier ones; a missing file is skipped without an error and a part with no text is left out, element and all; with no role flume SHALL print no role element, which is not an error. flume SHALL NOT tell the agent to read workflow files, SHALL NOT read them itself, and SHALL NOT start the daemon. When it refuses, flume SHALL print the built-in text followed by a workflow_missing element holding one line saying the workflow text is missing, and exit with code 0. When no daemon answers, flume SHALL print the built-in text (flume_base) and then, depending on the folder, and exit with code 0: if a .flume folder is found in the current folder or the nearest one above it (other than the home folder's own .flume), a server_not_running element naming that workspace folder, saying flume looks set up there but its server is not running and asking the human to run flume serve in it; otherwise a flume_not_set_up element that explains what flume is (managing agents' work with tasks and workflows, run through flume commands, with flume serve as the server the human starts) and the setup steps (flume init in the workspace folder; flume project add <git-url> for each project, or flume clone <tasks-repo-url> and flume project clone; flume serve run by the human in its own pane), and says the agent must not run them without the human.
 
 #### Scenario: Prime with a workflow  {#s-1d08}
 *Verification*: **executable**
@@ -230,11 +230,17 @@ When flume prime or flume agent builds the prime text, flume SHALL ask the daemo
 - **WHEN** the user runs flume prime --name a
 - **THEN** the exit code is 0 and the output holds BASE and does not hold ROLE or a role element
 
-#### Scenario: Prime with no daemon  {#s-3cd4}
+#### Scenario: Prime with no daemon in a workspace  {#s-3cd4}
 *Verification*: **executable**
-- **GIVEN** no daemon running
+- **GIVEN** no daemon running and a workspace folder holding a .flume folder
+- **WHEN** the user runs flume prime --name a from a folder inside that workspace
+- **THEN** the exit code is 0, the output holds "You are agent a" inside a flume_base element and, inside the flume_prime element, a server_not_running element naming the workspace folder and asking for flume serve, no workflow text, and no daemon has been started
+
+#### Scenario: Prime with no daemon and no workspace  {#s-ad01}
+*Verification*: **executable**
+- **GIVEN** no daemon running and no .flume folder in the current folder or above it
 - **WHEN** the user runs flume prime --name a
-- **THEN** the exit code is 0, the output holds "You are agent a" inside a flume_base element and, inside the flume_prime element, a workflow_missing element saying the workflow text is missing, and no daemon has been started
+- **THEN** the exit code is 0, the output holds "You are agent a" inside a flume_base element and a flume_not_set_up element that mentions flume init, flume project add, flume clone, flume serve and that the agent must not run them without the human, and no daemon has been started
 
 #### Scenario: Launch passes the role to prime  {#s-afe2}
 *Verification*: **executable**

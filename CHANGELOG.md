@@ -20,6 +20,8 @@
 
 ### Changed
 
+- `flume prime` with no daemon (fl-ud4g): in a workspace (a `.flume/` folder here or above) it prints a `server_not_running` element naming the workspace and asking the human to run `flume serve`; with no workspace it prints a `flume_not_set_up` element explaining flume and the setup steps (init, project add or clone, serve). `flume_base` is kept in both; a daemon refusal still gives `workflow_missing`.
+
 - Actor (fl-6hkt): a command run under Claude Code (`CLAUDECODE` set) without `AGENT_NAME` is the unnamed agent `agent-<first 8 of CLAUDE_CODE_SESSION_ID>` (`agent-unknown` without one), never the human. One check feeds comment authors, assign/claim (the unnamed agent needs `--force`; `assign`/`claim` with no name and no `AGENT_NAME` exits 2), history `by` and the `X-Flume-Agent` header.
 
 - `flume project add` takes a git URL or a bare project name (fl-mvu7): a name adds the project to `flume.yaml` with no url, warns on stderr, and clones nothing; `flume check` no longer reports a project for having no url (only a bad name); `flume project clone` says "no url" when it skips one.

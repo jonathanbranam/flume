@@ -1,9 +1,9 @@
 import { spawnSync } from "node:child_process";
 import { readdirSync } from "node:fs";
 import { stringify } from "yaml";
-import { agentsDir, type Entry, readEntry, writeEntry } from "../core/agents.ts";
+import { agentsDir, type Entry, flumeHome, readEntry, writeEntry } from "../core/agents.ts";
 import { xmlBlock, xmlOpen, xmlText } from "../core/prime.ts";
-import { daemonUrl, request } from "../daemon/index.ts";
+import { daemonUrl, findFlumeFolder, request } from "../daemon/index.ts";
 
 const USAGE = `Usage:
   flume agent [--name <name>] [--project <p>] [--role <r>] [--force] [<prompt>] [-- <claude-arg>...]
@@ -195,11 +195,27 @@ function fill(text: string, vars: Record<string, string>): string {
   return text.replace(/\{(name|project)\}/g, (_, k: string) => vars[k] ?? "");
 }
 
+function serverNotRunning(ws: string): string {
+  return `Flume looks set up in ${ws}, but its server is not running, so the workflow text is missing.
+Ask the human to run: flume serve (in ${ws}, in its own pane). Do not start it yourself.`;
+}
+
+const NOT_SET_UP = `The workflow text is missing, and no flume workspace was found here (no .flume folder in this folder or above it).
+
+Flume manages agents' work with tasks and workflows. Tasks live in a tasks repo; agents work them through flume commands, phase by phase. "flume serve" is the server that agents and the web UI talk to; the human starts it.
+
+To set up a new workspace, tell the human to do this:
+1. In the workspace folder (a folder of related repos): flume init
+2. For each project: flume project add <git-url>. Or, to set up a whole workspace from an existing tasks repo: flume clone <tasks-repo-url>, then flume project clone for the projects it already lists.
+3. flume serve, run by the human in its own pane.
+
+Do not run these commands yourself without the human, and never start the server yourself.`;
+
 /**
  * The prime text: one flume_prime element holding flume's built-in text, then the workflow parts
  * the daemon builds from the flume-root files for this project and role, then the guides; empty
  * parts are left out. With no daemon (or a refusal) the built-in text is printed with a
- * workflow_missing element saying why the rest is missing.
+ * server_not_running element (a workspace was found) or a flume_not_set_up element (none was) saying why the rest is missing; a refusal gives a workflow_missing element.
  */
 async function primeText(name: string, project: string, role: string): Promise<string> {
   const vars = { name, project };
@@ -210,13 +226,12 @@ async function primeText(name: string, project: string, role: string): Promise<s
   const q = new URLSearchParams({ project, role });
   const r = url ? await request(url, "GET", `/api/prime?${q}`) : undefined;
   if (!r) {
-    parts.push(
-      xmlBlock(
-        "workflow_missing",
-        {},
-        "The workflow text is missing because the flume server is not running. Ask the human to start it: flume serve (in its own pane).",
-      ),
-    );
+    const ws = findFlumeFolder(process.cwd(), flumeHome());
+    if (ws) {
+      parts.push(xmlBlock("server_not_running", {}, serverNotRunning(ws)));
+    } else {
+      parts.push(xmlBlock("flume_not_set_up", {}, NOT_SET_UP));
+    }
   } else if (r.status !== 200) {
     parts.push(
       xmlBlock(
