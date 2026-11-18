@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { formatHistory } from "../core/history.ts";
+import { guideBlocks } from "../core/instructions.ts";
 import { actorName, isAgent } from "../daemon/actor.ts";
 import { daemonUrl, NOT_RUNNING, request } from "../daemon/index.ts";
 
@@ -15,9 +16,13 @@ Commands:
                                                 (PART: body, design, spec, plan, comments)
   write ID PART [--file PATH|-] [--remove]      replace a part's text (standard input by default),
                                                 or remove the part (PART: body, design, spec, plan)
+  instructions ID                               what to do now: the current phase's steps, template and
+                                                pushed guides (agent text; no --json)
   next ID                                       print the current plan group (heading and items)
   done ID ITEM...                               mark plan items done, as in: done ID 1.1 1.2
   skip ID ITEM... --reason TEXT                 mark plan items skipped, with the reason
+  guide ID NAME --phase PHASE [--remove]        push a guide to a later (or the current) phase of the
+                                                task, so its instructions include it; --remove drops it
   template PART [--project P]                   print the template to start a part from
   history ID                                    print the task's change history, oldest first
   list [--closed | --all] [--kind K] [--parent ID] [--assignee NAME|human] [--phase PHASE]
@@ -59,6 +64,7 @@ const COMMANDS: Record<string, { opts: string[]; flags: string[]; pos: number; u
     usage: "flume task write ID PART [--file PATH|-] [--remove]",
   },
   phase: { opts: [], flags: [], pos: 2, usage: "flume task phase ID PHASE" },
+  instructions: { opts: [], flags: [], pos: 1, usage: "flume task instructions ID" },
   next: { opts: [], flags: [], pos: 1, usage: "flume task next ID" },
   done: { opts: [], flags: [], pos: -99, usage: "flume task done ID ITEM..." },
   skip: {
@@ -66,6 +72,12 @@ const COMMANDS: Record<string, { opts: string[]; flags: string[]; pos: number; u
     flags: [],
     pos: -99,
     usage: "flume task skip ID ITEM... --reason TEXT",
+  },
+  guide: {
+    opts: ["--phase"],
+    flags: ["--remove"],
+    pos: 2,
+    usage: "flume task guide ID NAME --phase PHASE [--remove]",
   },
   template: {
     opts: ["--project"],
@@ -178,6 +190,10 @@ export async function task(cwd: string, args: string[]): Promise<number> {
       throw new Usage("use --closed or --all, not both");
     if (sub === "skip" && (opt["--reason"] ?? "").trim() === "")
       throw new Usage("skip needs --reason TEXT");
+    if (sub === "instructions" && json)
+      throw new Usage("instructions is agent text and takes no --json");
+    if (sub === "guide" && opt["--phase"] === undefined)
+      throw new Usage("guide needs --phase PHASE");
     if (sub === "write" && flag.has("--remove") && opt["--file"] !== undefined)
       throw new Usage("use --file or --remove, not both");
     if (sub === "comment" && opt["--text"] === undefined && opt["--body-file"] === undefined)
@@ -224,7 +240,10 @@ export async function task(cwd: string, args: string[]): Promise<number> {
     } else if (sub === "show") {
       const t = await call("GET", `/api/tasks/${enc(pos[0] as string)}`);
       if (json) out(JSON.stringify(t));
-      else process.stdout.write(`${t.fields}\nparts: ${t.parts.join(", ")}\n`);
+      else
+        process.stdout.write(
+          `${t.fields}\nparts: ${t.parts.join(", ")}\nFor what to do now: flume task instructions ${pos[0]}\n`,
+        );
     } else if (sub === "write") {
       const base = `/api/tasks/${enc(pos[0] as string)}/parts/${enc(pos[1] as string)}`;
       const t = flag.has("--remove")
@@ -236,11 +255,25 @@ export async function task(cwd: string, args: string[]): Promise<number> {
         phase: pos[1],
       });
       if (json) out(JSON.stringify(t));
+      else out(`next: flume task instructions ${pos[0]}`);
+    } else if (sub === "guide") {
+      const t = await call("POST", `/api/tasks/${enc(pos[0] as string)}/guides`, {
+        guide: pos[1],
+        phase: opt["--phase"],
+        remove: flag.has("--remove"),
+      });
+      if (json) out(JSON.stringify(t));
     } else if (sub === "next") {
       const r = await call("GET", `/api/tasks/${enc(pos[0] as string)}/plan/next`);
       if (json) out(JSON.stringify(r));
       else if (r.complete) out("The plan is complete: every item is done or skipped.");
-      else process.stdout.write(r.text);
+      else {
+        process.stdout.write(r.text);
+        if (r.guides.length > 0) process.stdout.write(`\n${guideBlocks(r.guides).join("\n")}`);
+      }
+    } else if (sub === "instructions") {
+      const r = await call("POST", `/api/tasks/${enc(pos[0] as string)}/instructions`);
+      process.stdout.write(r.text);
     } else if (sub === "done" || sub === "skip") {
       const t = await call("POST", `/api/tasks/${enc(pos[0] as string)}/plan/${sub}`, {
         items: pos.slice(1),
@@ -279,6 +312,10 @@ export async function task(cwd: string, args: string[]): Promise<number> {
         ...(isAgent() ? { actor: actorName() } : {}),
       });
       if (json) out(JSON.stringify(t));
+      else if (isAgent() && who === actorName()) {
+        const r = await call("POST", `/api/tasks/${enc(pos[0] as string)}/instructions`);
+        process.stdout.write(r.text);
+      }
     } else if (sub === "update") {
       const key = FIELDS[pos[1] as string] as string;
       const v = pos[2] as string;

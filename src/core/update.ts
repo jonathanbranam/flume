@@ -1,6 +1,7 @@
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { checkProject } from "./check.ts";
+import { readGuide } from "./guides.ts";
 import {
   COMMENTS_MD,
   listTaskFiles,
@@ -9,8 +10,16 @@ import {
   TASK_YAML,
   type TaskEntry,
 } from "./store.ts";
-import { deleteField, fields, KINDS, serializeTaskYaml, setField } from "./taskfile.ts";
-import { isPhase, PHASES } from "./workflow.ts";
+import {
+  deleteField,
+  fields,
+  KINDS,
+  readGuides,
+  serializeTaskYaml,
+  setField,
+  writeGuides,
+} from "./taskfile.ts";
+import { isPhase, PHASES, type Phase } from "./workflow.ts";
 
 /** Fields `updateTask` may set. A null clears parent, blocked_by or related. */
 export interface TaskPatch {
@@ -124,6 +133,51 @@ export function setPhase(root: string, ref: string, phase: string): TaskEntry {
   return editYaml(root, ref, (file) => setField(file, "phase", phase));
 }
 
+/** The phase the task is in now. */
+export function phaseOf(e: TaskEntry): Phase {
+  const p = fields(parseOrThrow(e)).phase;
+  return typeof p === "string" && isPhase(p) ? p : "proposal";
+}
+
+/**
+ * Record (or with `remove` drop) that guide `name` applies to `phase` of the task. Refused,
+ * changing nothing, when `phase` is earlier than the task's current phase, when the guide does
+ * not exist for the task's project (adding only), or when a removed guide is not pushed there.
+ * Returns the entry and whether anything changed (pushing a guide already there changes nothing).
+ */
+export function pushGuide(
+  root: string,
+  ref: string,
+  name: string,
+  phase: string,
+  remove: boolean,
+): { entry: TaskEntry; changed: boolean } {
+  if (!isPhase(phase)) throw new Error(`unknown phase '${phase}': phases are ${PHASES.join(", ")}`);
+  const e = load(root, ref);
+  const now = phaseOf(e);
+  if (PHASES.indexOf(phase) < PHASES.indexOf(now))
+    throw new Error(
+      `the task is in phase ${now}, past ${phase}; move it back first with: flume task phase ${e.nameId} ${phase}`,
+    );
+  const file = parseOrThrow(e);
+  const all = readGuides(file);
+  const has = (all[phase] ?? []).includes(name);
+  if (remove) {
+    if (!has) throw new Error(`guide ${name} is not pushed to phase ${phase} of task ${e.nameId}`);
+    all[phase] = (all[phase] ?? []).filter((n) => n !== name);
+  } else {
+    const project = fields(file).project;
+    const g = readGuide(root, typeof project === "string" ? project : "", name);
+    if (!g) throw new Error(`no guide ${name}; list them with: flume guide`);
+    if (!g.ok) throw new Error(g.error);
+    if (has) return { entry: e, changed: false };
+    all[phase] = [...(all[phase] ?? []), name];
+  }
+  writeGuides(file, all, PHASES);
+  writeFileSync(join(root, e.path, TASK_YAML), serializeTaskYaml(file));
+  return { entry: load(root, e.stem), changed: true };
+}
+
 /** Local time with its UTC offset, minutes precision: 2026-11-17 14:05 -05:00. */
 export function commentTime(d: Date): string {
   const p = (n: number) => String(n).padStart(2, "0");
@@ -163,6 +217,7 @@ export function taskObject(e: TaskEntry) {
     assignee: typeof f.assignee === "string" ? f.assignee : "",
     agent: typeof f.agent === "string" ? f.agent : "",
     phase: typeof f.phase === "string" && isPhase(f.phase) ? f.phase : "proposal",
+    guides: readGuides(parseOrThrow(e)),
     parent: typeof f.parent === "string" ? f.parent : null,
     blocked_by: list("blocked_by"),
     related: list("related"),

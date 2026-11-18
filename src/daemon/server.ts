@@ -10,7 +10,9 @@ import {
   checkProject,
   createTask,
   formatGroup,
+  groupGuides,
   type HistoryData,
+  instructionsFor,
   isPhase,
   listGuides,
   listTaskFiles,
@@ -18,6 +20,7 @@ import {
   nextGroup,
   PATCH_FIELDS,
   PHASES,
+  pushGuide,
   readGuide,
   readHistory,
   readPart,
@@ -251,6 +254,7 @@ export function startDaemon(opts: {
             complete: group === undefined,
             group: group ?? null,
             text: group ? formatGroup(group) : "",
+            guides: group ? groupGuides(root, e.nameId, group) : [],
           },
         ];
       }
@@ -341,11 +345,51 @@ export function startDaemon(opts: {
         }
         return [200, taskObject(r.entry)];
       }
+      if (c === "instructions") {
+        allow("POST");
+        const e = find(ref);
+        const r = bad(() => instructionsFor(root, ref));
+        log(e, "instructions", { phase: r.phase });
+        return [200, r];
+      }
+      if (c === "guides") {
+        allow("POST");
+        const e = find(ref);
+        const { guide, phase, remove } = body;
+        if (typeof guide !== "string" || guide === "")
+          throw new HttpError(400, "guide is required");
+        if (typeof phase !== "string") throw new HttpError(400, "phase is required");
+        const r = bad(() => pushGuide(root, ref, guide, phase, remove === true));
+        if (r.changed) {
+          log(r.entry, remove === true ? "guide_remove" : "guide_push", { guide, phase });
+          commit(e.nameId, `${remove === true ? "remove" : "push"} guide ${guide}`, [e.path]);
+        }
+        return [200, taskObject(r.entry)];
+      }
       if (c === "phase") {
         allow("POST");
         const e = find(ref);
         if (typeof body.phase !== "string") throw new HttpError(400, "phase is required");
         const was = taskObject(e).phase;
+        if (
+          by !== "human" &&
+          isPhase(body.phase) &&
+          PHASES.indexOf(body.phase) > PHASES.indexOf(was)
+        ) {
+          const h = readHistory(root, e.nameId);
+          let entered = -1;
+          h.forEach((x, i) => {
+            if (x.action === "phase" && x.to === was) entered = i;
+          });
+          const read = h.some(
+            (x, i) => i > entered && x.action === "instructions" && x.by === by && x.phase === was,
+          );
+          if (!read)
+            throw new HttpError(
+              409,
+              `task ${e.nameId} is in phase ${was}, and you have not read its instructions since it entered that phase; run: flume task instructions ${e.nameId}`,
+            );
+        }
         const u = bad(() => setPhase(root, ref, body.phase as string));
         if (was !== body.phase) log(u, "phase", { field: "phase", from: was, to: body.phase });
         commit(e.nameId, `phase ${body.phase}`, [e.path]);

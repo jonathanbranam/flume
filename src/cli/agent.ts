@@ -29,15 +29,16 @@ Read and change tasks only with flume commands. Never read or edit task files di
 The human is in control. They may move a task to any phase, forwards or backwards, or skip phases ("write design and specs", "remove the specs and start over on the design", "the ticket is simple, skip specs and plan, just implement"). Do what they ask.
 
 Working a task:
-1. Claim the task (flume task claim ID). Read its phase (flume task show ID) and continue from that phase.
-2. The phases, in order (read a part with flume task show ID PART; write one with flume task write ID PART, starting from its template: flume task template PART):
+1. Claim the task (flume task claim ID); it prints your instructions for the task's current phase. Follow them. To see them again, run flume task instructions ID, not flume task show (that prints the task's data, not what to do). Flume will not move a task forward for you until you have read the instructions for its current phase.
+2. The phases, in order (the specific steps for each are in the instructions; read a part with flume task show ID PART, write one with flume task write ID PART starting from its template: flume task template PART):
    - proposal: check that the task has a clear proposal, goal and scope. If not, ask the human. Write them in the body.
    - design: when goal and scope are clear, think through the design questions and write the design.
    - specs: when the design is clear, write the spec: clear requirements in EARS form ("When <trigger>, the system SHALL <response>").
-   - plan: read the body, design and spec, then write the plan: how to implement the task, step by step. Then mark the task ready: flume task phase ID implement.
-   - implement: read the body, design and spec for context. Get the current group of plan items (flume task next ID), do them, and report each one: flume task done ID ITEM, or flume task skip ID ITEM --reason TEXT if it should not be done. Repeat until the plan is complete. When writing code, enter a git worktree to make the changes; when done, merge main into it, then exit the worktree and merge it into main. Close the task when done (flume task close ID).
+   - plan: read the body, design and spec, then write the plan: how to implement the task, step by step, in numbered groups. Decide which guides apply to each group and name them with Guide: lines under the group's heading. Then mark the task ready: flume task phase ID implement.
+   - implement: get the current group of plan items and its guides (flume task next ID), do them, and report each one: flume task done ID ITEM, or flume task skip ID ITEM --reason TEXT if it should not be done. Repeat until the plan is complete. When writing code, enter a git worktree to make the changes; when done, merge main into it, then exit the worktree and merge it into main. Close the task when done (flume task close ID).
 3. When your phase is done, set the next phase (flume task phase ID PHASE). One agent will likely not do the whole workflow: another may take the next phase, or finish the plan. If you are waiting on the human, assign the task back to them (flume task assign ID human).
 4. In every phase, record important conversations with the human as comments (flume task comment ID), quoting the human verbatim.
+5. Guides are how-to notes. In every phase: if you see guides (flume guide) that matter for a later phase of this task, push them (flume task guide ID NAME --phase PHASE); they are printed with that phase's instructions. Read any guide that matters for your own work now (flume guide NAME).
 `;
 const DEFAULT_PROJECT =
   "You are working on the {project} project. Read that project's CLAUDE.md and follow its instructions.\n";
@@ -330,14 +331,18 @@ function show(args: string[]): number {
 /** `flume guide <name> [--name N] [--project P]`: print a guide's text, via the daemon like prime. */
 export async function guide(args: string[]): Promise<number> {
   if (args.includes("--help") || args.includes("-h")) {
-    process.stdout.write("usage: flume guide <guide-name> [--name <agent>] [--project <p>]\n");
+    process.stdout.write(
+      "usage: flume guide [<guide-name>] [--name <agent>] [--project <p>] [--json]\n  with no name, lists the guides (--json for JSON)\n",
+    );
     return 0;
   }
   const opts: Record<string, string> = {};
   const bare: string[] = [];
+  let json = false;
   for (let i = 0; i < args.length; i++) {
     const a = args[i] as string;
-    if (a === "--name" || a === "--project") {
+    if (a === "--json") json = true;
+    else if (a === "--name" || a === "--project") {
       const v = args[++i];
       if (v === undefined) {
         process.stderr.write(`flume: ${a} needs a value\n`);
@@ -349,8 +354,10 @@ export async function guide(args: string[]): Promise<number> {
       return 2;
     } else bare.push(a);
   }
-  if (bare.length !== 1) {
-    process.stderr.write("flume: guide needs one guide name\nusage: flume guide <guide-name>\n");
+  if (bare.length > 1 || (json && bare.length === 1)) {
+    process.stderr.write(
+      "flume: guide takes at most one guide name, and --json only with no name\nusage: flume guide [<guide-name>] [--json]\n",
+    );
     return 2;
   }
   const agentName = opts.name ?? paneName() ?? process.env.AGENT_NAME;
@@ -363,6 +370,25 @@ export async function guide(args: string[]): Promise<number> {
     return 1;
   }
   const q = new URLSearchParams({ project });
+  if (bare.length === 0) {
+    const l = await request(url, "GET", `/api/prime?${q}`);
+    if (!l) {
+      process.stderr.write("flume: the flume server did not answer\n");
+      return 1;
+    }
+    if (l.status !== 200) {
+      process.stderr.write(`flume: ${l.body?.error ?? `request failed (${l.status})`}\n`);
+      return 1;
+    }
+    const list = (l.body.guides ?? []) as { name: string; description: string; stage?: string }[];
+    if (json) process.stdout.write(`${JSON.stringify(list)}\n`);
+    else
+      for (const g of list)
+        process.stdout.write(
+          `${g.name}\t${g.stage ?? "-"}\t${g.description.replace(/\s+/g, " ")}\n`,
+        );
+    return 0;
+  }
   const r = await request(url, "GET", `/api/guides/${encodeURIComponent(bare[0] as string)}?${q}`);
   if (!r) {
     process.stderr.write("flume: the flume server did not answer\n");

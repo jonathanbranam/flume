@@ -12,11 +12,15 @@ export interface PlanItem {
 export interface PlanGroup {
   number: number;
   title: string;
+  /** Names of the guides the group lists with Guide: lines. */
+  guides: string[];
   items: PlanItem[];
 }
 
 const GROUP = /^## (\d+)\. (\S.*)$/;
 const ITEM = /^- \[( |x|-)\] (\d+\.\d+) (\S.*)$/;
+const GUIDE_LINE = /^Guide: (\S+)$/;
+const GUIDE_NAME = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
 const SKIPPED = /^ {2}Skipped: (\S.*)$/;
 const COMMENT = /^<!--.*-->$/;
 const MARK: Record<string, ItemState> = { " ": "open", x: "done", "-": "skipped" };
@@ -40,10 +44,20 @@ export function parsePlan(text: string): PlanParse {
     if (m) {
       if (Number(m[1]) !== groups.length + 1)
         return { ok: false, error: `${at}: group number ${m[1]} should be ${groups.length + 1}` };
-      groups.push({ number: Number(m[1]), title: m[2] as string, items: [] });
+      groups.push({ number: Number(m[1]), title: m[2] as string, guides: [], items: [] });
       continue;
     }
     const g = groups[groups.length - 1];
+    m = GUIDE_LINE.exec(line);
+    if (m) {
+      if (!g) return { ok: false, error: `${at}: a Guide line before the first group heading` };
+      if (g.items.length > 0)
+        return { ok: false, error: `${at}: a Guide line must come before the group's items` };
+      if (!GUIDE_NAME.test(m[1] as string))
+        return { ok: false, error: `${at}: '${m[1]}' is not a plain guide name` };
+      if (!g.guides.includes(m[1] as string)) g.guides.push(m[1] as string);
+      continue;
+    }
     m = ITEM.exec(line);
     if (m) {
       if (!g) return { ok: false, error: `${at}: an item before the first group heading` };
@@ -61,7 +75,7 @@ export function parsePlan(text: string): PlanParse {
     }
     return {
       ok: false,
-      error: `${at}: not a group ("## 1. Name"), an item ("- [ ] 1.1 text") or a Skipped line`,
+      error: `${at}: not a group ("## 1. Name"), a Guide line ("Guide: name"), an item ("- [ ] 1.1 text") or a Skipped line`,
     };
   }
   if (groups.length === 0) return { ok: false, error: "no group ('## 1. Name')" };
@@ -84,6 +98,7 @@ export function currentGroup(groups: PlanGroup[]): PlanGroup | undefined {
 /** A group as the plan prints it. */
 export function formatGroup(g: PlanGroup): string {
   const lines = [`## ${g.number}. ${g.title}`, ""];
+  if (g.guides.length > 0) lines.push(...g.guides.map((n) => `Guide: ${n}`), "");
   for (const i of g.items) {
     lines.push(`- [${MARK_OF[i.state]}] ${i.id} ${i.text}`);
     if (i.reason !== undefined) lines.push(`  Skipped: ${i.reason}`);

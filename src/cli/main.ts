@@ -27,7 +27,7 @@ Commands:
   check      validate the task files; one line per problem, exit 1 if any [--json]
   agent      launch Claude as a named agent; list, show (flume agent --help)
   prime      print the prime text flume agent would send [--role R]
-  guide      print a guide: flume guide <name> [--project P]
+  guide      list the guides, or print one: flume guide [<name>] [--project P] [--json]
   bug        print a bug-report template to paste into an email
 
 Options:

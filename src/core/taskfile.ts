@@ -58,3 +58,25 @@ export function newTaskFile(): TaskFile {
 export function wikiLinks(body: string): string[] {
   return [...body.matchAll(/\[\[([^\]|\n]+)(?:\|[^\]\n]*)?\]\]/g)].map((m) => (m[1] ?? "").trim());
 }
+
+/** The pushed guides by phase, from the task's `guides` field (anything else is ignored). */
+export function readGuides(file: TaskFile): Record<string, string[]> {
+  const g = fields(file).guides;
+  const out: Record<string, string[]> = {};
+  if (g && typeof g === "object" && !Array.isArray(g))
+    for (const [k, v] of Object.entries(g))
+      if (Array.isArray(v) && v.length > 0) out[k] = v.map(String);
+  return out;
+}
+
+/** Write the pushed guides nested by phase, in `order`, leaving out a phase with none. */
+export function writeGuides(
+  file: TaskFile,
+  guides: Record<string, string[]>,
+  order: readonly string[],
+): void {
+  const nested: Record<string, string[]> = {};
+  for (const ph of order) if ((guides[ph] ?? []).length > 0) nested[ph] = guides[ph] as string[];
+  if (Object.keys(nested).length === 0) file.doc.delete("guides");
+  else file.doc.set("guides", file.doc.createNode(nested));
+}

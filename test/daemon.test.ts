@@ -753,6 +753,7 @@ describe("task history", () => {
       raw(m, `${base}${p}`, who ? as(who) : {}, b);
     await step("PATCH", "", { title: "H2" });
     await step("POST", "/assign", { assignee: "scout" });
+    await step("POST", "/instructions");
     await step("POST", "/phase", { phase: "design" });
     await step("PUT", "/parts/plan", { text: "## 1. G\n\n- [ ] 1.1 a\n" });
     await step("POST", "/plan/done", { items: ["1.1"] });
@@ -765,6 +766,7 @@ describe("task history", () => {
       "create",
       "update",
       "assign",
+      "instructions",
       "phase",
       "write",
       "plan_done",
@@ -774,11 +776,11 @@ describe("task history", () => {
       "phase",
     ]);
     for (const x of h) expect(x.time).toMatch(/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ$/);
-    expect(h.slice(0, 9).every((x) => x.by === "scout")).toBe(true);
-    expect(h[9].by).toBe("human");
+    expect(h.slice(0, 10).every((x) => x.by === "scout")).toBe(true);
+    expect(h[10].by).toBe("human");
     expect(h[1]).toMatchObject({ field: "title", from: "H", to: "H2" });
-    expect(h[4]).toMatchObject({ part: "plan" });
-    expect(JSON.stringify(h[4])).not.toContain("1.1 a");
+    expect(h[5]).toMatchObject({ part: "plan" });
+    expect(JSON.stringify(h[5])).not.toContain("1.1 a");
     expect(re.body.path).toContain("/open/");
     expect(git(root, "status", "--porcelain")).toBe("");
   });

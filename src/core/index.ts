@@ -2,6 +2,7 @@ export * from "./check.ts";
 export * from "./guides.ts";
 export * from "./history.ts";
 export * from "./ids.ts";
+export * from "./instructions.ts";
 export * from "./layout.ts";
 export * from "./parts.ts";
 export * from "./plan.ts";

@@ -7,7 +7,7 @@ export const WRITABLE_PARTS = ["body", "design", "spec", "plan"] as const;
 export type WritablePart = (typeof WRITABLE_PARTS)[number];
 
 /** The part each phase writes; implement writes none (it works the plan). */
-const PHASE_PART: Record<Phase, string | null> = {
+export const PHASE_PART_OF: Record<Phase, WritablePart | null> = {
   proposal: "body",
   design: "design",
   specs: "spec",
@@ -25,7 +25,7 @@ export interface WorkflowStep {
 export function workflowSteps(): WorkflowStep[] {
   return PHASES.map((phase, i) => ({
     phase,
-    part: PHASE_PART[phase],
+    part: PHASE_PART_OF[phase],
     requires: i === 0 ? null : (PHASES[i - 1] as Phase),
   }));
 }

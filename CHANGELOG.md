@@ -4,6 +4,8 @@
 
 ### Added
 
+- Instructions and pushed guides (fl-4tx8): `flume task instructions ID` prints the current phase's built-in steps, its template and the guides pushed to the phase (each in a `<guide>` element; a vanished guide is a `<guide_missing>` element, not an error). `flume task guide ID NAME --phase PHASE [--remove]` pushes a guide to a phase (stored nested by phase as `guides` in task.yaml, refused for a phase the task has passed or an unknown guide). A plan group can name guides with `Guide: NAME` lines (checked on write); `flume task next` prints them and the guides pushed to implement after the group (`guides` in `--json`). `flume guide` with no name lists the guides (`--json`). `claim` (or assign to yourself) prints the instructions; `phase` ends with `next: flume task instructions ID`; `task show` ends with a pointer line. History gains `instructions`, `guide_push` and `guide_remove` lines. New `POST /api/tasks/{id}/instructions` and `/guides`. Spec: `design/specs/instructions.md`.
+
 - Task history (fl-eg2q): every change that goes through flume (create, field updates, assign and claim, phase, comment, plan done and skip with the reason, close, reopen, part writes and removes) appends one JSON line (`time`, `by`, `action`, and `field`/`from`/`to`, `part`, `items`/`reason`) to `history.jsonl` in the task folder, which moves with it on close and reopen. `by` is `AGENT_NAME` (the `X-Flume-Agent` header every command sends), or `human`. New `flume task history ID [--json]` and `GET /api/tasks/{id}/history`.
 
 - Workflow v1 (fl-fu3v): tasks have `phase` (proposal, design, specs, plan, implement), `assignee` and `agent`. New commands: `flume task assign ID [NAME|human] [--force]` and `claim` (an agent needs `--force` to take a task someone else holds), `phase`, `write ID PART [--file PATH|-] [--remove]` and `show ID PART` (parts body, design, spec, plan, comments, by name), `template PART [--project P]` (built-in, `base/templates/`, `projects/<p>/templates/`, whole replace), `next`, `done` and `skip --reason` for the plan checklist (checked on write), and `flume workflow [--json]`. `task list` gains `--assignee` and `--phase`. New API endpoints for all of them.
@@ -19,6 +21,8 @@
 - `flume init [--root PATH] [--force]` sets up a workspace folder: `.flume/` (`.gitignore`, `config.toml` root) and flume's shipped base workflow (one placeholder `workflow.md`) copied to `<root>/workflow/base/` in the task repo and committed there (never pushed). A second init fails and points at `--force`, which rewrites only `workflow/base/`. `flume prime` gains one line naming the reading order (base, workspace, project workflow files, then CLAUDE.md; later overrides earlier) when `<root>/workflow/` exists (fl-7sme).
 
 ### Changed
+
+- An agent can no longer move a task to a later phase until it has run `flume task instructions` (or claimed the task) for the task's current phase since the task entered it; the human and moves backwards are never refused (fl-4tx8). The built-in prime text now says to claim, follow the printed instructions and push guides; the per-phase steps moved into `flume task instructions`.
 
 - `flume prime` with no daemon (fl-ud4g): in a workspace (a `.flume/` folder here or above) it prints a `server_not_running` element naming the workspace and asking the human to run `flume serve`; with no workspace it prints a `flume_not_set_up` element explaining flume and the setup steps (init, project add or clone, serve). `flume_base` is kept in both; a daemon refusal still gives `workflow_missing`.
 

@@ -352,19 +352,19 @@ When any flume task command is given --json, flume SHALL print the daemon's JSON
 - **THEN** both print a usage message to standard error and exit with code 2
 
 ### Requirement: Task show prints the task  {#r-c36b}
-When flume task show is run with an ID, flume SHALL print the task's task.yaml exactly as stored, then a blank line, then the line "parts: " and the names of the parts the task has, separated by a comma and a space, to standard output and exit with code 0; for an ID that names no task it SHALL print a message to standard error and exit with code 1. (The text of one part: see the workflow spec.)
+When flume task show is run with an ID, flume SHALL print the task's task.yaml exactly as stored, then a blank line, then the line "parts: " and the names of the parts the task has, separated by a comma and a space, then the line "For what to do now: flume task instructions ID" (with the ID as given; not in --json), to standard output and exit with code 0; for an ID that names no task it SHALL print a message to standard error and exit with code 1. (The text of one part: see the workflow spec.)
 
 #### Scenario: Show by bare ID  {#s-e485}
 *Verification*: **executable**
 - **GIVEN** an open task with ID k7tm
 - **WHEN** flume task show k7tm is run
-- **THEN** the output is task.yaml as stored, a blank line and the line parts: body
+- **THEN** the output is task.yaml as stored, a blank line, the line parts: body and the line For what to do now: flume task instructions followed by the ID as given
 
 #### Scenario: Show finds a resolved task  {#s-13df}
 *Verification*: **executable**
 - **GIVEN** a resolved task with ID k7tm
 - **WHEN** flume task show k7tm is run
-- **THEN** the output is task.yaml as stored, a blank line and the line parts: body
+- **THEN** the output is task.yaml as stored, a blank line, the line parts: body and the line For what to do now: flume task instructions followed by the ID as given
 
 ### Requirement: Task list prints one line per task  {#r-1a8b}
 When flume task list is run, it SHALL print one line per task, ordered by created date and then ID, each with the ID, kind, state (open or resolved), phase, assignee (empty when none) and title separated by single tabs; it SHALL list open tasks unless --closed (resolved only) or --all (both) is given, and --kind K and --parent ID SHALL keep only matching tasks (more filters: the workflow spec).

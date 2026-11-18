@@ -1,9 +1,11 @@
 import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { readGuide } from "./guides.ts";
 import { flumeRoot } from "./layout.ts";
 import { checkPlan, currentGroup, markItems, type PlanGroup, parsePlan } from "./plan.ts";
 import { SEGMENT_RE } from "./prime.ts";
-import { listTaskFiles, resolveRef, type TaskEntry } from "./store.ts";
+import { listTaskFiles, parseOrThrow, resolveRef, type TaskEntry } from "./store.ts";
+import { fields } from "./taskfile.ts";
 import { PART_FILES, WRITABLE_PARTS, type WritablePart } from "./workflow.ts";
 
 export const isWritablePart = (p: string): p is WritablePart =>
@@ -39,6 +41,14 @@ export function writePart(root: string, ref: string, part: string, text: string)
   if (name === "plan") {
     const bad = checkPlan(text);
     if (bad) throw new Error(`the plan is not in the plan form: ${bad}`);
+    const project = fields(parseOrThrow(e)).project;
+    const parsed = parsePlan(text);
+    for (const g of parsed.ok ? parsed.groups : [])
+      for (const n of g.guides)
+        if (!readGuide(root, typeof project === "string" ? project : "", n))
+          throw new Error(
+            `group ${g.number} names the guide ${n}, which does not exist; list them with: flume guide`,
+          );
   }
   writeFileSync(
     join(root, e.path, PART_FILES[name] as string),
@@ -91,6 +101,7 @@ export const BUILTIN_TEMPLATES: Record<WritablePart, string> = {
 `,
   plan: `## 1. <group name>
 <!-- Numbered groups, each with numbered items; [ ] open, [x] done, [-] skipped. -->
+<!-- Optional: Guide: <name> lines under a heading, before its items, name guides for that group (flume guide lists them). -->
 
 - [ ] 1.1 <item>
 - [ ] 1.2 <item>

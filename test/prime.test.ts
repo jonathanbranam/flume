@@ -248,6 +248,25 @@ describe("guides", () => {
     flume(w, "stop");
   });
 
+  it("s-9a02 list the guides as text and JSON", async () => {
+    const w = workspace();
+    put(
+      w,
+      "base/guides/deploy.md",
+      `---\nname: deploy\ndescription: Ship it\nstage: build\n---\nS\n`,
+    );
+    put(w, "base/guides/lint.md", GUIDE("lint", "Tidy", "T"));
+    put(w, "base/guides/bad.md", "no front matter\n");
+    await serve(w);
+    expect(flume(w, "guide").stdout).toBe("deploy\tbuild\tShip it\nlint\t-\tTidy\n");
+    expect(JSON.parse(flume(w, "guide", "--json").stdout)).toEqual([
+      { name: "deploy", description: "Ship it", stage: "build" },
+      { name: "lint", description: "Tidy" },
+    ]);
+    expect(flume(w, "guide", "deploy", "--json").status).toBe(2);
+    flume(w, "stop");
+  });
+
   it("s-0630 check reports a guide without front matter", () => {
     const w = workspace();
     put(w, "base/guides/deploy.md", "no front matter\n");

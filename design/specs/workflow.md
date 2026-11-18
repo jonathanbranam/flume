@@ -76,13 +76,13 @@ When flume task claim ID [--force] is run, flume SHALL behave exactly as flume t
 - **THEN** the first exits 1 with a message naming scout and --force, the second exits 0, and the assignee is rook
 
 ### Requirement: A task is read and written by part name  {#r-3ae7}
-A task SHALL have the parts body, design, spec, plan and comments, named so and never by file path; flume task show ID SHALL print the task's fields and a line "parts: " followed by the names of the parts it has, flume task show ID PART SHALL print that part's text, and for a part the task does not have it SHALL exit with code 1 saying so and naming the command flume task template PART.
+A task SHALL have the parts body, design, spec, plan and comments, named so and never by file path; flume task show ID SHALL print the task's fields, a line "parts: " followed by the names of the parts it has and a last line pointing to flume task instructions ID, flume task show ID PART SHALL print that part's text, and for a part the task does not have it SHALL exit with code 1 saying so and naming the command flume task template PART.
 
 #### Scenario: Show lists the parts  {#s-773d}
 *Verification*: **executable**
 - **GIVEN** a new task
 - **WHEN** flume task show is run with its ID
-- **THEN** the output holds the task fields, the line parts: body, and no path in the tasks repository
+- **THEN** the output holds the task fields, the line parts: body, the line For what to do now: flume task instructions, and no path in the tasks repository
 
 #### Scenario: A missing part  {#s-9260}
 *Verification*: **executable**
@@ -121,7 +121,7 @@ When flume task template PART is run, flume SHALL print the template of the part
 - **THEN** they print BASE, WEB and the built-in spec template, each exactly and without any other text
 
 ### Requirement: The plan is a checklist in a fixed form  {#r-8402}
-When flume task write ID plan is run, flume SHALL accept only a plan made of numbered groups ("## 1. Name", numbered from 1 in order), each with at least one item ("- [ ] 1.1 text", numbered group.item in order, with [ ] open, [x] done or [-] skipped), where a skipped item MAY be followed by a line "  Skipped: reason"; blank lines and one-line comments in the form <!-- text --> are allowed; for any other plan flume SHALL exit with code 1, say what is wrong and change nothing.
+When flume task write ID plan is run, flume SHALL accept only a plan made of numbered groups ("## 1. Name", numbered from 1 in order), each optionally naming guides with lines "Guide: name" right under its heading (see the instructions spec) and with at least one item ("- [ ] 1.1 text", numbered group.item in order, with [ ] open, [x] done or [-] skipped), where a skipped item MAY be followed by a line "  Skipped: reason"; blank lines and one-line comments in the form <!-- text --> are allowed; for any other plan flume SHALL exit with code 1, say what is wrong and change nothing.
 
 #### Scenario: A good plan is accepted  {#s-847c}
 *Verification*: **executable**
@@ -166,7 +166,7 @@ When flume task done ID ITEM... is run, flume SHALL mark those items done in the
 - **THEN** the first two exit with code 1, the third with code 2, and the plan is unchanged
 
 ### Requirement: Phase sets the phase  {#r-f0e3}
-When flume task phase ID PHASE is run, flume SHALL set the task's phase to PHASE (one of proposal, design, specs, plan, implement), whatever the phase was (forwards, backwards or skipping), and commit the change; for any other value it SHALL exit with code 1 and change nothing.
+When flume task phase ID PHASE is run, flume SHALL set the task's phase to PHASE (one of proposal, design, specs, plan, implement), whatever the phase was (forwards, backwards or skipping), and commit the change (an agent moving forward is subject to the instructions spec); for any other value it SHALL exit with code 1 and change nothing.
 
 #### Scenario: Any phase may follow any other  {#s-0872}
 *Verification*: **executable**
@@ -193,13 +193,13 @@ When flume task list is run, each line SHALL hold the ID, kind, state, phase, as
 - **THEN** they list the first task, the second, the second, the first and third, and the last exits with code 1; each line has the phase and assignee columns, and the JSON list has the keys phase, assignee and agent
 
 ### Requirement: The prime text teaches the workflow  {#r-745b}
-flume prime SHALL begin its flume_base section with text that names the agent (You are agent NAME, stored in $AGENT_NAME), tells the agent to use only flume commands for tasks, says the human is in control of the phases, and names the commands for each phase: flume task claim, flume task show, flume task template, flume task write, flume task phase, flume task next, flume task done, flume task skip with --reason, flume task assign ID human, flume task comment and flume task close; and it SHALL NOT name any path in the tasks repository.
+flume prime SHALL begin its flume_base section with text that names the agent (You are agent NAME, stored in $AGENT_NAME), tells the agent to use only flume commands for tasks, says the human is in control of the phases, and names the commands for each phase: flume task claim (saying that it prints the instructions for the current phase), flume task instructions (saying to run it, not flume task show, to see them again), flume task show, flume task guide (with --phase, for pushing a guide to a later phase), the Guide: lines of a plan group, flume task template, flume task write, flume task phase, flume task next, flume task done, flume task skip with --reason, flume task assign ID human, flume task comment and flume task close; and it SHALL NOT name any path in the tasks repository.
 
 #### Scenario: Prime names the workflow commands  {#s-7bb1}
 *Verification*: **executable**
 - **GIVEN** any project with no daemon running
 - **WHEN** flume prime is run for the agent scout
-- **THEN** the flume_base section holds You are agent scout and each of the commands above, and holds none of the file names body.md, design.md, spec.md, plan.md, task.yaml
+- **THEN** the flume_base section holds You are agent scout and each of the commands above (and Guide:), and holds none of the file names body.md, design.md, spec.md, plan.md, task.yaml
 
 ### Requirement: Every change to a task is appended to its history  {#r-1a7e}
 When a command changes a task (create, update of a field, assign or claim, phase, comment, plan done or skip, close, reopen, write or remove of a part), flume SHALL append one line to the file history.jsonl in the task's folder and never rewrite an earlier line; each line is a JSON object with time (UTC, ISO 8601 ending in Z), by (the actor of the command per the actor requirement: the name in AGENT_NAME, else agent-<first 8 characters of CLAUDE_CODE_SESSION_ID> (agent-unknown without it) when CLAUDECODE is set, else human) and action, plus field, from and to for a field change (update, assign with field assignee, phase with field phase), part (the name only, not the text) for write and remove, items (and reason for a skip) for plan_done and plan_skip, and title and kind for create; a command that changes nothing or is refused SHALL append nothing; and the file SHALL move with the folder on close and reopen.
@@ -207,8 +207,8 @@ When a command changes a task (create, update of a field, assign or claim, phase
 #### Scenario: Changes are recorded with who and what  {#s-2b8c}
 *Verification*: **executable**
 - **GIVEN** a running daemon and a new task made by the agent scout
-- **WHEN** scout updates the title, assigns the task to scout, sets the phase to design, writes the plan, marks item 1.1 done, adds a comment, closes the task and reopens it, and a request with no agent name sets the phase to plan
-- **THEN** history.jsonl in the task folder has one line per change in that order with the actions create, update, assign, phase, write, plan_done, comment, close, reopen and phase, every line has a time ending in Z, the first nine have by scout and the last has by human, the update line has field title with its from and to, the write line has part plan and no text, and the file is in the open folder
+- **WHEN** scout updates the title, assigns the task to scout, fetches the task's instructions, sets the phase to design, writes the plan, marks item 1.1 done, adds a comment, closes the task and reopens it, and a request with no agent name sets the phase to plan
+- **THEN** history.jsonl in the task folder has one line per change in that order with the actions create, update, assign, instructions, phase, write, plan_done, comment, close, reopen and phase, every line has a time ending in Z, the first ten have by scout and the last has by human, the update line has field title with its from and to, the write line has part plan and no text, and the file is in the open folder
 
 #### Scenario: A refused or empty change adds no line  {#s-3c9d}
 *Verification*: **executable**
@@ -221,6 +221,6 @@ When flume task history ID is run, flume SHALL print the task's history oldest f
 
 #### Scenario: History as text and JSON  {#s-5e1f}
 *Verification*: **executable**
-- **GIVEN** a task created and put in phase design by the agent scout
+- **GIVEN** a task created by the agent scout, who then fetches its instructions and puts it in phase design
 - **WHEN** flume task history is run for it, then with --json, then for an unknown ID, and GET /api/tasks/{id}/history is requested
-- **THEN** the first prints two lines whose second and third columns are scout and create, then scout and phase; the second is a JSON list of two objects with the same actions; the third exits with code 1; and the request answers 200 with the same list
+- **THEN** the first prints three lines whose second and third columns are scout and create, scout and instructions, then scout and phase; the second is a JSON list of three objects with the same actions; the third exits with code 1; and the request answers 200 with the same list

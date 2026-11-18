@@ -274,7 +274,7 @@ When the user runs "flume prime [--name <name>] [--project <p>] [--role <r>]", f
 - **THEN** the output contains "You are agent alpha" and "You are working on the web project. Read that project's CLAUDE.md and follow its instructions."
 
 ### Requirement: Prime XML layout  {#r-87a1}
-The prime text (flume prime, and what flume agent passes to claude) SHALL be one flume_prime element with attributes agent, project (only when known) and role (only when known), holding one child element per part, in this order: flume_base (flume's built-in text, including the project text), workspace_workflow, project_workflow (attribute project), role (attribute name), guides; each opening and closing tag SHALL be on its own line with the part's text unchanged between them, and one blank line between parts. Where a part's text, a guide's description or an attribute value would end or forge one of these elements (a tag with one of these element names, opening or closing, in text; a double quote in an attribute value), flume SHALL neutralize it (the less-than sign of the tag written as &lt;; quotes in attributes as &quot;) and SHALL pass all other text through as written. flume prime and flume guide SHALL take no --json.
+The prime text (flume prime, and what flume agent passes to claude) SHALL be one flume_prime element with attributes agent, project (only when known) and role (only when known), holding one child element per part, in this order: flume_base (flume's built-in text, including the project text), workspace_workflow, project_workflow (attribute project), role (attribute name), guides; each opening and closing tag SHALL be on its own line with the part's text unchanged between them, and one blank line between parts. Where a part's text, a guide's description or an attribute value would end or forge one of these elements (a tag with one of these element names, opening or closing, in text; a double quote in an attribute value), flume SHALL neutralize it (the less-than sign of the tag written as &lt;; quotes in attributes as &quot;) and SHALL pass all other text through as written. flume prime SHALL take no --json.
 
 #### Scenario: Prime layout  {#s-87a2}
 *Verification*: **executable**
@@ -321,6 +321,15 @@ A guide is a Markdown file with flat YAML front matter holding name (the file na
 - **GIVEN** no daemon running
 - **WHEN** the user runs flume guide deploy
 - **THEN** the exit code is 1, standard error says the server is not running and no daemon was started
+
+### Requirement: Guide with no name lists the guides  {#r-9a01}
+When the user runs "flume guide" with no guide name (and optionally --project and --name as above), flume SHALL ask the daemon for the guides available to the project and print one line per guide, tab separated: name, stage (a dash when it has none) and description, ordered by name; with --json flume SHALL print one JSON list of objects holding name, description and, when present, stage, and nothing else; a guide with missing or unparsable front matter SHALL NOT be listed; with no guides nothing is printed (an empty list for --json); when no daemon answers flume SHALL say so on standard error and exit with code 1. Giving --json together with a guide name SHALL be a usage error (exit code 2).
+
+#### Scenario: List the guides as text and JSON  {#s-9a02}
+*Verification*: **executable**
+- **GIVEN** a running daemon whose flume root has base/guides/deploy.md (description Ship it, stage build), base/guides/lint.md (description Tidy, no stage) and base/guides/bad.md with no front matter
+- **WHEN** the user runs flume guide, then flume guide --json, then flume guide deploy --json
+- **THEN** the first prints the two lines deploy, build, Ship it and lint, a dash, Tidy (tab separated) and nothing about bad; the second prints a JSON list of two objects with the same names, descriptions and the stage of deploy; the third exits with code 2
 
 ### Requirement: Prime lists the guides  {#r-5dfe}
 When flume prime or flume agent builds the prime text and the daemon returns guides, flume SHALL print after the workflow text a guides element whose first line is the XML comment "Print one with: flume guide <name>", then one guide element per guide on one line, with attributes name and stage (only when it has one) and its description as the text; guides with missing or unparsable front matter SHALL NOT be listed; with no guides flume SHALL print no guides element.

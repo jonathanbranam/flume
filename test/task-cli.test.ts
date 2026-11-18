@@ -196,7 +196,9 @@ describe("flume task commands", () => {
     const t = mk(repo, "Shown", "--body", "Hello");
     const r = flume(repo, ["task", "show", t.id]);
     expect(r.status).toBe(0);
-    expect(r.stdout).toBe(`${readFile(repo, t.path, "task.yaml")}\nparts: body\n`);
+    expect(r.stdout).toBe(
+      `${readFile(repo, t.path, "task.yaml")}\nparts: body\nFor what to do now: flume task instructions ${t.id}\n`,
+    );
     const missing = flume(repo, ["task", "show", "abcd"]);
     expect(missing.status).toBe(1);
     expect(missing.stderr).toContain("abcd");
@@ -209,7 +211,7 @@ describe("flume task commands", () => {
     flume(repo, ["task", "close", t.id]);
     const r = flume(repo, ["task", "show", t.id]);
     expect(r.stdout).toBe(
-      `${readFile(repo, t.path.replace("/open/", "/resolved/"), "task.yaml")}\nparts: body\n`,
+      `${readFile(repo, t.path.replace("/open/", "/resolved/"), "task.yaml")}\nparts: body\nFor what to do now: flume task instructions ${t.id}\n`,
     );
     flume(repo, ["stop"]);
   });
@@ -357,7 +359,7 @@ describe("flume task commands", () => {
     expect(existsSync(join(wt, "flume"))).toBe(false);
     expect(flume(wt, ["task", "list"]).stdout).toContain("From the worktree");
     expect(flume(wt, ["task", "show", t.id]).stdout).toBe(
-      `${readFile(repo, t.path, "task.yaml")}\nparts: body\n`,
+      `${readFile(repo, t.path, "task.yaml")}\nparts: body\nFor what to do now: flume task instructions ${t.id}\n`,
     );
     expect(flume(wt, ["task", "update", t.id, "title", "Renamed"]).status).toBe(0);
     expect(flume(wt, ["task", "comment", t.id, "--text", "n"]).status).toBe(0);
@@ -415,19 +417,21 @@ describe("flume task history", () => {
     const scout = { AGENT_NAME: "scout" };
     const r = flume(repo, ["task", "new", "Hist"], undefined, scout);
     const id = r.stdout.trim();
+    flume(repo, ["task", "instructions", id], undefined, scout);
     flume(repo, ["task", "phase", id, "design"], undefined, scout);
     const text = flume(repo, ["task", "history", id]);
     const rows = text.stdout
       .trim()
       .split("\n")
       .map((l) => l.split("\t"));
-    expect(rows).toHaveLength(2);
+    expect(rows).toHaveLength(3);
     expect(rows.map((c) => [c[1], c[2]])).toEqual([
       ["scout", "create"],
+      ["scout", "instructions"],
       ["scout", "phase"],
     ]);
     const j = JSON.parse(flume(repo, ["task", "history", id, "--json"]).stdout);
-    expect(j.map((x: { action: string }) => x.action)).toEqual(["create", "phase"]);
+    expect(j.map((x: { action: string }) => x.action)).toEqual(["create", "instructions", "phase"]);
     expect(flume(repo, ["task", "history", "zzzz"]).status).toBe(1);
     const url = JSON.parse(readFileSync(join(repo, ".flume/daemon.json"), "utf8")).url;
     const api = await (await fetch(`${url}/api/tasks/${id}/history`)).json();

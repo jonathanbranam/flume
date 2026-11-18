@@ -120,6 +120,7 @@ describe("workflow fields and assignment", () => {
     expect(r2.stderr).toContain("--force");
     expect(flume(repo, ["task", "assign", id, "rook", "--force"], undefined, cc).status).toBe(0);
     flume(repo, ["task", "comment", id, "--text", "hi"], undefined, cc);
+    flume(repo, ["task", "instructions", id], undefined, { CLAUDECODE: "1" });
     flume(repo, ["task", "phase", id, "design"], undefined, { CLAUDECODE: "1" });
     flume(repo, ["task", "phase", id, "specs"]);
     const h = JSON.parse(flume(repo, ["task", "history", id, "--json"]).stdout);
@@ -187,7 +188,9 @@ describe("task parts and templates", () => {
     const id = mk(repo);
     const r = flume(repo, ["task", "show", id]);
     expect(r.status).toBe(0);
-    expect(r.stdout).toMatch(/\nparts: body\n$/);
+    expect(r.stdout).toMatch(
+      /\nparts: body\nFor what to do now: flume task instructions [a-z0-9]+\n$/,
+    );
     expect(r.stdout).not.toContain("flume/tasks");
     flume(repo, ["stop"]);
   });
@@ -206,9 +209,13 @@ describe("task parts and templates", () => {
     const id = mk(repo);
     expect(flume(repo, ["task", "write", id, "design"], "## Context\nHi\n").status).toBe(0);
     expect(flume(repo, ["task", "show", id, "design"]).stdout).toBe("## Context\nHi\n");
-    expect(flume(repo, ["task", "show", id]).stdout).toMatch(/parts: body, design\n$/);
+    expect(flume(repo, ["task", "show", id]).stdout).toMatch(
+      /parts: body, design\nFor what to do now: flume task instructions [a-z0-9]+\n$/,
+    );
     expect(flume(repo, ["task", "write", id, "design", "--remove"]).status).toBe(0);
-    expect(flume(repo, ["task", "show", id]).stdout).toMatch(/parts: body\n$/);
+    expect(flume(repo, ["task", "show", id]).stdout).toMatch(
+      /parts: body\nFor what to do now: flume task instructions [a-z0-9]+\n$/,
+    );
     flume(repo, ["stop"]);
   });
 
@@ -300,7 +307,9 @@ describe("the plan", () => {
       expect(r.status, bad).toBe(1);
       expect(r.stderr).toContain("plan form");
     }
-    expect(flume(repo, ["task", "show", id]).stdout).toMatch(/parts: body\n$/);
+    expect(flume(repo, ["task", "show", id]).stdout).toMatch(
+      /parts: body\nFor what to do now: flume task instructions [a-z0-9]+\n$/,
+    );
     flume(repo, ["stop"]);
   });
 
@@ -425,6 +434,10 @@ describe("prime text", () => {
     expect(base).toContain("You are agent scout, stored in $AGENT_NAME");
     for (const c of [
       "flume task claim",
+      "flume task instructions",
+      "flume task guide",
+      "--phase",
+      "Guide:",
       "flume task show",
       "flume task template",
       "flume task write",
