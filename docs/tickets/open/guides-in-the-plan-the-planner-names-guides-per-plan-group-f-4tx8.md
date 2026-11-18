@@ -1,6 +1,6 @@
 ---
 id: fl-4tx8
-title: "guides push and pull: push a guide to a phase or plan group; flume prints it with that step's instructions"
+title: "flume task instructions: per-phase steps with pushed guides; claim prints them; no advancing without them"
 kind: feature
 created: 2026-11-18
 created_by: external:advisor
