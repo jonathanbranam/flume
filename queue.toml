@@ -36,3 +36,6 @@ tasks = ["fl-t8xv"]
 
 [[tier]]
 tasks = ["fl-3pfa"]
+
+[[tier]]
+tasks = ["fl-pshd"]
