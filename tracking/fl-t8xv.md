@@ -2,11 +2,14 @@
 id = "fl-t8xv"
 title = "flume agent entries: last_seen, updated by the daemon on each request from the agent"
 kind = "feature"
-state = "planned"
+state = "claimed"
 created_at = "2026-11-18T02:31:09.895Z"
-updated_at = "2026-11-18T02:38:48.871430179Z"
+updated_at = "2026-11-18T02:41:50.224147245Z"
 created_by = "external:advisor"
-watchers = ["external:advisor"]
+watchers = [
+    "external:advisor",
+    "agent:last-seen",
+]
 ticket = "t8xv"
 +++
 
