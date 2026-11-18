@@ -210,3 +210,4 @@
 {"actor":"external:orchestrator","at":"2026-11-18T02:57:20.656727423Z","queue":"reprioritized"}
 {"actor":"external:orchestrator","at":"2026-11-18T02:59:21.744432753Z","from":"open","task":"fl-x6xn","to":"planned"}
 {"actor":"external:orchestrator","at":"2026-11-18T02:59:21.754885592Z","queue":"reprioritized"}
+{"actor":"agent:layout","at":"2026-11-18T03:04:37.544869299Z","from":"claimed","task":"fl-3pfa","to":"built"}
