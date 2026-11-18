@@ -8,7 +8,7 @@ repos: [flume]
 changes: []
 specs: []
 blocked_by: []
-related: [fl-pshd]
+related: [fl-pshd, fl-gr36]
 ---
 
 ## The ask
@@ -20,8 +20,8 @@ For whoever edits this ticket (the human, 2026-11-17): "the design at the top is
 ## Design
 
 - `flume project add <git-url | name> [--name NAME] [--branch BRANCH]`. An argument that is a git URL (has `://`, or the `user@host:path` form) is the URL, as today. Anything else is the project's name, with no URL.
-- With no URL: flume adds the project to `flume.yaml` with no `url` and commits it, clones nothing, and prints a warning on stderr: the project has no URL, so `flume clone` and `flume init --clone` cannot set it up on another machine; add one later by editing `flume.yaml` (or re-running with the URL). Exit 0.
-- `flume project list` shows an empty URL for it (as `--json`: `url` empty or absent); `flume init` reports it present or missing as today but never tries to clone it.
+- With no URL: flume adds the project to `flume.yaml` with no `url` and commits it, clones nothing, and prints a warning on stderr: the project has no URL, so `flume clone` and `flume project clone` cannot set it up on another machine; add one later by editing `flume.yaml` (or re-running with the URL). Exit 0.
+- `flume project list` shows an empty URL for it (as `--json`: `url` empty or absent); `flume project clone` skips it, saying it has no URL (fl-gr36).
 - `--branch` with no URL: refused (exit 2), nothing to check out.
 
 ### Assumed (advisor; change if wrong)
