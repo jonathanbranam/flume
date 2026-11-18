@@ -2,11 +2,14 @@
 id = "fl-ud4g"
 title = "flume prime with no daemon: point to the workspace, or explain flume and how to set it up"
 kind = "feature"
-state = "planned"
+state = "claimed"
 created_at = "2026-11-18T03:37:52.484Z"
-updated_at = "2026-11-18T03:54:21.921453518Z"
+updated_at = "2026-11-18T04:04:11.904912257Z"
 created_by = "external:advisor"
-watchers = ["external:advisor"]
+watchers = [
+    "external:advisor",
+    "agent:primenodaemon",
+]
 ticket = "ud4g"
 +++
 

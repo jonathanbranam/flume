@@ -4,7 +4,7 @@ title = "flume knows a Claude Code agent even without AGENT_NAME; never records 
 kind = "fix"
 state = "integrated"
 created_at = "2026-11-18T03:44:07.544Z"
-updated_at = "2026-11-18T04:03:42.379489981Z"
+updated_at = "2026-11-18T04:03:44.150477704Z"
 created_by = "external:advisor"
 watchers = [
     "external:advisor",
@@ -37,3 +37,6 @@ done: unnamed Claude Code agent recognised, never recorded as human; just check 
 
 ### note · agent:manager · 2026-11-18T04:03:42.379Z
 integrated: fac4e0cb185d2a0725f14c670962df2da8b3b5fa (branch bridle/agentid)
+
+### note · agent:manager · 2026-11-18T04:03:44.150Z
+cleanup: removed agent agentid, origin branch bridle/agentid, branch bridle/agentid
