@@ -243,3 +243,4 @@
 {"actor":"external:orchestrator","at":"2026-11-18T03:54:21.937610794Z","from":"open","task":"fl-6hkt","to":"planned"}
 {"actor":"external:orchestrator","at":"2026-11-18T03:54:27.912911053Z","queue":"reprioritized"}
 {"actor":"agent:projclone","at":"2026-11-18T03:56:32.961062058Z","from":"claimed","task":"fl-gr36","to":"built"}
+{"actor":"agent:manager","at":"2026-11-18T03:57:19.368431575Z","from":"built","task":"fl-gr36","to":"integrated"}

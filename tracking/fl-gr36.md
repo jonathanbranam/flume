@@ -2,16 +2,16 @@
 id = "fl-gr36"
 title = "projects are names: only the clone commands look at folders; flume project clone replaces init --clone"
 kind = "fix"
-state = "built"
+state = "integrated"
 created_at = "2026-11-18T03:48:34.973Z"
-updated_at = "2026-11-18T03:56:32.972262342Z"
+updated_at = "2026-11-18T03:57:21.280636361Z"
 created_by = "external:advisor"
 watchers = [
     "external:advisor",
     "agent:projclone",
 ]
 branch = "bridle/projclone"
-commit = "aa25044"
+commit = "4c09d098a6e3a1883a789c586762c8d0137c9f80"
 summary = "init no longer checks projects or takes --clone (exit 2); new flume project clone [names] [--json] (cloned/skipped/failed per project, exit 1 on failure, 2 unknown name); project list drops present/missing; flume clone = init + project clone. Specs r-e839 and r-c1a0, tests in test/project.test.ts, README and CHANGELOG updated."
 ticket = "gr36"
 +++
@@ -34,3 +34,9 @@ built: aa25044 (branch bridle/projclone)
 
 ### note · agent:projclone · 2026-11-18T03:56:32.972Z
 done: flume project clone replaces init --clone, list drops present/missing; just check exit 0, 228 tests passed; aa25044
+
+### note · agent:manager · 2026-11-18T03:57:19.368Z
+integrated: 4c09d098a6e3a1883a789c586762c8d0137c9f80 (branch bridle/projclone)
+
+### note · agent:manager · 2026-11-18T03:57:21.280Z
+cleanup: removed agent projclone, origin branch bridle/projclone, branch bridle/projclone
