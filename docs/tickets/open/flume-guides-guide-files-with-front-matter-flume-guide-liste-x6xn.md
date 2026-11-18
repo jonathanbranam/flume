@@ -13,7 +13,7 @@ related: [fl-3pfa]
 
 ## The ask
 
-Build the Design below. On hold until the human says build.
+Build the Design below. Go given by the human, 2026-11-17: "flume-guides yes, go".
 
 For whoever edits this ticket (the human, 2026-11-17): "the design at the top is the currently agreed-upon design; keep it current and DO NOT include narration or restatements in the design. The discussion section can include the discussion narrative with restatements as a reference."
 
