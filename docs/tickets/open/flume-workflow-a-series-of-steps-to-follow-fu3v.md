@@ -38,6 +38,45 @@ For whoever edits this ticket (the human, 2026-11-17): "the design at the top is
 - `design` (`design.md`), `spec` (`spec.md`), `plan` (`plan.md`): one per phase.
 - `comments` (`comments.md`, fl-3pfa): written only by `flume task comment`. Important conversations with the human are recorded there, the human's words verbatim. No separate discussion file.
 
+### Templates
+
+- Every part an agent writes (body, design, spec, plan) has a template, built into flume. `flume task template PART` prints it.
+- `flume task show ID PART` for a part the task does not have yet says so and names the template command.
+- Templates are Markdown with `<!-- -->` guidance comments for the agent, as OpenSpec's. Their content, to be tightened by the builder:
+
+  ```
+  body:
+  ## Proposal
+  <!-- What is proposed, and why. -->
+  ## Goal
+  <!-- What is true when this is done. -->
+  ## Scope
+  ### In scope
+  ### Out of scope
+
+  design:
+  ## Context
+  <!-- Background and constraints. -->
+  ## Goals / Non-goals
+  ## Decisions
+  <!-- Each decision, the alternatives and why this one. -->
+  ## Risks / Trade-offs
+
+  spec:
+  ## Requirements
+  ### Requirement: <name>
+  <!-- One EARS sentence: When <trigger>, the system SHALL <response>. -->
+  #### Scenario: <name>
+  - GIVEN <state>
+  - WHEN <action>
+  - THEN <result>
+
+  plan:
+  ## 1. <group name>
+  - [ ] 1.1 <item>
+  - [ ] 1.2 <item>
+  ```
+
 ### The plan
 
 - The plan is a checklist: numbered groups, each with numbered items. Each item is open (`[ ]`), done (`[x]`) or skipped (`[-]`):
@@ -83,7 +122,7 @@ The human is in control. They may move a task to any phase, forwards or backward
 
 Working a task:
 1. Claim the task (flume task claim ID). Read its phase (flume task show ID) and continue from that phase.
-2. The phases, in order (read a part with flume task show ID PART; write one with flume task write ID PART):
+2. The phases, in order (read a part with flume task show ID PART; write one with flume task write ID PART, starting from its template: flume task template PART):
    - proposal: check that the task has a clear proposal, goal and scope. If not, ask the human. Write them in the body.
    - design: when goal and scope are clear, think through the design questions and write the design.
    - specs: when the design is clear, write the spec: clear requirements in EARS form ("When <trigger>, the system SHALL <response>").
@@ -97,6 +136,8 @@ Working a task:
 
 - No workflow schema file, no per-step instruction commands, no shipped continue skill (the OpenSpec-like model in Discussion is for later).
 - Project and workspace workflows stay free text printed by prime (fl-3pfa); flume does not parse them.
+- No verify step before close (later).
+- Templates are built in only; workspace and project templates (like guides' layers) come when someone needs them.
 - No persistent specs: a task's spec stays with the task; merging it into living project specs comes later.
 
 ### Assumed (advisor; change if wrong)
@@ -179,6 +220,10 @@ Advisor compared v1 with OpenSpec and suggested: living specs, a checklist plan 
 > The agent has to report completion or cancel ([-]) of all items before getting the next set of items to implement. They can skip, but that should be require an explanation that is also stored. probably with plan.md?
 >
 > Clarification: It is true that one agent may not complete the plan, but what I meant was that definitely one agent likely will not complete the entire workflow
+
+Advisor asked about a check before close and section outlines per part. The human:
+
+> verify can come later; yes every file should have a template
 
 Context: asked what flume's built-in workflow text is, advisor showed today's prime text (identity, flume --help, never start flume serve; no workflow steps). Advisor: Open questions 1-7 below (from before the v1 flow) are superseded for v1 by the Design; they stay for the later OpenSpec-like model. The audit trail went to its own ticket, fl-eg2q.
 
