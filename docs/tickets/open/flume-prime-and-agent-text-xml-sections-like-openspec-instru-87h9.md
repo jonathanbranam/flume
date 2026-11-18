@@ -127,3 +127,12 @@ Completing this artifact enables: specs, design
 ```
 
 For `specs` (proposal not written yet) it adds `<warning>` ("unmet dependencies ... Missing: proposal") and `<dependencies>` with one `<dependency id="proposal" status="missing">` holding `<path>` and `<description>`, introduced by "Read the current contents of these files before creating this artifact (re-read them from disk even if you saw them earlier - they may have been edited)". The `<project_context>` and `<rules>` parts appear only when `openspec/config.yaml` sets `context` / `rules` (empty in the demo). Takeaways for flume: tags on their own lines with blank lines between parts; short fixed lead-ins and XML comments tell the agent how to use a part; the long how-to is plain Markdown inside one element.
+
+### How OpenSpec's skills use the CLI (advisor read ~/.claude/skills/openspec-*, 2026-11-17)
+
+The human: "you may need to read the .claude/skills yourself to see the commands"
+
+- All eight OpenSpec skills (apply, archive, continue, ff, new, sync, update, verify) run the CLI with `--json`: `openspec status --change "<name>" --json`, `openspec instructions <artifact-id> --change "<name>" --json`, `openspec list --json`, `openspec store list --json`. The one text call is in openspec-new-change (`openspec instructions <first-artifact-id> --change "<name>"`, to show the first artifact's instructions).
+- The skill, not the output, tells the agent what each field means, e.g. (openspec-continue-change): "`context`: Project background (constraints for you - do NOT include in output)", "`rules`: Artifact-specific rules (constraints for you - do NOT include in output)", "`template`: The structure to use for your output file", "`instruction`: Schema-specific guidance", "`resolvedOutputPath`", "`dependencies`".
+- So OpenSpec has two audiences: the XML-tagged text (each part says what it is, comments tell the agent how to use it) for an agent or human with no skill, and JSON for agents driven by a skill that documents the fields. `openspec instructions apply` text output is Markdown headings, not XML.
+- For flume: `flume prime` goes into `--append-system-prompt` with no skill around it, so the self-describing XML text fits. A `--json` form plus a skill is the OpenSpec pattern for multi-step commands an agent calls repeatedly; not needed for prime now (YAGNI).
