@@ -32,8 +32,6 @@ For whoever edits this ticket (the human, 2026-11-17): "the design at the top is
 - Record the rule in `docs/conventions.md` so new commands follow it.
 - Specs and tests for each new `--json` (rule specs-for-every-surface).
 
-### Assumed (advisor; change if wrong)
-
 - Errors stay as text on stderr with the same exit codes, with or without `--json`.
 
 ## Discussion (for reference, not authoritative)
@@ -41,3 +39,5 @@ For whoever edits this ticket (the human, 2026-11-17): "the design at the top is
 The human, 2026-11-17 (verbatim): "flume agent show should print something human-readable by default, sure yaml is fine; all output commands should have a --json option though for sure. | jq is super useful"
 
 Survey of `src/cli` at the time: `--json` exists in task.ts (all task commands) and roadmap.ts (`roadmap show` only); `agent show` printed `JSON.stringify(entry)` (src/cli/agent.ts:270).
+
+The human, 2026-11-17: "yes" (errors stay text on stderr with `--json`).

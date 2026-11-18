@@ -25,10 +25,10 @@ For whoever edits this ticket (the human, 2026-11-17): "the design at the top is
 - The daemon writes the entry, not the agent's CLI: the daemon runs outside the agent's sandbox (the human starts it), so the write works there.
 - `flume agent list` and `flume agent show` show `last_seen` (blank when never seen).
 
+- A write on every request, no throttling.
+
 ### Assumed (advisor; change if wrong)
 
-- Name `last_seen` (over "last updated", which reads like the entry was edited).
-- A write on every request, no throttling (YAGNI; requests are few).
 - The header name is an implementation detail for the spec to fix (e.g. `X-Flume-Agent`).
 
 ## Discussion (for reference, not authoritative)
@@ -36,3 +36,5 @@ For whoever edits this ticket (the human, 2026-11-17): "the design at the top is
 The human, 2026-11-17 (verbatim): "also include something like "last seen" or "last updated"?? Not sure; every time an agent calls the flume serve daemon, update that timestamp"
 
 Context: the entry today holds name, project, pane, created, last_launch; `role` is added by fl-3pfa. `$AGENT_NAME` is already set by `flume agent` and used as the author of `flume task comment`.
+
+The human, 2026-11-17: "agree, no throttling, yes ready it; yes" (name `last_seen` and no throttling confirmed; go to build).
