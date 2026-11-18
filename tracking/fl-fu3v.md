@@ -2,11 +2,14 @@
 id = "fl-fu3v"
 title = "flume workflow: a series of steps to follow"
 kind = "feature"
-state = "planned"
+state = "claimed"
 created_at = "2026-11-18T01:55:20.771Z"
-updated_at = "2026-11-18T03:27:31.479962664Z"
+updated_at = "2026-11-18T03:27:48.020851215Z"
 created_by = "external:advisor"
-watchers = ["external:advisor"]
+watchers = [
+    "external:advisor",
+    "agent:workflow",
+]
 ticket = "fu3v"
 +++
 
