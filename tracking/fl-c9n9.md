@@ -2,11 +2,14 @@
 id = "fl-c9n9"
 title = "flume: replace TOML with YAML (.flume/config.yaml), remove smol-toml"
 kind = "chore"
-state = "open"
+state = "claimed"
 created_at = "2026-11-18T01:56:26.677Z"
-updated_at = "2026-11-18T01:58:50.118405747Z"
+updated_at = "2026-11-18T02:05:31.168755639Z"
 created_by = "external:advisor"
-watchers = ["external:advisor"]
+watchers = [
+    "external:advisor",
+    "agent:yaml-config",
+]
 ticket = "c9n9"
 +++
 
@@ -25,3 +28,6 @@ The human, via advisor, 2026-11-17: "Yes, approve c9n9 let's build that first, a
 
 ### note · external:orchestrator · 2026-11-18T01:58:50.118Z
 human via advisor (m-0491, 2026-11-18 01:58 UTC), verbatim: "Yes, approve c9n9 let's build that first, agree? approved". Orchestrator: planned after settle, first in the queue.
+
+### note · external:orchestrator · 2026-11-18T02:05:17.600Z
+From orchestrator: fl-c9n9 planned and queued first (the human: build it first). Haiku.
