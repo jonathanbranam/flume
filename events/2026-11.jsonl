@@ -217,3 +217,4 @@
 {"actor":"external:orchestrator","at":"2026-11-18T03:05:49.119097834Z","queue":"reprioritized"}
 {"actor":"agent:clone","at":"2026-11-18T03:10:36.724621240Z","from":"claimed","task":"fl-pshd","to":"built"}
 {"actor":"agent:manager","at":"2026-11-18T03:11:43.099781651Z","from":"built","task":"fl-pshd","to":"integrated"}
+{"actor":"agent:guides","at":"2026-11-18T03:14:39.751905628Z","from":"claimed","task":"fl-x6xn","to":"built"}
