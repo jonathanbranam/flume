@@ -1,6 +1,6 @@
 ---
 id: fl-pshd
-title: "flume clone: set up a whole workspace from the tasks repo; flume.yaml lists projects and repos"
+title: "flume clone and flume project: set up a workspace from the tasks repo; flume.yaml lists projects"
 kind: feature
 created: 2026-11-18
 created_by: external:advisor
@@ -58,7 +58,20 @@ projects:
 - `flume clone <git-url> [<workspace>]`: the workspace is the current folder, or `<workspace>` when given (as `git init [<dir>]`); flume makes the folder if missing, clones the tasks repo into it under the repo's own name (`<workspace>/fluff-flume/`), then runs `flume init --clone` there (so: projects cloned, `.flume/config.yaml` written).
 - It never starts the daemon; it ends by telling the human to run `flume serve` in the workspace.
 
+### flume project
+
+- `flume project list`: one line per project in `flume.yaml`: name, url, branch, and whether its folder is in the workspace (present or missing).
+- `flume project add <git-url> [--name NAME] [--branch BRANCH]` sets the project up:
+  1. Adds it to `flume.yaml`'s `projects` (name defaults to the URL's last part without `.git`, as `git clone` names its folder; branch defaults to `main`) and commits `flume.yaml` in the tasks repo.
+  2. Clones it into `<workspace>/<name>/` with `git clone --branch <branch> <url>`.
+- It refuses, changing nothing, when the name is already in `flume.yaml` or `<workspace>/<name>/` already exists and is not that repo.
+
 ### Assumed (advisor; change if wrong)
+
+- `flume project` is singular, like `flume task` and `flume agent` (and `git remote`, `gh repo`).
+- `flume project add` does not make `<flume-root>/projects/<name>/`; the folder is only needed once it holds a workflow, role or guide.
+- `flume project add` goes through the daemon like `flume task` commands (one writer for the tasks repo), so it needs `flume serve` running.
+- No `flume project remove` yet (YAGNI): delete the entry by hand.
 
 - Flume does no other git setup.
 - Running init again is allowed (step list above) instead of today's "already set up" error, because fl-3pfa drops `--force` and a re-run is how newly listed projects are found.
@@ -113,3 +126,5 @@ Advisor note: modeled on `.gitmodules`, which gives each submodule `path`, `url`
 The human, 2026-11-17: "missing branch: defaults to `main`"
 
 Settled: no `branch` means `main` (not the repo's default branch).
+
+The human, 2026-11-17: "We need a command for project(s). I can't remember what is the best naming, singular or plural? `flume project list` `flume project add <git-url>` should set everything up"
