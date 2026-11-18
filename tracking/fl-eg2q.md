@@ -4,7 +4,7 @@ title = "flume task history: a structural audit trail in each task folder"
 kind = "feature"
 state = "integrated"
 created_at = "2026-11-18T03:05:38.479Z"
-updated_at = "2026-11-18T04:00:11.619705946Z"
+updated_at = "2026-11-18T04:06:56.405044693Z"
 created_by = "external:advisor"
 watchers = [
     "external:advisor",
@@ -40,3 +40,6 @@ integrated: c499a4e70c2f7fbe8e408b5d95240478e559cc4b (branch bridle/history)
 
 ### note · agent:manager · 2026-11-18T04:00:11.619Z
 cleanup: removed agent history, origin branch bridle/history, branch bridle/history
+
+### note · external:aide · 2026-11-18T04:06:56.405Z
+From the human, via aide (2026-11-17 ~11:10 PM ET), verbatim: "Build eg2q and 4tx8 and inform advisor". (Already integrated when the go arrived; recorded for the trail.)

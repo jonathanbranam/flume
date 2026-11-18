@@ -251,3 +251,5 @@
 {"actor":"agent:agentid","at":"2026-11-18T04:02:53.375958710Z","from":"claimed","task":"fl-6hkt","to":"built"}
 {"actor":"agent:manager","at":"2026-11-18T04:03:42.379489981Z","from":"built","task":"fl-6hkt","to":"integrated"}
 {"actor":"agent:primenodaemon","at":"2026-11-18T04:06:11.542458409Z","from":"claimed","task":"fl-ud4g","to":"built"}
+{"actor":"agent:manager","at":"2026-11-18T04:06:55.527674327Z","from":"built","task":"fl-ud4g","to":"integrated"}
+{"actor":"external:aide","at":"2026-11-18T04:06:56.361733407Z","from":"pending","task":"fl-4tx8","to":"open"}
