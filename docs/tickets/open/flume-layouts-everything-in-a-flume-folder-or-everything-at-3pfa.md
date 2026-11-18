@@ -8,12 +8,14 @@ repos: [flume]
 changes: []
 specs: []
 blocked_by: []
-related: [fl-7sme]
+related: [fl-7sme, fl-x6xn, fl-fu3v]
 ---
 
 ## The ask
 
 Build the design below. It is the agreed design: where the Discussion section disagrees, the Design wins. On hold until the human says build (the human, 2026-11-17: "Don't build it yet").
+
+For whoever edits this ticket (the human, 2026-11-17): "the design at the top is the currently agreed-upon design; keep it current and DO NOT include narration or restatements in the design. The discussion section can include the discussion narrative with restatements as a reference."
 
 ## Design
 
@@ -22,11 +24,11 @@ Build the design below. It is the agreed design: where the Discussion section di
 ```
 <workspace>/                     folder of related repos; not a git repo
 |-- .flume/
-|   |-- config.toml              root = "fluff-flume"   (machine-local, not versioned)
+|   |-- config.yaml              root: fluff-flume   (machine-local, not versioned)
 |   `-- daemon.json              daemon state (unchanged)
 |-- backend/                     project repos: nothing flume-related in them
 `-- fluff-flume/                 the tasks repo
-    |-- flume.toml               dir = "flume"   (versioned; "." = the repo top)
+    |-- flume.yaml               dir: flume   (versioned; "." = the repo top)
     `-- flume/                   <flume-root>
         |-- base/                workspace-wide layer
         |   |-- workflow.md
@@ -44,7 +46,7 @@ Build the design below. It is the agreed design: where the Discussion section di
         `-- tasks/
             |-- open/
             |   `-- <slug>-<id>/
-            |       |-- task.toml     the task's fields
+            |       |-- task.yaml     the task's fields
             |       |-- body.md       the ask; the task's root file
             |       |-- comments.md   the comments
             |       `-- ...           spec artifacts, attachments (images, CSVs)
@@ -54,8 +56,9 @@ Build the design below. It is the agreed design: where the Discussion section di
 
 ### Config
 
-- `flume.toml` sits at the top of the tasks repo and is versioned, so every clone finds the same layout. Its one key is `dir`: the flume-root folder's name, `"flume"` or `"."` (the repo top itself).
-- `.flume/config.toml` in the workspace folder is machine-local and holds only `root`, the tasks repo.
+- Every flume file with fields is YAML, as flat as possible: no nesting. Flume no longer uses TOML.
+- `flume.yaml` sits at the top of the tasks repo and is versioned, so every clone finds the same layout. Its one key is `dir`: the flume-root folder's name, `flume` or `.` (the repo top itself).
+- `.flume/config.yaml` in the workspace folder is machine-local and holds only `root`, the tasks repo.
 - Nothing flume-related goes in a project repo. A project's own CLAUDE.md stays the project's.
 
 ### Prime
@@ -65,7 +68,7 @@ Build the design below. It is the agreed design: where the Discussion section di
   2. `base/workflow.md`
   3. `projects/<project>/workflow.md`
   4. `base/roles/<role>.md`, then `projects/<project>/roles/<role>.md`, when a role is given
-  5. the names of the guides available, and how to print one (`flume guide <name>`)
+  5. the guides available (ticket fl-x6xn)
 - A missing file is skipped without an error.
 - The current prime line "Workflow: read the .md files in ..." goes.
 
@@ -73,14 +76,14 @@ Build the design below. It is the agreed design: where the Discussion section di
 
 - A role is a file. Flume keeps no list of roles: the files in `roles/` (in `base/` and the project's folder) are the roles there are.
 
-### Guides
+### Guides and workflow
 
-- `flume guide <name>` prints `projects/<project>/guides/<name>.md` if it exists, else `base/guides/<name>.md`; an error naming the guide when neither does.
+- Guides (files, front matter, `flume guide`, prime's list): ticket fl-x6xn. Workflow steps: ticket fl-fu3v. This ticket only makes their folders part of the layout.
 
 ### Tasks
 
 - A task is a folder, `tasks/open/<slug>-<id>/` (moved to `tasks/resolved/` when resolved).
-- `task.toml` holds the fields that were front matter (id, title, status, dates, ...), in TOML. Flume writes it on status changes, so a status change never touches `body.md`.
+- `task.yaml` holds the fields that were front matter (id, title, status, dates, ...), flat YAML. Flume writes it on status changes, so a status change never touches `body.md`.
 - `body.md` is the ask, with no front matter.
 - `comments.md` holds the comments, `### <time>, <author>` headers as today (fl-ha4p).
 - Any other file in a task folder (spec artifacts, attachments) is not flume's: flume leaves it alone and moves it with the folder.
@@ -92,9 +95,10 @@ Build the design below. It is the agreed design: where the Discussion section di
 ### Assumed (advisor; change if wrong)
 
 - How the role gets to prime: `flume agent --role <role>` passes it; with no role, prime prints no role part.
-- How init picks the folder: `flume init --root <repo> [--dir <name>]`, default `flume`; init writes `flume.toml` if missing and creates `<flume-root>/tasks/open/` and `resolved/`.
-- Tasks of several projects share the one `tasks/` folder, with a `project` field in `task.toml` (advisor's pick, not yet confirmed by the human).
-- Existing workspaces move by hand once; no migration command (flume is days old).
+- How init picks the folder: `flume init --root <repo> [--dir <name>]`, default `flume`; init writes `flume.yaml` if missing and creates `<flume-root>/tasks/open/` and `resolved/`.
+- Tasks of several projects share the one `tasks/` folder, with a `project` field in `task.yaml` (advisor's pick, not yet confirmed by the human).
+- Existing workspaces move by hand once, including renaming `.flume/config.toml` to `config.yaml`; no migration command (flume is days old).
+- `.flume/daemon.json` stays JSON: it is the daemon's state, not config.
 
 ### Not in this ticket
 
@@ -102,7 +106,7 @@ Build the design below. It is the agreed design: where the Discussion section di
 
 ### Specs
 
-- Per rule specs-for-every-surface, the change updates the specs for init, prime, agent, the task file format and the new `flume guide` command, with tests.
+- Per rule specs-for-every-surface, the change updates the specs for init, prime, agent, the task file format and the config files, with tests.
 
 ## Discussion (for reference, not authoritative)
 
@@ -338,3 +342,9 @@ Advisor's reading:
 The human, 2026-11-17, on the guides question above: "yes. that's right"
 
 Settled: `flume guide <name>` prints a guide (project's over the workspace's); prime lists the guides available. Roles: no fixed list in flume; the role files are the roles.
+
+### Everything YAML (2026-11-17)
+
+The human, verbatim: "See, and here's the rub: I really like yaml frontmatter; so, we're going to have yaml parsing; I think we bite the bullet and just make everything yaml now and it's totally fine. The config.yaml, flume.yaml, and task.yaml should be flat yaml as possible. avoid nestings"
+
+This overrules the task.toml decision above. Advisor notes: flume already depends on the `yaml` package (task front matter today), so dropping `smol-toml` leaves one parser. Guides and workflow split out to fl-x6xn and fl-fu3v.
