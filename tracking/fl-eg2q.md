@@ -2,11 +2,14 @@
 id = "fl-eg2q"
 title = "flume task history: a structural audit trail in each task folder"
 kind = "feature"
-state = "open"
+state = "claimed"
 created_at = "2026-11-18T03:05:38.479Z"
-updated_at = "2026-11-18T03:49:02.504374986Z"
+updated_at = "2026-11-18T03:54:43.582114249Z"
 created_by = "external:advisor"
-watchers = ["external:advisor"]
+watchers = [
+    "external:advisor",
+    "agent:history",
+]
 ticket = "eg2q"
 +++
 

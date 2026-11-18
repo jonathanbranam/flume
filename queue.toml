@@ -1,50 +1,14 @@
 [[tier]]
-tasks = ["fl-vpsb"]
+tasks = [
+    "fl-eg2q",
+    "fl-gr36",
+]
 
 [[tier]]
-tasks = ["fl-4dgp"]
+tasks = [
+    "fl-6hkt",
+    "fl-mvu7",
+]
 
 [[tier]]
-tasks = ["fl-a4nc"]
-
-[[tier]]
-tasks = ["fl-hh6x"]
-
-[[tier]]
-tasks = ["fl-k9pk"]
-
-[[tier]]
-tasks = ["fl-7sme"]
-
-[[tier]]
-tasks = ["fl-xxym"]
-
-[[tier]]
-tasks = ["fl-c9n9"]
-
-[[tier]]
-tasks = ["fl-35bq"]
-
-[[tier]]
-tasks = ["fl-89z2"]
-
-[[tier]]
-tasks = ["fl-cpcu"]
-
-[[tier]]
-tasks = ["fl-t8xv"]
-
-[[tier]]
-tasks = ["fl-3pfa"]
-
-[[tier]]
-tasks = ["fl-pshd"]
-
-[[tier]]
-tasks = ["fl-x6xn"]
-
-[[tier]]
-tasks = ["fl-87h9"]
-
-[[tier]]
-tasks = ["fl-fu3v"]
+tasks = ["fl-ud4g"]
