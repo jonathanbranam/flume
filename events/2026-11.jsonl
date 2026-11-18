@@ -175,3 +175,5 @@
 {"actor":"external:orchestrator","at":"2026-11-18T02:05:17.591627610Z","queue":"reprioritized"}
 {"actor":"agent:yaml-config","at":"2026-11-18T02:06:48.960202882Z","from":"claimed","task":"fl-c9n9","to":"built"}
 {"actor":"agent:manager","at":"2026-11-18T02:07:40.535012159Z","from":"built","task":"fl-c9n9","to":"integrated"}
+{"actor":"human","at":"2026-11-18T02:12:05.242Z","from":"","task":"fl-35bq","to":"pending"}
+{"actor":"external:advisor","at":"2026-11-18T02:12:06.852573688Z","from":"pending","task":"fl-35bq","to":"open"}
