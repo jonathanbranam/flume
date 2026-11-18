@@ -103,6 +103,109 @@ apply:
   `schema init`, `schema validate`, `schema which`. `openspec schemas --json` lists schemas
   (name, description, artifacts, source).
 
+## The spec-driven templates (verbatim)
+
+The four files in `spec-driven/templates/`, copied unchanged (OpenSpec 2.1.0). Each artifact's `template:` names one; the CLI prints it inside `<template>` after the line `<!-- Use this as the structure for your output file. Fill in the sections. -->`.
+
+### templates/proposal.md (artifact `proposal`)
+
+```markdown
+# Proposal
+
+## Why
+
+<!-- Explain the motivation for this change. What problem does this solve? Why now? -->
+
+## What Changes
+
+<!-- Describe what will change. Be specific about new capabilities, modifications, or removals. -->
+
+## Capabilities
+
+### New Capabilities
+<!-- Capabilities being introduced. Name each capability for a cohesive system
+     behavior that can own related requirements as the system evolves. Do not name
+     implementation tasks or proposal sections. Avoid broad catch-all names. Use
+     kebab-case for path segments you introduce (e.g., user-auth or identity/user-auth)
+     that follow the project's existing spec organization. Each creates
+     specs/<capability-path>/spec.md. -->
+- `<capability-path>`: <brief description of what this capability covers>
+
+### Modified Capabilities
+<!-- Existing capabilities whose REQUIREMENTS are changing (not just implementation).
+     Only list here if spec-level behavior changes. Each needs a delta spec file.
+     Use the exact existing path under openspec/specs/. Leave empty if no requirement
+     changes. A change with no capabilities at all (pure refactor, tooling, docs)
+     must set `skip_specs: true` in its .openspec.yaml - openspec validate rejects
+     a zero-delta change without that marker. Do not invent a requirement just to
+     satisfy validation. -->
+- `<existing-capability-path>`: <what requirement is changing>
+
+## Impact
+
+<!-- Affected code, APIs, dependencies, systems -->
+```
+
+### templates/spec.md (artifact `specs`)
+
+```markdown
+# Spec Delta
+
+## Purpose
+<!-- New capabilities only: one or two sentences (50+ characters) on what this capability is for. Delete this section for an existing capability. -->
+
+## ADDED Requirements
+
+### Requirement: <!-- requirement name -->
+<!-- requirement text -->
+
+#### Scenario: <!-- scenario name -->
+- **WHEN** <!-- condition -->
+- **THEN** <!-- expected outcome -->
+```
+
+### templates/design.md (artifact `design`)
+
+```markdown
+# Design
+
+## Context
+
+<!-- Current state and constraints that shape the approach. See proposal.md for motivation - don't restate it -->
+
+## Goals / Non-Goals
+
+**Goals:**
+<!-- What this design aims to achieve -->
+
+**Non-Goals:**
+<!-- What is explicitly out of scope -->
+
+## Decisions
+
+<!-- Key design decisions with rationale and alternatives considered -->
+
+## Risks / Trade-offs
+
+<!-- Known risks and trade-offs -->
+```
+
+### templates/tasks.md (artifact `tasks`)
+
+```markdown
+# Tasks
+
+## 1. <!-- Task Group Name -->
+
+- [ ] 1.1 <!-- Task description -->
+- [ ] 1.2 <!-- Task description -->
+
+## 2. <!-- Task Group Name -->
+
+- [ ] 2.1 <!-- Task description -->
+- [ ] 2.2 <!-- Task description -->
+```
+
 ## CLI commands the agent uses
 
 | command | what it gives |
