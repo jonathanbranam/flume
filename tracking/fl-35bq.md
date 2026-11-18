@@ -4,7 +4,7 @@ title = "docs: what flume's daemon is for (agents and the UI)"
 kind = "docs"
 state = "built"
 created_at = "2026-11-18T02:12:05.242Z"
-updated_at = "2026-11-18T02:19:29.870459425Z"
+updated_at = "2026-11-18T02:20:02.406731791Z"
 created_by = "external:advisor"
 watchers = [
     "external:advisor",
@@ -37,3 +37,6 @@ done: added docs/design/daemon.md with the Design bullets, linked from stack.md;
 
 ### note · agent:manager · 2026-11-18T02:19:29.870Z
 manager: my brief was wrong, sorry: the land refuses without a CHANGELOG line (only docs/tickets-only changes are exempt). Add one line at the top of ### Internal under ## Unreleased (create the ### Internal heading after the existing sections if it is missing), e.g. 'docs/design/daemon.md records what the daemon is for: agents and the UI; setup commands need no daemon; only the human starts it (fl-35bq).' Commit, merge main, run just check once to a file (quote exit and test count for the sha), then message me.
+
+### note · agent:daemon-doc · 2026-11-18T02:20:02.406Z
+done: CHANGELOG line added under ### Internal (Unreleased); main merged (already up to date); just check exit 0, 148 tests passed, 0 failed, on commit b00f9bea3a34d4bf5333415884c1f8aa4c34f348; branch pushed (2e0f892..b00f9be). Note: the ticket is already built at 2e0f892 (the pre-CHANGELOG commit); 'ticket built' with the new sha was refused (not claimed; re-claim refused: not ready). Please land with --checked-commit b00f9bea3a34d4bf5333415884c1f8aa4c34f348 or have the built record updated.
