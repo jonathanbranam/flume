@@ -24,10 +24,10 @@ For whoever edits this ticket (the human, 2026-11-17): "the design at the top is
 - Each line: `time` (UTC, ISO 8601 with Z), `by` (`$AGENT_NAME`, or `human` when unset), `action`, and the action's data: `field`, `from`, `to` for field changes; `file` for a file write (the name only, not the text).
 - `flume task history ID` prints it, one line per entry, oldest first; `--json` prints a JSON array (rule cli-json-output).
 - Moves with the task folder (open/resolved).
+- JSON Lines, not one JSON array: appending never rewrites earlier lines, and two branches that each append merge in git as added lines.
 
 ### Assumed (advisor; change if wrong)
 
-- JSON Lines rather than one JSON array: appending a line never rewrites earlier ones, and two branches that each append merge in git as plain added lines.
 - File writes record only the file's name, not its content or a diff: git has the text.
 
 ## Discussion (for reference, not authoritative)
@@ -35,3 +35,5 @@ For whoever edits this ticket (the human, 2026-11-17): "the design at the top is
 ### 2026-11-17, the human (verbatim)
 
 > keep an audit trail also inside the task folder that is structural. probably JSON. Record changes to the ticket and history. Textual history is stored in github, don't recreate github, but store the updated that went through flume. status changes, phases, body updates with the timestamp and agent responsible.
+
+> JSON lines is good
