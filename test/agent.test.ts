@@ -11,6 +11,7 @@ import {
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { parse, stringify } from "yaml";
 
 const bin = new URL("../bin/flume.js", import.meta.url).pathname;
 let dir: string;
@@ -63,10 +64,10 @@ const claudeRuns = () => {
 const args = (run: string[]) =>
   run.filter((l) => l.startsWith("ARG:")).map((l) => l.slice(4).replaceAll("\u001e", "\n"));
 const entry = (n: string) =>
-  JSON.parse(readFileSync(join(dir, "home", ".flume", "agents", `${n}.json`), "utf8"));
+  parse(readFileSync(join(dir, "home", ".flume", "agents", `${n}.yaml`), "utf8"));
 const writeEntry = (n: string, e: Record<string, string>) => {
   mkdirSync(join(dir, "home", ".flume", "agents"), { recursive: true });
-  writeFileSync(join(dir, "home", ".flume", "agents", `${n}.json`), JSON.stringify(e));
+  writeFileSync(join(dir, "home", ".flume", "agents", `${n}.yaml`), stringify(e));
 };
 
 describe("flume agent specs", () => {
@@ -121,6 +122,16 @@ describe("flume agent specs", () => {
     flume(["agent", "--name", "alpha"]);
     expect(claudeRuns()[1]).toContain("AGENT_PROJECT=web");
     expect(entry("alpha").project).toBe("web");
+  });
+
+  it("s-a3c3 a JSON entry is not read", () => {
+    mkdirSync(join(dir, "home", ".flume", "agents"), { recursive: true });
+    writeFileSync(
+      join(dir, "home", ".flume", "agents", "old.json"),
+      JSON.stringify({ name: "old", project: "web", pane: "", created: "x", last_launch: "x" }),
+    );
+    expect(flume(["agent", "list"]).out).not.toContain("old");
+    expect(flume(["agent", "show", "old"]).code).toBe(1);
   });
 
   it("s-a4c1 name read from the pane", () => {
@@ -195,7 +206,7 @@ describe("flume agent specs", () => {
     const r = flume(["agent", "alpha"]);
     expect(r.code).toBe(2);
     expect(claudeRuns()).toHaveLength(0);
-    expect(existsSync(join(dir, "home", ".flume", "agents", "alpha.json"))).toBe(false);
+    expect(existsSync(join(dir, "home", ".flume", "agents", "alpha.yaml"))).toBe(false);
   });
 
   it("s-a2c4 claude option before the double dash", () => {

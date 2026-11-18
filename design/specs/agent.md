@@ -17,7 +17,7 @@ When the user runs "flume agent --name <name>", flume SHALL record the agent in 
 - **GIVEN** a home folder with no agents and claude on the path
 - **WHEN** the user runs flume agent with the arguments --name alpha
 - **THEN** claude runs once with AGENT_NAME set to alpha
-- **AND** the file agents/alpha.json under the .flume folder of the home folder holds the name alpha
+- **AND** the file agents/alpha.yaml under the .flume folder of the home folder holds the name alpha
 - **AND** the exit code equals the exit code of claude
 
 #### Scenario: Name with an equals sign  {#s-a1c2}
@@ -73,7 +73,7 @@ Before "--", flume SHALL accept only the options --name <n>, --name=<n>, --proje
 
 - **GIVEN** a home folder, claude on the path and no tmux pane option
 - **WHEN** the user runs flume agent with the argument alpha
-- **THEN** claude does not run, the exit code is 2 and no agents/alpha.json file exists
+- **THEN** claude does not run, the exit code is 2 and no agents/alpha.yaml file exists
 
 ### Requirement: Claude option values  {#r-d1c0}
 
@@ -107,7 +107,7 @@ flume SHALL parse the arguments for claude by claude's own option rules: an opti
 
 ### Requirement: Registry entry  {#r-a3c0}
 
-flume SHALL store one JSON file per agent name at .flume/agents/<name>.json in the home folder, holding name, project (empty when none), pane, created and last_launch, and when "--project" is not given SHALL use the project saved on the entry. flume SHALL accept only a name of lowercase letters, digits and dashes that starts with a letter or digit, and SHALL refuse any other name with exit code 2, naming the name and the allowed pattern on standard error, before it reads or writes the registry or runs claude.
+flume SHALL store one YAML file per agent name at .flume/agents/<name>.yaml in the home folder, a flat mapping of string values holding name, project (empty when none), pane, created and last_launch, and when "--project" is not given SHALL use the project saved on the entry. flume SHALL NOT read a .json file in that folder, and SHALL ignore it in list and show. flume SHALL accept only a name of lowercase letters, digits and dashes that starts with a letter or digit, and SHALL refuse any other name with exit code 2, naming the name and the allowed pattern on standard error, before it reads or writes the registry or runs claude.
 
 #### Scenario: Project is saved and reused  {#s-a3c1}
 
@@ -126,6 +126,14 @@ flume SHALL store one JSON file per agent name at .flume/agents/<name>.json in t
 - **THEN** the exit code is 2 and standard error names ../evil and the allowed pattern
 - **AND** claude does not run
 - **AND** the home folder holds no .flume folder
+
+#### Scenario: A JSON entry is not read  {#s-a3c3}
+
+*Verification*: **executable**
+
+- **GIVEN** a home folder with the file agents/old.json holding a valid entry for old with project web
+- **WHEN** the user runs flume agent list, and then flume agent show old
+- **THEN** list does not show old and show exits 1
 
 ### Requirement: Name from the pane  {#r-a4c0}
 

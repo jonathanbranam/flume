@@ -2,6 +2,7 @@ import { spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
+import { parseDocument, stringify } from "yaml";
 import { findInitialized, findProject, readConfigRoot } from "../daemon/index.ts";
 
 const USAGE = `Usage:
@@ -43,11 +44,15 @@ interface Parsed {
 }
 
 const flumeHome = () => join(process.env.HOME ?? homedir(), ".flume");
-const entryFile = (name: string) => join(flumeHome(), "agents", `${name}.json`);
+const entryFile = (name: string) => join(flumeHome(), "agents", `${name}.yaml`);
 
 function readEntry(name: string): Entry | undefined {
   try {
-    return JSON.parse(readFileSync(entryFile(name), "utf8")) as Entry;
+    // Failsafe schema: every scalar stays a string, as in config.yaml.
+    const e = parseDocument(readFileSync(entryFile(name), "utf8"), {
+      schema: "failsafe",
+    }).toJS();
+    return e && typeof e === "object" && !Array.isArray(e) ? (e as Entry) : undefined;
   } catch {
     return undefined;
   }
@@ -229,7 +234,7 @@ function list(): number {
   const dir = join(flumeHome(), "agents");
   let files: string[] = [];
   try {
-    files = readdirSync(dir).filter((f) => f.endsWith(".json"));
+    files = readdirSync(dir).filter((f) => f.endsWith(".yaml"));
   } catch {}
   const panes = livePanes();
   const rows = [["NAME", "PANE", "PROJECT", "LIVE", "LAST-LAUNCH"]];
@@ -331,7 +336,7 @@ export function agent(args: string[]): number {
   const now = new Date().toISOString();
   const entry: Entry = { name, project, pane, created: old?.created ?? now, last_launch: now };
   mkdirSync(join(flumeHome(), "agents"), { recursive: true });
-  writeFileSync(entryFile(name), `${JSON.stringify(entry, null, 2)}\n`);
+  writeFileSync(entryFile(name), stringify(entry));
   if (pane) tmux(["set-option", "-p", "-t", pane, "@flume_agent", name]);
 
   const claudeArgs = [
