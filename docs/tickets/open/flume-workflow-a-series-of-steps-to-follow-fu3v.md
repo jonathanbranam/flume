@@ -38,7 +38,24 @@ For whoever edits this ticket (the human, 2026-11-17): "the design at the top is
 - `design` (`design.md`), `spec` (`spec.md`), `plan` (`plan.md`): one per phase.
 - `comments` (`comments.md`, fl-3pfa): written only by `flume task comment`. Important conversations with the human are recorded there, the human's words verbatim. No separate discussion file.
 
+### The plan
+
+- The plan is a checklist: numbered groups, each with numbered items. Each item is open (`[ ]`), done (`[x]`) or skipped (`[-]`):
+
+  ```
+  ## 1. Implement login
+
+  - [ ] 1.1 create db
+  - [ ] 1.2 create schema
+  - [ ] 1.3 unit tests
+  ```
+
+- `flume task write ID plan` refuses (exit 1, says what is wrong) a plan not in this form.
+- Flume feeds the agent one group at a time: the first group with an open item. The agent gets the next group only when every item in the current one is done or skipped.
+- Skipping an item needs a reason. The reason is stored in the plan, on the line under the item (`  Skipped: <reason>`), and the skip goes in the history (fl-eg2q).
+
 ### Commands
+
 
 - `flume task show ID`: the task's fields (including the three below) and which parts it has.
 - `flume task show ID PART`: prints that part's text. A part the task does not have: exit 1, with a message.
@@ -46,6 +63,10 @@ For whoever edits this ticket (the human, 2026-11-17): "the design at the top is
 - `flume task assign ID [NAME|human] [--force]`: sets `assignee` to NAME, or to `$AGENT_NAME` when NAME is left out (an agent taking the task). When the assignee is an agent, sets `agent` too. Assigning a task to whoever already holds it succeeds and changes nothing.
 - When an agent (`$AGENT_NAME` set) assigns a task that someone else holds, without `--force` flume changes nothing, exits 1, and says who holds it and that `--force` takes it over. The human (no `$AGENT_NAME`) never needs `--force`: they re-assign at any point.
 - `flume task claim ID [--force]` is shorthand for `flume task assign ID [--force]` (to yourself) and works exactly the same: same checks, messages, exit codes and history.
+- `flume task next ID`: prints the current plan group (heading and items, as above). When every item is done or skipped, says the plan is complete. No plan: exit 1, with a message.
+- `flume task done ID ITEM...`: marks the items (e.g. `1.1 1.2`) done.
+- `flume task skip ID ITEM... --reason TEXT`: marks the items skipped, with the reason. `--reason` is required.
+- `done` and `skip` refuse items outside the current group or not in the plan (exit 1, nothing changed).
 - `flume task phase ID PHASE`: sets `phase`. Any phase may follow any other (forwards, backwards, skipping).
 - `flume task list` shows `phase` and `assignee`, and takes `--assignee NAME|human` and `--phase PHASE`. `--json` as rule cli-json-output.
 
@@ -67,8 +88,8 @@ Working a task:
    - design: when goal and scope are clear, think through the design questions and write the design.
    - specs: when the design is clear, write the spec: clear requirements in EARS form ("When <trigger>, the system SHALL <response>").
    - plan: read the body, design and spec, then write the plan: how to implement the task, step by step. Then mark the task ready: flume task phase ID implement.
-   - implement: read the body, design and spec for context, then follow the steps in the plan. When writing code, enter a git worktree to make the changes; when done, merge main into it, then exit the worktree and merge it into main. Close the task when done.
-3. When your phase is done, set the next phase (flume task phase ID PHASE). The same agent may not do every phase. If you are waiting on the human, assign the task back to them (flume task assign ID human).
+   - implement: read the body, design and spec for context. Get the current group of plan items (flume task next ID), do them, and report each one: flume task done ID ITEM, or flume task skip ID ITEM --reason TEXT if it should not be done. Repeat until the plan is complete. When writing code, enter a git worktree to make the changes; when done, merge main into it, then exit the worktree and merge it into main. Close the task when done.
+3. When your phase is done, set the next phase (flume task phase ID PHASE). One agent will likely not do the whole workflow: another may take the next phase, or finish the plan. If you are waiting on the human, assign the task back to them (flume task assign ID human).
 4. In every phase, record important conversations with the human as comments (flume task comment ID), quoting the human verbatim.
 ```
 
@@ -76,9 +97,11 @@ Working a task:
 
 - No workflow schema file, no per-step instruction commands, no shipped continue skill (the OpenSpec-like model in Discussion is for later).
 - Project and workspace workflows stay free text printed by prime (fl-3pfa); flume does not parse them.
+- No persistent specs: a task's spec stays with the task; merging it into living project specs comes later.
 
 ### Assumed (advisor; change if wrong)
 
+- `[-]` covers both skip and cancel; the human named both with the one marker. Command names `next`, `done`, `skip` (not `check`, which is `flume check`).
 - Part names `body`, `design`, `spec`, `plan`; `flume task show ID PART` to read and `flume task write ID PART` to write, `--remove` to drop one ("remove the specs and start over").
 - The everything-through-flume rule covers the task commands in this ticket. Other flume output that names tasks-repo paths (e.g. `flume init`, `flume status` for the human) is left alone.
 
@@ -137,6 +160,25 @@ Asked one file or two for important conversations (discussions.md vs fl-3pfa's c
 Asked whether agents write the task files through flume (so the audit trail records each update) or edit them directly:
 
 > all task updates go through flume; agents shouldn't even know where the files are. EVERYTHING that is editing in fluff-flume must go through flume.
+
+Advisor compared v1 with OpenSpec and suggested: living specs, a checklist plan ticked off during implement, a check before close, section outlines per part. The human:
+
+> persistent specs can come later
+> the plan must be checked off, I thought we had that discusses before, flume should feed the agent a single list like
+>
+> ---
+> ## 1. Implement login
+>
+> - [ ] 1.1 create db
+> - [ ] 1.2 create schema
+> - [ ] 1.3 whatever
+> - [ ] 1.4 unit tests
+>
+> ---
+>
+> The agent has to report completion or cancel ([-]) of all items before getting the next set of items to implement. They can skip, but that should be require an explanation that is also stored. probably with plan.md?
+>
+> Clarification: It is true that one agent may not complete the plan, but what I meant was that definitely one agent likely will not complete the entire workflow
 
 Context: asked what flume's built-in workflow text is, advisor showed today's prime text (identity, flume --help, never start flume serve; no workflow steps). Advisor: Open questions 1-7 below (from before the v1 flow) are superseded for v1 by the Design; they stay for the later OpenSpec-like model. The audit trail went to its own ticket, fl-eg2q.
 
