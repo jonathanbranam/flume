@@ -39,12 +39,11 @@ projects:
 
 ### flume clone
 
-- `flume clone <git-url> [<workspace>]`: makes the workspace folder, clones the tasks repo into it, then runs `flume init` there (so: projects cloned, `.flume/config.yaml` written).
+- `flume clone <git-url> <workspace>`: the workspace path is required (`.` for the current folder); flume makes the folder if missing, clones the tasks repo into it, then runs `flume init` there (so: projects cloned, `.flume/config.yaml` written).
 - It never starts the daemon; it ends by telling the human to run `flume serve` in the workspace.
 
 ### Assumed (advisor; change if wrong)
 
-- Default workspace folder when `<workspace>` is omitted: see open question 1 in the Discussion.
 - Projects are cloned on their default branch; flume does no other git setup.
 
 ## Discussion (for reference, not authoritative)
@@ -61,6 +60,10 @@ projects:
 - The human asked for flat YAML ("avoid nestings"); a name-to-URL map is the one level a project list needs.
 - `flume clone` is `git clone` plus `flume init`, so a second machine and a fresh clone take the same path.
 
-### Open (advisor, for the human)
+### Settled: workspace path
 
 1. Where `flume clone` puts the workspace with no `<workspace>` argument: (a) the current folder is the workspace (run it in an empty `fluff/`), or (b) a new folder named after the repo with `-flume` cut off (`fluff-flume` -> `fluff/`). (b) is a guess from a naming habit; (a) is plain. Advisor: (a).
+
+The human, 2026-11-17: "follow git init convention. AFAIK it is git init . -- the path is required"
+
+Advisor note: in git itself the path is optional for both `git init` (defaults to the current folder) and `git clone` (defaults to the repo's name). Advisor took the human's intent, an explicit path with no default, and made `<workspace>` required; `flume clone <url> .` uses the current folder. Change if the human wants git's optional form.
