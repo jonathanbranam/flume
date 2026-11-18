@@ -184,3 +184,5 @@
 {"actor":"external:orchestrator","at":"2026-11-18T02:18:18.278778860Z","queue":"reprioritized"}
 {"actor":"agent:daemon-doc","at":"2026-11-18T02:19:14.901227821Z","from":"claimed","task":"fl-35bq","to":"built"}
 {"actor":"agent:manager","at":"2026-11-18T02:20:48.741253324Z","from":"built","task":"fl-35bq","to":"integrated"}
+{"actor":"external:orchestrator","at":"2026-11-18T02:22:50.652789312Z","from":"open","task":"fl-89z2","to":"planned"}
+{"actor":"external:orchestrator","at":"2026-11-18T02:22:50.662231258Z","queue":"reprioritized"}
