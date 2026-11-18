@@ -8,7 +8,7 @@ repos: [flume]
 changes: []
 specs: []
 blocked_by: []
-related: [fl-7sme, fl-x6xn, fl-fu3v]
+related: [fl-7sme, fl-x6xn, fl-fu3v, fl-pshd]
 ---
 
 ## The ask
@@ -58,7 +58,7 @@ For whoever edits this ticket (the human, 2026-11-17): "the design at the top is
 
 - Every flume file with fields is YAML, as flat as possible: no nesting. Flume no longer uses TOML.
 - No migration or backwards compatibility: no project has onboarded, so old layouts and files are not read.
-- `flume.yaml` sits at the top of the tasks repo and is versioned, so every clone finds the same layout. Its one key is `dir`: the flume-root folder's name, `flume` or `.` (the repo top itself).
+- `flume.yaml` sits at the top of the tasks repo and is versioned, so every clone finds the same layout. Its key here is `dir`: the flume-root folder's name, `flume` or `.` (the repo top itself). The project list (`projects`) is ticket fl-pshd.
 - `.flume/config.yaml` in the workspace folder is machine-local and holds only `root`, the tasks repo.
 - Nothing flume-related goes in a project repo. A project's own CLAUDE.md stays the project's.
 
