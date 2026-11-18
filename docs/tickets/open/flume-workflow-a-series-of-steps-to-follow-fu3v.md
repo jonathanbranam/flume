@@ -96,6 +96,8 @@ Working a task:
 
 > also add: when writing code, enter a worktree to make changes. when done, merge in main, then exit worktree and merge it into main
 
+> an agent can claim a task also. that's fine
+
 Context: asked what flume's built-in workflow text is, advisor showed today's prime text (identity, flume --help, never start flume serve; no workflow steps). Advisor: Open questions 1-7 below (from before the v1 flow) are superseded for v1 by the Design; they stay for the later OpenSpec-like model. The audit trail went to its own ticket, fl-eg2q.
 
 
