@@ -120,6 +120,32 @@ The human, verbatim:
 
 This replaces the "Resulting v1 layout" and "projects under projects/" sections above.
 
+### Layout (cleaned up)
+
+The human: "'other task related files' should be indented to indicate they are inside of slug-id ... please make that directory structure nicer-looking, i was just typing and being quick"
+
+```
+<workspace>/
+|-- .flume/
+|   `-- config.toml            root = "fluff-flume"   (machine-local)
+`-- fluff-flume/               tasks repo
+    |-- flume.toml             dir = "flume"   (versioned; "." = repo top)
+    `-- flume/                 <flume-root>
+        |-- base/
+        |   `-- workflow.md    workspace-wide workflow
+        |-- projects/
+        |   `-- <project>/
+        |       `-- workflow.md
+        `-- tasks/
+            |-- open/
+            |   `-- <slug>-<id>/
+            |       |-- body.md
+            |       |-- comments.md
+            |       `-- ...    other task files
+            `-- resolved/
+                `-- <slug>-<id>/   (same as open/)
+```
+
 ### What this means (advisor's reading)
 
 - **Prime prints the workflow text, it does not point at files.** `flume prime` asks the daemon (project name and role) and prints, in order: flume's built-in base workflow, the workspace workflow, the project workflow. Agents never read workflow files; they run `flume prime`. Today's prime (`src/cli/agent.ts`, the "Workflow: read the .md files in ..." line) tells agents to read files; that goes.
@@ -132,7 +158,7 @@ This replaces the "Resulting v1 layout" and "projects under projects/" sections 
 
 1. `<flume-root>/base/workflow.md`: is this the **workspace** workflow (step 2), with the built-in base (step 1) living only inside flume? Advisor's reading: yes; otherwise the built-in base exists twice. If so, `base/` might be better named `workspace/` to avoid confusion with the built-in base.
 2. Roles: which roles, and where does a role's workflow live (e.g. `base/roles/<role>.md`)? Or is role passed now and used later (YAGNI)?
-3. Task folder: where does the front matter (id, title, status) go: top of `body.md`? What are the "other task-related files" (attachments)?
+3. Task folder: where does the front matter (id, title, status) go: top of `body.md`? Other task files live inside the task's folder (settled); what they are (attachments?) is open.
 4. Does `flume.toml` live only at the tasks-repo top and `.flume/config.toml` only in the workspace folder? (Advisor: yes, as drawn.)
 
 ### The human, 2026-11-17 (on open point 1)
