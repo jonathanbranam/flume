@@ -27,6 +27,7 @@ For whoever edits this ticket (the human, 2026-11-17): "the design at the top is
 ### Push to a phase
 
 - `flume task guide ID NAME --phase PHASE` records that guide NAME applies to PHASE of the task; `--remove` drops it. Refused (exit 1) when the guide does not exist for the task's project (project guide, else base).
+- Refused (exit 1, nothing changed) when PHASE is earlier in the workflow than the task's current phase, adding or removing; the message says to move the task back to PHASE (or earlier) first with `flume task phase`. PHASE equal to or later than the current phase is allowed.
 - Recorded in task.yaml as `guides`, nested by phase for readability (YAML is flat by default, not at the cost of usability), phase keys lowercase as the phase names, in workflow order, a phase with none left out:
 
   ```
@@ -88,6 +89,7 @@ For whoever edits this ticket (the human, 2026-11-17): "the design at the top is
 
 - Guides are pushed per phase or per plan group, not per plan item: `flume task next` hands out one group at a time.
 - A guide's own `stage` (fl-x6xn) stays a hint shown in lists; pushing is what ties a guide to a task's step.
+- Pushing to an earlier phase: allowed for the current phase or later (so moving the task back to PHASE or before it makes the push legal), refused for a phase already passed. `--remove` follows the same rule. The human is not exempt from this one: it keeps the data honest, not a gate on agents.
 
 ## Discussion (for reference, not authoritative)
 
@@ -130,3 +132,9 @@ Advisor: kept the new command, and made claim print the instructions, phase and 
 > Yes prime should list the high level overview of the workflow but instructions show the specific steps.
 >
 > I think flume should refuse to advance the task in the workflow if this same agent has not run instructions
+
+The human, 2026-11-18 (to advisor), verbatim:
+
+> Trying to set a guide on an earlier phase should be refused. The task must be moved to that phase first (or before that phase? Not sure exactly)
+
+Advisor's reading: "at or before" (task's current phase not later than PHASE), since moving back is ungated and pushing to a later phase is the normal case; removal follows the same rule. Recorded under Assumed.
