@@ -199,3 +199,4 @@
 {"actor":"agent:json-out","at":"2026-11-18T02:40:41.264124445Z","from":"claimed","task":"fl-cpcu","to":"built"}
 {"actor":"agent:manager","at":"2026-11-18T02:41:24.036527884Z","from":"built","task":"fl-cpcu","to":"integrated"}
 {"actor":"agent:last-seen","at":"2026-11-18T02:42:59.776017852Z","from":"claimed","task":"fl-t8xv","to":"built"}
+{"actor":"agent:manager","at":"2026-11-18T02:43:29.357127168Z","from":"built","task":"fl-t8xv","to":"integrated"}
