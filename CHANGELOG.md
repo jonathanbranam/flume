@@ -18,6 +18,8 @@
 
 ### Changed
 
+- Projects are names (fl-gr36): `flume init` only sets up the workspace and no longer checks project folders or takes `--clone`; new `flume project clone [<name>...] [--json]` clones projects into `<workspace>/<name>` (skips existing folders and projects with no url, exit 1 if any clone fails, exit 2 for an unknown name); `flume project list` drops the present/missing column; `flume clone` runs init then project clone.
+
 - `flume task new` prints the ID only; `flume task show ID` prints task.yaml and a `parts:` line (use `show ID PART` for text); `task list` lines gain phase and assignee columns; the built-in prime text teaches the five-phase workflow (fl-fu3v).
 
 - `flume prime` (and the text `flume agent` sends) and `flume guide` print XML sections: one `flume_prime` root with `flume_base`, `workspace_workflow`, `project_workflow`, `role`, `guides` parts (empty ones left out, tags that would forge an element neutralized); a guide prints inside `<guide name stage>`. With no daemon a `workflow_missing` element says the rest is missing. `GET /api/prime` also returns `parts` (fl-87h9).

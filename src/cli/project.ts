@@ -19,7 +19,8 @@ const out = (s: string) => process.stdout.write(`${s}\n`);
 const HELP = `usage: flume project <command> [options]
 
 Commands:
-  list [--json]                                 projects in flume.yaml: name, url, branch, present or missing
+  list [--json]                                 projects in flume.yaml: name, url, branch
+  clone [<name>...] [--json]                    clone the named projects (default all) into the workspace
   add <git-url> [--name N] [--branch B]         add a project to flume.yaml, commit it, and clone it
 
 These work on files and git directly; they do not use the daemon.
@@ -46,22 +47,19 @@ function list(cwd: string, args: string[]): number {
     err(`flume: ${loc}`);
     return 1;
   }
-  let rows: { name: string; url: string; branch: string; present: boolean }[];
+  let rows: { name: string; url: string; branch: string }[];
   try {
     rows = readProjects(loc.taskRoot).map((p) => ({
       name: p.name,
       url: p.url ?? "",
       branch: p.branch ?? "",
-      present: existsSync(join(loc.ws, p.name)),
     }));
   } catch (e) {
     err(`flume: ${(e as Error).message}`);
     return 1;
   }
   if (json) out(JSON.stringify(rows));
-  else
-    for (const r of rows)
-      out(`${r.name}\t${r.url}\t${r.branch}\t${r.present ? "present" : "missing"}`);
+  else for (const r of rows) out(`${r.name}\t${r.url}\t${r.branch}`);
   return 0;
 }
 
@@ -142,6 +140,61 @@ function add(cwd: string, args: string[]): number {
   return 0;
 }
 
+type Result = { name: string; status: "cloned" | "skipped" | "failed"; reason?: string };
+
+/** `flume project clone [<name>...] [--json]`: clone projects of flume.yaml into <workspace>/<name>. */
+function cloneProjects(cwd: string, args: string[]): number {
+  const usage = "usage: flume project clone [<name>...] [--json]";
+  const json = args.includes("--json");
+  const names = args.filter((a) => a !== "--json");
+  const bad = names.find((a) => a.startsWith("-"));
+  if (bad) {
+    err(`flume: unknown option '${bad}'\n${usage}`);
+    return 2;
+  }
+  const loc = locate(cwd);
+  if (typeof loc === "string") {
+    err(`flume: ${loc}`);
+    return 1;
+  }
+  let all: ReturnType<typeof readProjects>;
+  try {
+    all = readProjects(loc.taskRoot);
+  } catch (e) {
+    err(`flume: ${(e as Error).message}`);
+    return 1;
+  }
+  const unknown = names.find((n) => !all.some((p) => p.name === n));
+  if (unknown !== undefined) {
+    err(`flume: no project ${unknown} in ${FLUME_YAML}\n${usage}`);
+    return 2;
+  }
+  const chosen = names.length > 0 ? all.filter((p) => names.includes(p.name)) : all;
+  const results: Result[] = [];
+  for (const p of chosen) {
+    const dest = join(loc.ws, p.name);
+    if (!validProjectName(p.name) || p.url === undefined) {
+      results.push({ name: p.name, status: "skipped", reason: "no url or a bad name" });
+    } else if (existsSync(dest)) {
+      results.push({ name: p.name, status: "skipped", reason: "folder exists" });
+    } else {
+      const e = cloneRepo(p.url, dest, p.branch);
+      if (e === undefined) results.push({ name: p.name, status: "cloned" });
+      else {
+        results.push({ name: p.name, status: "failed", reason: e });
+        err(`flume: clone of project ${p.name} (${p.url}) failed: ${e}`);
+      }
+    }
+  }
+  if (json) out(JSON.stringify(results));
+  else
+    for (const r of results) {
+      if (r.status === "failed") continue;
+      out(`project ${r.name}: ${r.status}${r.status === "skipped" ? ` (${r.reason})` : ""}`);
+    }
+  return results.some((r) => r.status === "failed") ? 1 : 0;
+}
+
 /** `flume project ...`; returns the exit code. */
 export function project(cwd: string, args: string[]): number {
   const [sub, ...rest] = args;
@@ -155,11 +208,12 @@ export function project(cwd: string, args: string[]): number {
   }
   if (sub === "list") return list(cwd, rest);
   if (sub === "add") return add(cwd, rest);
+  if (sub === "clone") return cloneProjects(cwd, rest);
   err(`flume: unknown project command '${sub}'\n\n${HELP.trimEnd()}`);
   return 2;
 }
 
-/** `flume clone <git-url> [<workspace>]`: clone the tasks repo into the workspace, then init --clone. */
+/** `flume clone <git-url> [<workspace>]`: clone the tasks repo into the workspace, then project clone. */
 export function cloneCmd(cwd: string, args: string[]): number {
   const usage = "usage: flume clone <git-url> [<workspace>]";
   if (args.includes("--help") || args.includes("-h")) {
@@ -194,5 +248,9 @@ export function cloneCmd(cwd: string, args: string[]): number {
     return 1;
   }
   out(`cloned the tasks repository into ${dest}`);
-  return init(ws, ["--root", dest, "--clone"]);
+  const code = init(ws, ["--root", dest]);
+  if (code !== 0) return code;
+  const c2 = cloneProjects(ws, []);
+  out("next: run flume serve in this folder");
+  return c2;
 }

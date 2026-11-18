@@ -121,7 +121,7 @@ When flume serve is run, it SHALL use as the task root, in this order: the root 
 - **THEN** the exit code is 1 and standard error says flume.yaml dir must be . or one folder name
 
 ### Requirement: Init sets up a workspace  {#r-1d11}
-When flume init [--root PATH] [--dir NAME] [--clone] is run in a folder (the workspace, which need not be a git repository), flume SHALL create .flume in it (if missing) with a .gitignore holding * and, when --root is given, a config.yaml holding root (relative to the workspace folder when inside it; without --root an existing config.yaml is kept); the task root is --root, else the root in config.yaml, else the current folder's git repository (main checkout). When the task root has no flume.yaml, flume SHALL write one there holding dir: NAME (default flume; NAME is . or one plain folder name, else exit with code 2 and create nothing) and commit it as one commit, and when it has one flume SHALL keep it unchanged and exit with code 1, changing nothing, if --dir names a different folder. flume SHALL NOT copy any workflow into the task root, push, run git init, start the daemon, create task folders, or write anything else in a project or in .flume. When the task root is not a git repository, or there is none, flume SHALL print a message to standard error saying there is no task root, exit with code 1, and create nothing. flume init SHALL NOT accept --force.
+When flume init [--root PATH] [--dir NAME] is run in a folder (the workspace, which need not be a git repository), flume SHALL create .flume in it (if missing) with a .gitignore holding * and, when --root is given, a config.yaml holding root (relative to the workspace folder when inside it; without --root an existing config.yaml is kept); the task root is --root, else the root in config.yaml, else the current folder's git repository (main checkout). When the task root has no flume.yaml, flume SHALL write one there holding dir: NAME (default flume; NAME is . or one plain folder name, else exit with code 2 and create nothing) and commit it as one commit, and when it has one flume SHALL keep it unchanged and exit with code 1, changing nothing, if --dir names a different folder. flume SHALL NOT copy any workflow into the task root, push, run git init, start the daemon, create task folders, or write anything else in a project or in .flume. When the task root is not a git repository, or there is none, flume SHALL print a message to standard error saying there is no task root, exit with code 1, and create nothing. flume init SHALL NOT accept --force.
 
 #### Scenario: Init in a workspace  {#s-1d03}
 *Verification*: **executable**
@@ -153,41 +153,68 @@ When flume init [--root PATH] [--dir NAME] [--clone] is run in a folder (the wor
 - **WHEN** flume init --force is run in it
 - **THEN** the exit code is 2 and no .flume folder exists
 
-### Requirement: Init checks the projects  {#r-e839}
-When flume init is run, flume SHALL treat each project in flume.yaml whose folder is not at <workspace>/<name>/ as missing. Without --clone it SHALL print each missing project's name and URL and a line saying flume init --clone clones them, and clone nothing; with --clone it SHALL clone each missing project into <workspace>/<name>/ (on the project's branch when flume.yaml gives one, else the repository's own default branch), report a failed clone on standard error with the project's name and URL, carry on with the rest, and exit with code 1 at the end. A folder that already exists SHALL be left alone. Missing projects without --clone SHALL NOT be an error (exit code 0). flume init SHALL end by telling the human to run flume serve in the workspace.
+### Requirement: Init does not look at projects  {#r-e839}
+When flume init is run, flume SHALL NOT read or check the projects in flume.yaml or look for their folders, and it SHALL NOT accept --clone (an unknown option, exit code 2). It SHALL end by telling the human that flume project clone clones the projects and that flume serve is run in the workspace.
 
-#### Scenario: Init lists missing projects  {#s-9b23}
+#### Scenario: Init ignores project folders  {#s-9b23}
 *Verification*: **executable**
 - **GIVEN** a workspace whose flume.yaml lists a project backend whose folder is not there
 - **WHEN** flume init is run
-- **THEN** the exit code is 0, the output names backend and its URL and mentions flume init --clone and flume serve, and no backend folder exists
+- **THEN** the exit code is 0, the output mentions flume project clone and flume serve but not backend, and no backend folder exists
 
-#### Scenario: Init clones with --clone  {#s-9766}
+#### Scenario: Init no longer clones  {#s-9766}
 *Verification*: **executable**
-- **GIVEN** a workspace whose flume.yaml lists a project backend with a branch develop of a local repository
+- **GIVEN** a workspace whose flume.yaml lists a project backend
 - **WHEN** flume init --clone is run
-- **THEN** the exit code is 0 and backend holds a clone with develop checked out
-
-#### Scenario: A failed clone is reported and init carries on  {#s-7930}
-*Verification*: **executable**
-- **GIVEN** a workspace whose flume.yaml lists a project bad with a URL that is not a repository, then a project good with a local repository
-- **WHEN** flume init --clone is run
-- **THEN** the exit code is 1, standard error names bad and its URL, and the good folder holds a clone
+- **THEN** the exit code is 2 and no backend folder exists
 
 #### Scenario: Init again is safe  {#s-1d04}
 *Verification*: **executable**
-- **GIVEN** a workspace already set up with flume init, with a project then added to flume.yaml
-- **WHEN** flume init --clone is run again
-- **THEN** the exit code is 0, the new project is cloned, and the task repository has no new commit
+- **GIVEN** a workspace already set up with flume init
+- **WHEN** flume init is run again
+- **THEN** the exit code is 0 and the task repository has no new commit
 
-#### Scenario: An existing folder is left alone  {#s-3782}
+### Requirement: Project clone clones projects  {#r-c1a0}
+When flume project clone [<name>...] [--json] is run in a workspace, flume SHALL clone each named project, or every project in flume.yaml when no name is given, into <workspace>/<name>/ (on the project's branch when flume.yaml gives one, else the repository's own default branch). It SHALL skip, with a line saying so, a project whose folder already exists (leaving it unchanged) and a project with no URL; report a failed clone on standard error with the project's name and URL and carry on with the rest; and be safe to run again. It SHALL exit with code 0 when no clone failed, 1 when any failed, and 2 for a name not in flume.yaml or an unknown option. With --json it SHALL print one JSON array on standard output with one object per project holding name and status (cloned, skipped or failed) and, for skipped and failed, reason. It SHALL work without a running daemon.
+
+#### Scenario: Project clone on a branch  {#s-5c01}
+*Verification*: **executable**
+- **GIVEN** a workspace whose flume.yaml lists a project backend with a branch develop of a local repository
+- **WHEN** flume project clone is run
+- **THEN** the exit code is 0 and backend holds a clone with develop checked out
+
+#### Scenario: A failed clone is reported and the rest carry on  {#s-7930}
+*Verification*: **executable**
+- **GIVEN** a workspace whose flume.yaml lists a project bad with a URL that is not a repository, then a project good with a local repository
+- **WHEN** flume project clone is run
+- **THEN** the exit code is 1, standard error names bad and its URL, and the good folder holds a clone
+
+#### Scenario: An existing folder is skipped  {#s-3782}
 *Verification*: **executable**
 - **GIVEN** a workspace whose flume.yaml lists a project backend and a folder backend already holding a file
-- **WHEN** flume init --clone is run
-- **THEN** the exit code is 0 and the file in backend is unchanged
+- **WHEN** flume project clone is run
+- **THEN** the exit code is 0, the output says backend was skipped, and the file in backend is unchanged
+
+#### Scenario: Named projects only, with JSON  {#s-5c02}
+*Verification*: **executable**
+- **GIVEN** a workspace whose flume.yaml lists backend and frontend (local repositories), with the backend folder already there
+- **WHEN** flume project clone frontend --json and flume project clone --json are run
+- **THEN** the first prints one record, frontend cloned, and the second prints backend skipped with a reason and frontend skipped with a reason
+
+#### Scenario: Unknown project name  {#s-5c03}
+*Verification*: **executable**
+- **GIVEN** a workspace whose flume.yaml lists backend
+- **WHEN** flume project clone nosuch is run
+- **THEN** the exit code is 2 and no folder is made
+
+#### Scenario: A project with no URL is skipped  {#s-5c04}
+*Verification*: **executable**
+- **GIVEN** a workspace whose flume.yaml lists a project with no url
+- **WHEN** flume project clone --json is run
+- **THEN** the exit code is 0 and the record for the project has status skipped
 
 ### Requirement: Clone sets up a workspace from the tasks repository  {#r-1dd4}
-When flume clone <git-url> [<workspace>] is run, flume SHALL use the current folder, or <workspace> when given, as the workspace (making it if missing), clone the tasks repository into it as a folder named after the repository (the last part of the URL without .git), and then do what flume init --clone does there with the clone as the task root. It SHALL NOT start the daemon, and it SHALL end by telling the human to run flume serve in the workspace. When the clone fails, or the folder for the tasks repository already exists, it SHALL print a message to standard error and exit with code 1; with no URL, or an unknown option, it SHALL exit with code 2.
+When flume clone <git-url> [<workspace>] is run, flume SHALL use the current folder, or <workspace> when given, as the workspace (making it if missing), clone the tasks repository into it as a folder named after the repository (the last part of the URL without .git), then run flume init there with the clone as the task root, and then flume project clone for every project. It SHALL NOT start the daemon, and it SHALL end by telling the human to run flume serve in the workspace. When the clone fails, or the folder for the tasks repository already exists, it SHALL print a message to standard error and exit with code 1; with no URL, or an unknown option, it SHALL exit with code 2.
 
 #### Scenario: Clone makes the whole workspace  {#s-2a1f}
 *Verification*: **executable**
@@ -214,16 +241,16 @@ When flume clone <git-url> [<workspace>] is run, flume SHALL use the current fol
 - **THEN** the exit code is 2
 
 ### Requirement: Project list shows the projects  {#r-de77}
-When flume project list is run in a workspace, flume SHALL print one line per project in flume.yaml with its name, URL, branch (blank when not set) and present or missing (whether <workspace>/<name>/ exists), separated by tabs; with --json it SHALL print one JSON array on standard output of objects with name, url, branch (empty string when not set) and present (true or false). It SHALL work without a running daemon.
+When flume project list is run in a workspace, flume SHALL print one line per project in flume.yaml with its name, URL and branch (blank when not set), separated by tabs, and SHALL NOT look at project folders; with --json it SHALL print one JSON array on standard output of objects with name, url and branch (empty string when not set). It SHALL work without a running daemon.
 
 #### Scenario: List as text and JSON  {#s-52c6}
 *Verification*: **executable**
-- **GIVEN** a workspace whose flume.yaml lists backend with branch develop (folder present) and frontend with no branch (folder missing)
+- **GIVEN** a workspace whose flume.yaml lists backend with branch develop and frontend with no branch, and no project folders
 - **WHEN** flume project list and flume project list --json are run
-- **THEN** the text has the line backend, its URL, develop and present, and the line frontend, its URL, an empty branch and missing, and the JSON is the same data
+- **THEN** the text has the line backend, its URL and develop, and the line frontend, its URL and an empty branch, and the JSON is the same data without any present or missing field
 
 ### Requirement: Project add sets a project up  {#r-b6a8}
-When flume project add <git-url> [--name NAME] [--branch BRANCH] is run in a workspace, flume SHALL add the project to flume.yaml (the name defaults to the last part of the URL without .git; branch is written only when --branch is given), commit flume.yaml in the tasks repository as one commit, and clone the project into <workspace>/<name>/ as flume init --clone does. It SHALL refuse, changing nothing and exiting with code 1, when the name is already in flume.yaml or <workspace>/<name>/ exists and is not a clone of that URL. It SHALL NOT start the daemon or push.
+When flume project add <git-url> [--name NAME] [--branch BRANCH] is run in a workspace, flume SHALL add the project to flume.yaml (the name defaults to the last part of the URL without .git; branch is written only when --branch is given), commit flume.yaml in the tasks repository as one commit, and clone the project into <workspace>/<name>/ as flume project clone does. It SHALL refuse, changing nothing and exiting with code 1, when the name is already in flume.yaml or <workspace>/<name>/ exists and is not a clone of that URL. It SHALL NOT start the daemon or push.
 
 #### Scenario: Add a project  {#s-9440}
 *Verification*: **executable**

@@ -62,59 +62,96 @@ function setup(projects: Record<string, { url?: string; branch?: string }>) {
 const count = (repo: string) => git(repo, "rev-list", "--count", "HEAD");
 
 describe("flume init and projects", () => {
-  it("s-9b23 init lists missing projects", () => {
+  it("s-9b23 init ignores project folders", () => {
     const backend = source("backend");
     const { ws, tasks } = setup({ backend: { url: backend } });
     const r = flume(ws, "init", "--root", tasks);
     expect(r.status).toBe(0);
-    expect(r.stdout).toContain("backend");
-    expect(r.stdout).toContain(backend);
-    expect(r.stdout).toContain("flume init --clone");
+    expect(r.stdout).toContain("flume project clone");
     expect(r.stdout).toContain("flume serve");
+    expect(r.stdout).not.toContain("backend");
     expect(existsSync(join(ws, "backend"))).toBe(false);
   });
 
-  it("s-9766 init --clone clones on the branch", () => {
-    const backend = source("backend");
-    const { ws, tasks } = setup({ backend: { url: backend, branch: "develop" } });
+  it("s-9766 init no longer clones", () => {
+    const { ws, tasks } = setup({ backend: { url: source("backend") } });
     const r = flume(ws, "init", "--root", tasks, "--clone");
+    expect(r.status).toBe(2);
+    expect(existsSync(join(ws, "backend"))).toBe(false);
+  });
+
+  it("s-1d04 init again is safe", () => {
+    const { ws, tasks } = setup({});
+    expect(flume(ws, "init", "--root", tasks).status).toBe(0);
+    const n = count(tasks);
+    expect(flume(ws, "init").status).toBe(0);
+    expect(count(tasks)).toBe(n);
+  });
+
+  it("s-5c01 project clone on a branch", () => {
+    const { ws, tasks } = setup({ backend: { url: source("backend"), branch: "develop" } });
+    flume(ws, "init", "--root", tasks);
+    const r = flume(ws, "project", "clone");
     expect(r.status).toBe(0);
     expect(git(join(ws, "backend"), "rev-parse", "--abbrev-ref", "HEAD")).toBe("develop");
   });
 
-  it("s-7930 a failed clone is reported and init carries on", () => {
+  it("s-7930 a failed clone is reported and the rest carry on", () => {
     const good = source("good");
     const bad = join(folder(), "nothing-here");
     const { ws, tasks } = setup({ bad: { url: bad }, good: { url: good } });
-    const r = flume(ws, "init", "--root", tasks, "--clone");
+    flume(ws, "init", "--root", tasks);
+    const r = flume(ws, "project", "clone");
     expect(r.status).toBe(1);
     expect(r.stderr).toContain("bad");
     expect(r.stderr).toContain(bad);
     expect(existsSync(join(ws, "good/r"))).toBe(true);
   });
 
-  it("s-1d04 init again is safe", () => {
-    const { ws, tasks } = setup({});
-    expect(flume(ws, "init", "--root", tasks).status).toBe(0);
-    const backend = source("backend");
-    writeFileSync(join(tasks, "flume.yaml"), yaml({ backend: { url: backend } }));
-    git(tasks, "commit", "-qam", "add backend");
-    const n = count(tasks);
-    const r = flume(ws, "init", "--clone");
-    expect(r.status).toBe(0);
-    expect(existsSync(join(ws, "backend/r"))).toBe(true);
-    expect(count(tasks)).toBe(n);
-  });
-
-  it("s-3782 an existing folder is left alone", () => {
-    const backend = source("backend");
-    const { ws, tasks } = setup({ backend: { url: backend } });
+  it("s-3782 an existing folder is skipped", () => {
+    const { ws, tasks } = setup({ backend: { url: source("backend") } });
+    flume(ws, "init", "--root", tasks);
     mkdirSync(join(ws, "backend"));
     writeFileSync(join(ws, "backend/mine"), "keep");
-    const r = flume(ws, "init", "--root", tasks, "--clone");
+    const r = flume(ws, "project", "clone");
     expect(r.status).toBe(0);
+    expect(r.stdout).toContain("skipped");
     expect(readFileSync(join(ws, "backend/mine"), "utf8")).toBe("keep");
     expect(existsSync(join(ws, "backend/r"))).toBe(false);
+  });
+
+  it("s-5c02 project clone named only, with JSON", () => {
+    const { ws, tasks } = setup({
+      backend: { url: source("backend") },
+      frontend: { url: source("frontend") },
+    });
+    flume(ws, "init", "--root", tasks);
+    mkdirSync(join(ws, "backend"));
+    const one = JSON.parse(flume(ws, "project", "clone", "frontend", "--json").stdout);
+    expect(one).toEqual([{ name: "frontend", status: "cloned" }]);
+    const all = JSON.parse(flume(ws, "project", "clone", "--json").stdout);
+    expect(all).toHaveLength(2);
+    for (const r of all) {
+      expect(r.status).toBe("skipped");
+      expect(r.reason).toBeTruthy();
+    }
+  });
+
+  it("s-5c03 project clone unknown name", () => {
+    const { ws, tasks } = setup({ backend: { url: source("backend") } });
+    flume(ws, "init", "--root", tasks);
+    const r = flume(ws, "project", "clone", "nosuch");
+    expect(r.status).toBe(2);
+    expect(existsSync(join(ws, "backend"))).toBe(false);
+    expect(existsSync(join(ws, "nosuch"))).toBe(false);
+  });
+
+  it("s-5c04 project clone skips a project with no url", () => {
+    const { ws, tasks } = setup({ backend: { branch: "main" } });
+    flume(ws, "init", "--root", tasks);
+    const r = flume(ws, "project", "clone", "--json");
+    expect(r.status).toBe(0);
+    expect(JSON.parse(r.stdout)[0].status).toBe("skipped");
   });
 
   it("s-2a1f clone makes the whole workspace", () => {
@@ -156,16 +193,15 @@ describe("flume init and projects", () => {
       backend: { url: backend, branch: "develop" },
       frontend: { url: "/nonexistent/frontend.git" },
     });
-    flume(ws, "init", "--root", tasks, "--clone");
-    // backend is present; frontend's clone failed so it is missing.
+    flume(ws, "init", "--root", tasks);
     const t = flume(ws, "project", "list");
     expect(t.status).toBe(0);
-    expect(t.stdout).toContain(`backend\t${backend}\tdevelop\tpresent`);
-    expect(t.stdout).toContain("frontend\t/nonexistent/frontend.git\t\tmissing");
+    expect(t.stdout).toContain(`backend\t${backend}\tdevelop\n`);
+    expect(t.stdout).toContain("frontend\t/nonexistent/frontend.git\t\n");
     const j = JSON.parse(flume(ws, "project", "list", "--json").stdout);
     expect(j).toEqual([
-      { name: "backend", url: backend, branch: "develop", present: true },
-      { name: "frontend", url: "/nonexistent/frontend.git", branch: "", present: false },
+      { name: "backend", url: backend, branch: "develop" },
+      { name: "frontend", url: "/nonexistent/frontend.git", branch: "" },
     ]);
   });
 

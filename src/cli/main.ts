@@ -14,9 +14,9 @@ const HELP = `flume - a workflow tool for agents
 Usage: flume <command>
 
 Commands:
-  init       set up this workspace folder [--root PATH] [--dir NAME] [--clone]
+  init       set up this workspace folder [--root PATH] [--dir NAME]
   clone      clone a tasks repo and set up its workspace: <git-url> [<workspace>]
-  project    list, add (flume project --help)
+  project    list, add, clone (flume project --help)
   serve      run the daemon in the foreground [--port N] (the human runs this; agents never do)
   status     show whether the daemon runs, its address and root [--json]
   stop       ask the daemon to exit
