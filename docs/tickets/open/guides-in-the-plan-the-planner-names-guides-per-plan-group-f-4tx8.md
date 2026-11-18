@@ -13,7 +13,7 @@ related: [fl-x6xn, fl-fu3v, fl-87h9]
 
 ## The ask
 
-Guides reach agents two ways. PUSH: an agent at an earlier step decides a guide is relevant to a later step (a phase, or a group of the plan) and records it on the task; when an agent asks flume for that step's instructions, flume prints the guide with them. PULL: an agent sees a relevant guide in the list and reads it itself. On hold until the human says build.
+Guides reach agents two ways. PUSH: an agent at an earlier step decides a guide is relevant to a later step (a phase, or a group of the plan) and records it on the task; when an agent asks flume for that step's instructions, flume prints the guide with them. PULL: an agent sees a relevant guide in the list and reads it itself. Go: the human, 2026-11-17 ~11:10 PM ET (via aide): "Build eg2q and 4tx8 and inform advisor".
 
 For whoever edits this ticket (the human, 2026-11-17): "the design at the top is the currently agreed-upon design; keep it current and DO NOT include narration or restatements in the design. The discussion section can include the discussion narrative with restatements as a reference."
 
