@@ -15,3 +15,6 @@ tasks = ["fl-ud4g"]
 
 [[tier]]
 tasks = ["fl-4tx8"]
+
+[[tier]]
+tasks = ["fl-7tyx"]
