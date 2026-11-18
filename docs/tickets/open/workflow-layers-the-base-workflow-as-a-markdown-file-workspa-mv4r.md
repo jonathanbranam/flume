@@ -55,16 +55,184 @@ base (shipped with flume) -> workspace (flume/base/ in the tasks repo) -> projec
 - When a layer has an error, prime, instructions and guide print the error (file, line, heading) to standard error and exit 1, instead of guessing.
 - Prime's XML (fl-87h9) changes: the merged workflow is one element instead of flume_base plus workspace_workflow, project_workflow and role (spec updated in the same change).
 
-### Example: a docs repo (flume/projects/docs/workflow.md)
+### Draft: the two base documents
 
-```
-# Workflow @replace
+Exactly what flume would ship, for the human's review. The words are today's built-in text
+(DEFAULT_BASE in src/cli/agent.ts; PHASE_STEPS and COMMON_STEPS in src/core/instructions.ts),
+split into sections, with commands in backticks and lines wrapped at 80 for rumdl. The
+project line (DEFAULT_PROJECT) is not in a file: flume adds it when a project is known.
 
-This repo is documents. When the human asks for an edit, make it directly on main.
-No task, no worktree, unless the human asks for one.
-```
+---
 
-(phases.md needs no override: with no tasks, no instructions are asked for.)
+**workflow.md** (printed whole by `flume prime`):
+
+````markdown
+# Flume workflow
+
+You are agent {name}, stored in $AGENT_NAME.
+
+## Using flume
+
+- Use the flume CLI to work with tasks; run `flume --help` to learn it.
+- Never start `flume serve` yourself; only the human does. If flume says the
+  server is not running, ask the human to start it.
+- Read and change tasks only with flume commands. Never read or edit task
+  files directly.
+
+## The human is in control
+
+They may move a task to any phase, forwards or backwards, or skip phases
+("write design and specs", "remove the specs and start over on the design",
+"the ticket is simple, skip specs and plan, just implement"). Do what they ask.
+
+## Working a task
+
+1. Claim the task (`flume task claim ID`); it prints your instructions for the
+   task's current phase. Follow them. To see them again, run
+   `flume task instructions ID`, not `flume task show` (that prints the task's
+   data, not what to do). Flume will not move a task forward for you until you
+   have read the instructions for its current phase.
+2. When your phase is done, set the next phase (`flume task phase ID PHASE`).
+   One agent will likely not do the whole workflow: another may take the next
+   phase, or finish the plan. If you are waiting on the human, assign the task
+   back to them (`flume task assign ID human`).
+3. In every phase, record important conversations with the human as comments
+   (`flume task comment ID`), quoting the human verbatim.
+
+## Phases
+
+In order. The specific steps for each are in the instructions. Read a part with
+`flume task show ID PART`; write one with `flume task write ID PART`, starting
+from its template (`flume task template PART`).
+
+- proposal: check that the task has a clear proposal, goal and scope. If not,
+  ask the human. Write them in the body.
+- design: when goal and scope are clear, think through the design questions
+  and write the design.
+- specs: when the design is clear, write the spec: clear requirements in EARS
+  form ("When <trigger>, the system SHALL <response>").
+- plan: read the body, design and spec, then write the plan: how to implement
+  the task, step by step, in numbered groups. Decide which guides apply to each
+  group. Then mark the task ready: `flume task phase ID implement`.
+- implement: do the plan one group at a time, report each item, and close the
+  task when done.
+
+## Guides
+
+Guides are how-to notes. In every phase: if you see guides (`flume guide`) that
+matter for a later phase of this task, push them
+(`flume task guide ID NAME --phase PHASE`); they are printed with that phase's
+instructions. Read any guide that matters for your own work now
+(`flume guide NAME`).
+````
+
+---
+
+**phases.md** (`flume task instructions ID` prints the H2 of the task's current
+phase, then "Every phase", then the template and pushed guides):
+
+````markdown
+# Phases
+
+## Proposal
+
+Check that the task has a clear proposal, goal and scope.
+
+- Read the task: `flume task show ID body`.
+- If the proposal, goal or scope is unclear, ask the human (assign the task to
+  them: `flume task assign ID human`).
+- Write them in the body: `flume task write ID body`, starting from the
+  template below (or the existing text).
+- When they are clear, move on: `flume task phase ID design`.
+
+## Design
+
+Think through the design questions and write the design.
+
+- Read the body: `flume task show ID body`.
+- Write the design: `flume task write ID design`, starting from the template
+  below.
+- Record each decision, the alternatives and why this one. Ask the human about
+  anything open.
+- When the design is clear, move on: `flume task phase ID specs`.
+
+## Specs
+
+Write the spec, clear requirements in EARS form.
+
+- Read the body and design: `flume task show ID body`,
+  `flume task show ID design`.
+- Write the spec: `flume task write ID spec`, starting from the template below.
+- A requirement is one EARS sentence ("When <trigger>, the system SHALL
+  <response>") with Given/When/Then scenarios.
+- When the spec is clear, move on: `flume task phase ID plan`.
+
+## Plan
+
+Write the plan, how to implement the task step by step.
+
+- Read the body, design and spec: `flume task show ID PART`.
+- Write the plan: `flume task write ID plan`, starting from the template below.
+  Numbered groups of numbered items.
+- Decide which guides (`flume guide`) apply to each group and name them with
+  Guide: lines under the group's heading, before its items. The guides are
+  printed with the group when an agent runs `flume task next`.
+- Then mark the task ready: `flume task phase ID implement`.
+
+## Implement
+
+Do the plan, one group at a time.
+
+- Read the body, design and spec for context.
+- Get the current group of plan items and its guides: `flume task next ID`.
+- Do the items, and report each one: `flume task done ID ITEM`, or
+  `flume task skip ID ITEM --reason TEXT` if it should not be done. Repeat
+  until the plan is complete.
+- When writing code, enter a git worktree to make the changes; when done, merge
+  main into it, then exit the worktree and merge it into main.
+- Close the task when done: `flume task close ID`.
+
+## Every phase
+
+- If you see guides (`flume guide`) that matter for a later phase of this
+  task, push them: `flume task guide ID NAME --phase PHASE`. Read any guide
+  that matters for your own work now: `flume guide NAME`.
+- Record important conversations with the human as comments
+  (`flume task comment ID`), quoting the human verbatim.
+- When your phase is done, set the next phase (`flume task phase ID PHASE`).
+  Another agent may take the next phase. If you are waiting on the human,
+  assign the task back to them (`flume task assign ID human`).
+````
+
+---
+
+**Example override, a docs repo** (flume/projects/docs/workflow.md):
+
+````markdown
+# Flume workflow @replace
+
+You are agent {name}, stored in $AGENT_NAME.
+
+This repo is documents. When the human asks for an edit, make it directly on
+main. No task, no worktree, unless the human asks for one.
+````
+
+**Example override, one phase changed** (flume/projects/web/phases.md):
+
+````markdown
+# Phases
+
+## Implement
+
+Do the plan, one group at a time. Run `npm test` before reporting each item.
+
+## Review @add
+
+Before closing, ask the human to review the change in the browser.
+````
+
+---
+
 
 ### Assumed (advisor; change if wrong)
 
@@ -110,3 +278,5 @@ Advisor's first draft used {replace}-style tags, front matter for whole-file rep
 ("rumdml" read as rumdl, the Markdown linter.)
 
 The human, 2026-11-18, verbatim: "Why not have two Markdown files, a different one for Prime and a different one for Phases? I'm not sure I understand that part." Advisor: no good reason for one file; two files means prime prints its file whole and instructions picks one H2, with nothing to cut out. Design changed to workflow.md and phases.md.
+
+The human, 2026-11-18, verbatim: "Can I just see the two documents in the task? I just don't know why not. Why wait for a worker to build it and then review it and then not like the outcome? I just want to see exactly what it looks like. Put some HRs between it and show me each of the documents that should be created so I can review them." Advisor added "Draft: the two base documents" to the Design.
