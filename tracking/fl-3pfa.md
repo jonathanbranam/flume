@@ -2,11 +2,14 @@
 id = "fl-3pfa"
 title = "flume layouts: everything in a flume/ folder, or everything at the repo top level, chosen at init"
 kind = "feature"
-state = "planned"
+state = "claimed"
 created_at = "2026-11-17T23:27:25.101Z"
-updated_at = "2026-11-18T02:51:19.619332387Z"
+updated_at = "2026-11-18T02:56:31.462428493Z"
 created_by = "external:advisor"
-watchers = ["external:advisor"]
+watchers = [
+    "external:advisor",
+    "agent:layout",
+]
 ticket = "3pfa"
 +++
 
