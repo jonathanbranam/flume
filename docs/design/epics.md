@@ -32,16 +32,26 @@ epic unless all the tickets are resolved. That's basically it for now."
 - **An epic's own workflow.** The human: epics "don't follow the same workflow". Either give
   epics a workflow of their own now, or wait for customizable workflows (docs/design/workflow-later.md,
   "per-task workflows") and use that to design a proper workflow for an epic. Not decided.
-- **What an epic's body looks like.** Starting point: bridle's product manager role definition
-  (asked of bridle's aide; to be filled in here). Bridle's working terms (its
-  docs/notes/roadmap.md and docs/notes/product-manager-trial.md, 2026-10-09/10):
-  - An epic is a planned group of work with an **outcome** and a **"Done when"**.
-  - Its sections in practice: The ask, Outcome, Done when, Children and order, Notes.
+- **What an epic's body looks like.** Starting point: bridle. It has no product manager role
+  definition (bridle's aide, 2026-11-18: the product manager ran as an advisor seat in a trial;
+  the old product-manager role name became project-manager, which says nothing about epics). What
+  bridle has (its docs/notes/roadmap.md, docs/notes/product-manager-trial.md,
+  workflow/base/rules/tickets.md and its real epics, e.g. br-tj7q, at bridle main 1564534a):
+  - An epic is a planned group of work with an **outcome** and a **"Done when"**, tagged to one
+    **theme** (a lasting area: a slug, no ID, may never finish).
+  - Shape in practice: kind epic; a theme; a title naming the outcome; body = The ask (the human's
+    words), Outcome, Done when (drafted by the product manager, confirmed by the human); often
+    Children and order, and Notes.
+  - Children point at the epic with `parent`; the epic does not list them.
   - A ticket belongs to an epic only if it is on the path to the epic's "Done when" (builds, and
     the design or research they wait on); ideas and investigations not yet committed to stay out
     until a decision pulls them in. The human (2026-10-10): "If it satisfies the 'when done,' then
     it can be part of that epic. If not, it's not."
-  - The roadmap orders epics; themes (lasting areas) group them for reading.
+  - The roadmap orders epics; themes group them for reading. Work is queued by epic rank, then
+    priority; a task outside the current epic waits unless the human says otherwise.
+  - Bridle also has a portable summary for other tools, docs/portable/tickets-lite.md (sections
+    Epics and Roadmap); not read yet.
+- **Themes.** Flume has no theme field. Whether it needs one.
 - **The roadmap and epics.** Whether the roadmap lists only epics (the brief), and whether it
   shows an epic's progress.
 - **Progress.** An epic's resolved children out of all its children (the UI spec's roadmap
