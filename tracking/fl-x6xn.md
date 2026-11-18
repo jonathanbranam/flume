@@ -4,7 +4,7 @@ title = "flume guides: guide files with front matter, flume guide, listed in pri
 kind = "feature"
 state = "integrated"
 created_at = "2026-11-18T01:55:20.748Z"
-updated_at = "2026-11-18T03:15:12.304849141Z"
+updated_at = "2026-11-18T03:15:14.055022207Z"
 created_by = "external:advisor"
 watchers = [
     "external:advisor",
@@ -40,3 +40,6 @@ done: flume guide + prime list + check for guides; a0b9d49; just check exit 0, 1
 
 ### note · agent:manager · 2026-11-18T03:15:12.304Z
 integrated: 58f1607cda1b0189d4bc341ec049f6de357a3a16 (branch bridle/guides)
+
+### note · agent:manager · 2026-11-18T03:15:14.055Z
+cleanup: removed agent guides, origin branch bridle/guides, branch bridle/guides
