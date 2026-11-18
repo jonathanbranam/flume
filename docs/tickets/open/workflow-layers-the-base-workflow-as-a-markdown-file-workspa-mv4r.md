@@ -30,7 +30,7 @@ One rule for every layered document in flume: the workflow, roles, guides and te
 
 ### Layers, in order
 
-base (shipped with flume) -> workspace (flume/base/ in the tasks repo) -> project (flume/projects/P/). For each document (workflow.md, phases.md, roles/R.md, guides/G.md, the templates), each layer's file of the same name merges into the result of the layers before it. The role layer is the role file in base, then in the project, merged the same way.
+base (shipped with flume) -> workspace (flume/base/ in the tasks repo) -> project (flume/projects/P/). For each document (workflow.md, phases.md, project.md, first-prompt.md, roles/R.md, guides/G.md, the templates), each layer's file of the same name merges into the result of the layers before it. The role layer is the role file in base, then in the project, merged the same way.
 
 ### Merging: replace is the default
 
@@ -50,7 +50,7 @@ base (shipped with flume) -> workspace (flume/base/ in the tasks repo) -> projec
 
 ### Preview and check
 
-- Preview: `flume preview workflow`, `flume preview phases`, `flume preview role R`, `flume preview guide G`, `flume preview template PART`, each with --project P; prints the merged document. `--layers` marks which file each section came from. `--json` gives the sections with their source.
+- Preview: `flume preview workflow`, `flume preview phases`, `flume preview project`, `flume preview first-prompt`, `flume preview role R`, `flume preview guide G`, `flume preview template PART`, each with --project P; prints the merged document. `--layers` marks which file each section came from. `--json` gives the sections with their source.
 - `flume check` checks every layered file in the tasks repo by the rules above and reports each error with file, line and heading.
 - When a layer has an error, prime, instructions and guide print the error (file, line, heading) to standard error and exit 1, instead of guessing.
 - Prime's XML (fl-87h9) changes: the merged workflow is one element instead of flume_base plus workspace_workflow, project_workflow and role (spec updated in the same change).
@@ -59,8 +59,8 @@ base (shipped with flume) -> workspace (flume/base/ in the tasks repo) -> projec
 
 Exactly what flume would ship, for the human's review. The words are today's built-in text
 (DEFAULT_BASE in src/cli/agent.ts; PHASE_STEPS and COMMON_STEPS in src/core/instructions.ts),
-split into sections, with commands in backticks and lines wrapped at 80 for rumdl. The
-project line (DEFAULT_PROJECT) is not in a file: flume adds it when a project is known.
+split into sections, with commands in backticks and lines wrapped at 80 for rumdl. The two
+short texts flume adds when it launches an agent get their own files too (below).
 
 ---
 
@@ -206,6 +206,29 @@ Do the plan, one group at a time.
 
 ---
 
+**project.md** (added to the prime text, after workflow.md, when a project is known;
+today's DEFAULT_PROJECT):
+
+````markdown
+# Project
+
+You are working on the {project} project. Read that project's CLAUDE.md and
+follow its instructions.
+````
+
+---
+
+**first-prompt.md** (the first prompt `flume agent` sends when the human gives
+none; today's DEFAULT_PROMPT; flume sends the text under the H1, not the H1):
+
+````markdown
+# First prompt
+
+Check your tickets and status, suggest next steps, and follow up.
+````
+
+---
+
 **Example override, a docs repo** (flume/projects/docs/workflow.md):
 
 ````markdown
@@ -241,6 +264,8 @@ Before closing, ask the human to review the change in the browser.
 - @add of a heading that already exists, and @remove with content under it, are errors: they are almost always mistakes.
 - Templates follow the same rule: a project template now merges by heading, and `# ... @replace` gives today's whole replacement (fl-fu3v).
 - A broken layer stops prime and instructions (exit 1) rather than being skipped: a skipped layer would silently give agents the wrong instructions. Alternative: warn and skip that layer.
+- The human said "that agent starting prompt" after advisor pointed at the project line; both launch texts (the project line and the default first prompt) get their own file. Drop one if only one was meant. Names: project.md and first-prompt.md (the agent spec calls it the first prompt, r-a7c0).
+- first-prompt.md's H1 is not sent to claude (a heading as the opening message would read oddly); every other document is printed whole.
 - No prepend, no moving sections, no per-paragraph edits (YAGNI).
 
 ## Discussion (for reference, not authoritative)
@@ -280,3 +305,5 @@ Advisor's first draft used {replace}-style tags, front matter for whole-file rep
 The human, 2026-11-18, verbatim: "Why not have two Markdown files, a different one for Prime and a different one for Phases? I'm not sure I understand that part." Advisor: no good reason for one file; two files means prime prints its file whole and instructions picks one H2, with nothing to cut out. Design changed to workflow.md and phases.md.
 
 The human, 2026-11-18, verbatim: "Can I just see the two documents in the task? I just don't know why not. Why wait for a worker to build it and then review it and then not like the outcome? I just want to see exactly what it looks like. Put some HRs between it and show me each of the documents that should be created so I can review them." Advisor added "Draft: the two base documents" to the Design.
+
+The human, 2026-11-18, verbatim: "Yeah, that's a good callout. That agent starting prompt is something that a project should be able to override as well, so let's give that the same treatment. [...] I'm not sure what to call it: agent starting prompt, opening prompt, launch prompt. I don't know, something like that. Just put it in its own Markdown file. There's no reason not to, and it'll be overridden in a Markdown file, so it'll just get its own file."
