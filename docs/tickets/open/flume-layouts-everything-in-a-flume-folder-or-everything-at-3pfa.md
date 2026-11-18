@@ -1,6 +1,6 @@
 ---
 id: fl-3pfa
-title: "flume layouts: everything in a flume/ folder, or everything at the repo top level, chosen at init"
+title: "flume layout: one flume root in the tasks repo, prime prints the workflow, tasks as folders"
 kind: feature
 created: 2026-11-17
 created_by: external:advisor
@@ -12,6 +12,103 @@ related: [fl-7sme]
 ---
 
 ## The ask
+
+Build the design below. It is the agreed design: where the Discussion section disagrees, the Design wins. On hold until the human says build (the human, 2026-11-17: "Don't build it yet").
+
+## Design
+
+### Files and folders
+
+```
+<workspace>/                     folder of related repos; not a git repo
+|-- .flume/
+|   |-- config.toml              root = "fluff-flume"   (machine-local, not versioned)
+|   `-- daemon.json              daemon state (unchanged)
+|-- backend/                     project repos: nothing flume-related in them
+`-- fluff-flume/                 the tasks repo
+    |-- flume.toml               dir = "flume"   (versioned; "." = the repo top)
+    `-- flume/                   <flume-root>
+        |-- base/                workspace-wide layer
+        |   |-- workflow.md
+        |   |-- roles/
+        |   |   `-- <role>.md
+        |   `-- guides/
+        |       `-- <guide>.md
+        |-- projects/
+        |   `-- <project>/       project layer; overrides base/
+        |       |-- workflow.md
+        |       |-- roles/
+        |       |   `-- <role>.md
+        |       `-- guides/
+        |           `-- <guide>.md
+        `-- tasks/
+            |-- open/
+            |   `-- <slug>-<id>/
+            |       |-- task.toml     the task's fields
+            |       |-- body.md       the ask; the task's root file
+            |       |-- comments.md   the comments
+            |       `-- ...           spec artifacts, attachments (images, CSVs)
+            `-- resolved/
+                `-- <slug>-<id>/      same as open/
+```
+
+### Config
+
+- `flume.toml` sits at the top of the tasks repo and is versioned, so every clone finds the same layout. Its one key is `dir`: the flume-root folder's name, `"flume"` or `"."` (the repo top itself).
+- `.flume/config.toml` in the workspace folder is machine-local and holds only `root`, the tasks repo.
+- Nothing flume-related goes in a project repo. A project's own CLAUDE.md stays the project's.
+
+### Prime
+
+- Agents never read workflow, role or guide files; they run `flume`. `flume prime` asks the daemon (project name and role) and prints the whole text to stdout, in this order, later overriding earlier:
+  1. flume's built-in base text (ships inside flume; not copied into any repo)
+  2. `base/workflow.md`
+  3. `projects/<project>/workflow.md`
+  4. `base/roles/<role>.md`, then `projects/<project>/roles/<role>.md`, when a role is given
+  5. the names of the guides available, and how to print one (`flume guide <name>`)
+- A missing file is skipped without an error.
+- The current prime line "Workflow: read the .md files in ..." goes.
+
+### Roles
+
+- A role is a file. Flume keeps no list of roles: the files in `roles/` (in `base/` and the project's folder) are the roles there are.
+
+### Guides
+
+- `flume guide <name>` prints `projects/<project>/guides/<name>.md` if it exists, else `base/guides/<name>.md`; an error naming the guide when neither does.
+
+### Tasks
+
+- A task is a folder, `tasks/open/<slug>-<id>/` (moved to `tasks/resolved/` when resolved).
+- `task.toml` holds the fields that were front matter (id, title, status, dates, ...), in TOML. Flume writes it on status changes, so a status change never touches `body.md`.
+- `body.md` is the ask, with no front matter.
+- `comments.md` holds the comments, `### <time>, <author>` headers as today (fl-ha4p).
+- Any other file in a task folder (spec artifacts, attachments) is not flume's: flume leaves it alone and moves it with the folder.
+
+### init
+
+- `flume init` no longer copies a base workflow; the built-in text lives in flume. With nothing to rewrite, `init --force` goes.
+
+### Assumed (advisor; change if wrong)
+
+- How the role gets to prime: `flume agent --role <role>` passes it; with no role, prime prints no role part.
+- How init picks the folder: `flume init --root <repo> [--dir <name>]`, default `flume`; init writes `flume.toml` if missing and creates `<flume-root>/tasks/open/` and `resolved/`.
+- Tasks of several projects share the one `tasks/` folder, with a `project` field in `task.toml` (advisor's pick, not yet confirmed by the human).
+- Existing workspaces move by hand once; no migration command (flume is days old).
+
+### Not in this ticket
+
+- The pluggable spec system (OpenSpec-like) that writes spec artifacts into task folders: its own ticket, later.
+
+### Specs
+
+- Per rule specs-for-every-surface, the change updates the specs for init, prime, agent, the task file format and the new `flume guide` command, with tests.
+
+## Discussion (for reference, not authoritative)
+
+How the design was reached, kept for the record. Older sections below were overruled by later ones; the Design above is the result.
+
+### Original ask
 
 Two layouts for flume's files in a repo, chosen at `flume init`. Do NOT build yet (the human, 2026-11-17: "Don't build it yet. Don't need to build anything quite yet, but let's make a ticket for this folder structure and then document what I just said.").
 
@@ -25,7 +122,7 @@ The human, 2026-11-17 (verbatim excerpts, from voice):
 
 Today (fl-7sme): tasks in `<root>/flume/tasks/`, workflow in `<root>/workflow/` (base in `<root>/workflow/base/`): mixed, which item 1 rejects.
 
-## Design (draft, for the human)
+### Design (draft, for the human)
 
 | layout | tasks | workflow | base workflow |
 |---|---|---|---|
@@ -35,7 +132,7 @@ Today (fl-7sme): tasks in `<root>/flume/tasks/`, workflow in `<root>/workflow/` 
 - Chosen at `flume init` (e.g. `--layout folder|top`); one layout per repo, everything follows it.
 - Likely use: folder for a single repo that holds both code and flume; top for a dedicated tasks repo (e.g. `fluff-flume/`).
 
-## Open points (advisor, to settle before ready)
+### Open points (advisor, to settle before ready)
 
 1. **Where the layout is recorded.** `.flume/config.toml` is machine-local and not versioned; a second clone (or work vs home) must find the same layout. Options: detect from the repo (a `flume/` folder at the top means folder layout), or a small versioned marker file in the repo.
 2. **Project repos.** Projects never run `flume init`. Which layout does `backend/` use for its project workflow: the same as the workspace, or detected per repo (`backend/flume/workflow/` if present, else `backend/workflow/`)?
@@ -45,13 +142,13 @@ Today (fl-7sme): tasks in `<root>/flume/tasks/`, workflow in `<root>/workflow/` 
 
 Separate, not in this ticket: multi-project task layout (distinct projects' tasks in one tasks repo), to be talked through next.
 
-## Decisions, 2026-11-17 (the human, verbatim)
+### Decisions, 2026-11-17 (the human, verbatim)
 
 > Good point on the config. It should indicate whether we're using top level or nested structure. It can just list the folder name. "." For top level or "flume".
 
 > Ok. I think for v1 let's put all the flume stuff in the flume repo. I'm not sure on the structure for workflow yet but let's try Flume-root/project/* for project level overrides. Base is Flume-root/base
 
-## Resulting v1 layout (advisor's reading; settles open points 1 and 2)
+### Resulting v1 layout (advisor's reading; settles open points 1 and 2)
 
 `<flume-root>` is the flume folder in the tasks repo: the repo top (`.`) or `<repo>/flume/`.
 
@@ -69,7 +166,7 @@ Separate, not in this ticket: multi-project task layout (distinct projects' task
 
 Open (advisor): a project named `base`, `workflow` or `tasks` would collide; init/check should refuse those names, or projects could live under `<flume-root>/projects/<project>/` instead. Workspace rules folder name is unconfirmed by the human.
 
-## Decision: projects under projects/ (2026-11-17)
+### Decision: projects under projects/ (2026-11-17)
 
 The human: "Sure projects in projects/ folder." (Settles the name-collision point.)
 
@@ -89,7 +186,7 @@ fluff-flume/
 
 Prime reading order: base/, workflow/, projects/<project>/, then the project repo's CLAUDE.md.
 
-## Decision: prime builds the workflow; final layout (2026-11-17 ~8:45 PM ET)
+### Decision: prime builds the workflow; final layout (2026-11-17 ~8:45 PM ET)
 
 The human, verbatim:
 
@@ -120,7 +217,7 @@ The human, verbatim:
 
 This replaces the "Resulting v1 layout" and "projects under projects/" sections above.
 
-### Layout (cleaned up)
+#### Layout (cleaned up)
 
 The human: "'other task related files' should be indented to indicate they are inside of slug-id ... please make that directory structure nicer-looking, i was just typing and being quick"
 
@@ -155,7 +252,7 @@ The human: "'other task related files' should be indented to indicate they are i
                 `-- <slug>-<id>/   (same as open/)
 ```
 
-### What this means (advisor's reading)
+#### What this means (advisor's reading)
 
 - **Prime prints the workflow text, it does not point at files.** `flume prime` asks the daemon (project name and role) and prints, in order: flume's built-in base workflow, the workspace workflow, the project workflow. Agents never read workflow files; they run `flume prime`. Today's prime (`src/cli/agent.ts`, the "Workflow: read the .md files in ..." line) tells agents to read files; that goes.
 - **Built-in base comes from the flume install**, not a copy in the tasks repo. So `flume init` no longer copies `workflow/base/`, and `init --force` loses its reason to exist (it only rewrote base).
@@ -163,20 +260,20 @@ The human: "'other task related files' should be indented to indicate they are i
 - **Tasks become folders**: `tasks/open/<slug-id>/body.md` and `comments.md`, instead of one `<slug-id>.md` file with a `## Comments` section (changes fl-ha4p's format and the task file format spec).
 - **Role** is a new input to prime; flume has no roles today.
 
-### Open (advisor, to confirm with the human)
+#### Open (advisor, to confirm with the human)
 
 1. `<flume-root>/base/workflow.md`: is this the **workspace** workflow (step 2), with the built-in base (step 1) living only inside flume? Advisor's reading: yes; otherwise the built-in base exists twice. If so, `base/` might be better named `workspace/` to avoid confusion with the built-in base.
 2. Roles: which roles, and where does a role's workflow live (e.g. `base/roles/<role>.md`)? Or is role passed now and used later (YAGNI)?
 3. Task folder: where does the front matter (id, title, status) go: top of `body.md`? Other task files live inside the task's folder (settled); what they are (attachments?) is open.
 4. Does `flume.toml` live only at the tasks-repo top and `.flume/config.toml` only in the workspace folder? (Advisor: yes, as drawn.)
 
-### The human, 2026-11-17 (on open point 1)
+#### The human, 2026-11-17 (on open point 1)
 
 > This will be the same structure once we add rules, they will be inside of base/ or project/<project>/
 
 Advisor's reading: the folder stays named `base/` (no rename to `workspace/`). It is the workspace-wide layer in the tasks repo; `projects/<project>/` is the project layer. Rules, when they come, go in the same two places (e.g. `base/rules/`, `projects/<project>/rules/`), and prime prints them the same way. Flume's built-in text (step 1) stays inside flume and is printed first.
 
-### Decision: task fields in task.toml (2026-11-17)
+#### Decision: task fields in task.toml (2026-11-17)
 
 The human, verbatim:
 
@@ -193,7 +290,7 @@ Result:
 - Tradeoff accepted: Obsidian no longer shows the fields as properties.
 - Settles open point 3's front-matter question; what the other task files are stays open.
 
-### Other task files: spec artifacts (2026-11-17)
+#### Other task files: spec artifacts (2026-11-17)
 
 The human, verbatim:
 
@@ -227,7 +324,7 @@ The human, 2026-11-17: "could also be attachments as well, yes. Images, CSVs, et
 
 So a task folder may also hold attachments (any file type). Same v1 rule: flume leaves files it doesn't own alone and moves them with the folder.
 
-### Roles and guides (2026-11-17)
+#### Roles and guides (2026-11-17)
 
 The human, verbatim: "roles are a folder inside base/ and projects/<name>; so are guides."
 
