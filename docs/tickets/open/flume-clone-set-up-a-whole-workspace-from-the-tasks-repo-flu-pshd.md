@@ -33,28 +33,31 @@ projects:
 
 ### flume init
 
-`flume init [--root PATH]`, run in the workspace folder (which need not be a git repository), does exactly this, in order:
+`flume init [--root PATH] [--clone]`, run in the workspace folder (which need not be a git repository), does exactly this, in order:
 
 1. **Finds the task root**: `--root PATH`, else `root` in `.flume/config.yaml`, else the git repository the current folder is in (its main checkout). When there is none, or it is not a git repository: error on stderr saying there is no task root, exit 1, nothing created.
 2. **Makes `.flume/`** in the workspace folder (if missing), with a `.gitignore` holding `*`.
 3. **Writes `.flume/config.yaml`** with `root: <path>` when `--root` is given (relative to the workspace folder when inside it); without `--root` it keeps the file as it is.
 4. **Writes `flume.yaml`** at the task root's top with `dir: flume` when it has none, and commits it there as one commit. An existing `flume.yaml` is read, never changed.
-5. **Clones each project** in `flume.yaml`'s `projects` that has no folder yet, into `<workspace>/<name>/`, with plain `git clone <url>`. A folder that already exists is left alone. A failed clone is reported on stderr with its name and URL; init carries on with the rest.
-6. **Prints** what it did (workspace, task root, each project cloned or already there) and ends by telling the human to run `flume serve` in the workspace.
+5. **Checks the projects** in `flume.yaml`'s `projects`: each one with no folder at `<workspace>/<name>/` is missing.
+   - Without `--clone`: prints each missing project's name and URL, and a line saying `flume init --clone` clones them. Clones nothing.
+   - With `--clone`: clones each missing project into `<workspace>/<name>/` with plain `git clone <url>`. A failed clone is reported on stderr with its name and URL; init carries on with the rest.
+   - A folder that already exists is left alone either way.
+6. **Prints** what it did (workspace, task root, each project cloned, already there or missing) and ends by telling the human to run `flume serve` in the workspace.
 
-- Exit codes: 0 when all went well; 1 when there is no task root or any clone failed; 2 for a bad option (unknown option, `--root` without a path).
-- Running it again in a set-up workspace is safe: it repeats the steps, which clones any project added to `flume.yaml` since and changes nothing else.
+- Exit codes: 0 when all went well (missing projects without `--clone` are not an error); 1 when there is no task root or any clone failed; 2 for a bad option (unknown option, `--root` without a path).
+- Running it again in a set-up workspace is safe: it repeats the steps, so it reports (or with `--clone`, clones) any project added to `flume.yaml` since, and changes nothing else.
 - It never: starts the daemon, pushes, runs `git init`, copies a base workflow (the built-in text lives in flume; fl-3pfa), writes anything in a project repo, or creates task folders (flume makes those when a task is first written).
 
 ### flume clone
 
-- `flume clone <git-url> [<workspace>]`: the workspace is the current folder, or `<workspace>` when given (as `git init [<dir>]`); flume makes the folder if missing, clones the tasks repo into it under the repo's own name (`<workspace>/fluff-flume/`), then runs `flume init` there (so: projects cloned, `.flume/config.yaml` written).
+- `flume clone <git-url> [<workspace>]`: the workspace is the current folder, or `<workspace>` when given (as `git init [<dir>]`); flume makes the folder if missing, clones the tasks repo into it under the repo's own name (`<workspace>/fluff-flume/`), then runs `flume init --clone` there (so: projects cloned, `.flume/config.yaml` written).
 - It never starts the daemon; it ends by telling the human to run `flume serve` in the workspace.
 
 ### Assumed (advisor; change if wrong)
 
 - Projects are cloned on their default branch; flume does no other git setup.
-- Running init again is allowed (step list above) instead of today's "already set up" error, because fl-3pfa drops `--force` and a re-run is how newly listed projects get cloned.
+- Running init again is allowed (step list above) instead of today's "already set up" error, because fl-3pfa drops `--force` and a re-run is how newly listed projects are found.
 - Init commits `flume.yaml` when it writes one (as today's init commits the base workflow) and does not create empty task folders (git can't hold empty folders).
 
 ## Discussion (for reference, not authoritative)
@@ -90,3 +93,7 @@ Settled: with no path, the current folder is the workspace; an optional path wor
 The human, 2026-11-17: "add to that ticket exactly what flume init does as well, even if it is unchanged"
 
 Advisor: the Design's flume init section now lists every step, including what is unchanged from today's init (task root lookup, `.flume/` with its `.gitignore`, `config.yaml` root, never push or git init). Changed from today: no base workflow copy, no `--force`, re-run allowed, `flume.yaml` written, projects cloned.
+
+The human, 2026-11-17: "I don't think flume init should clone by default. I think it should print a message for missing projects and support an optional `--clone` to clone them"
+
+Settled: `flume init` reports missing projects; `flume init --clone` clones them; `flume clone` runs `flume init --clone`.
