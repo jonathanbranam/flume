@@ -273,3 +273,15 @@ from = "fl-3pfa"
 to = "fl-eg2q"
 kind = "blocks"
 created_at = "2026-11-18T03:05:49.761Z"
+
+[[edge]]
+from = "fl-fu3v"
+to = "fl-eg2q"
+kind = "related"
+created_at = "2026-11-18T03:06:19.764Z"
+
+[[edge]]
+from = "fl-fu3v"
+to = "fl-87h9"
+kind = "related"
+created_at = "2026-11-18T03:06:19.766Z"
