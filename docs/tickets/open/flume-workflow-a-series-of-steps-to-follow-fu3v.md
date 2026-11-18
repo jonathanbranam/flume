@@ -31,6 +31,7 @@ For whoever edits this ticket (the human, 2026-11-17): "the design at the top is
 - `agent`: the working agent: the agent the task was last assigned to. Kept when the task is assigned to the human for feedback, so the human can see which running agent is on it.
 - `phase`: one of `proposal`, `design`, `specs`, `plan`, `implement`. A new task starts at `proposal`.
 - A task is ready to build when its phase is `implement`.
+- The v1 workflow is linear: the five phases in that order, each requiring the one before. The same for every task.
 
 ### Task parts (files in the task's folder; agents see only the names)
 
@@ -107,6 +108,7 @@ For whoever edits this ticket (the human, 2026-11-17): "the design at the top is
 - `flume task skip ID ITEM... --reason TEXT`: marks the items skipped, with the reason. `--reason` is required.
 - `done` and `skip` refuse items outside the current group or not in the plan (exit 1, nothing changed).
 - `flume task phase ID PHASE`: sets `phase`. Any phase may follow any other (forwards, backwards, skipping).
+- `flume workflow`: prints the whole workflow as a list: each phase in order, the part it writes, and what it requires (the phase before). `--json` prints the same as JSON (rule cli-json-output).
 - `flume task list` shows `phase` and `assignee`, and takes `--assignee NAME|human` and `--phase PHASE`. `--json` as rule cli-json-output.
 
 ### Built-in base text
@@ -134,6 +136,7 @@ Working a task:
 
 ### Not in v1
 
+- No branching: v1 is linear. Later enhancements (per-task workflows, a DAG, optional steps, steps for a given role, template overrides) are in `docs/design/workflow-later.md`.
 - No workflow schema file, no per-step instruction commands, no shipped continue skill (the OpenSpec-like model in Discussion is for later).
 - Project and workspace workflows stay free text printed by prime (fl-3pfa); flume does not parse them.
 - No verify step before close (later).
@@ -224,6 +227,21 @@ Advisor compared v1 with OpenSpec and suggested: living specs, a checklist plan 
 Advisor asked about a check before close and section outlines per part. The human:
 
 > verify can come later; yes every file should have a template
+
+> yes, some good notes there:
+>
+> 1. an agent can query to see the entire workflow as a list with dependencies or as JSON
+> 2. v1 workflow is linear; later it can branch
+>
+> Later enhancements, record these in a document for review and revision:
+>
+> 1. workflow can be specified differently for different tasks
+> 2. workflow is a DAG
+> 3. some steps become optional or required
+> 4. some steps MUST be done by a different agent with a specific role
+> 5. templates can be overridden
+
+Advisor recorded the later list in docs/design/workflow-later.md.
 
 Context: asked what flume's built-in workflow text is, advisor showed today's prime text (identity, flume --help, never start flume serve; no workflow steps). Advisor: Open questions 1-7 below (from before the v1 flow) are superseded for v1 by the Design; they stay for the later OpenSpec-like model. The audit trail went to its own ticket, fl-eg2q.
 
