@@ -188,3 +188,4 @@
 {"actor":"external:orchestrator","at":"2026-11-18T02:22:50.662231258Z","queue":"reprioritized"}
 {"actor":"agent:agent-yaml","at":"2026-11-18T02:24:11.296416457Z","from":"claimed","task":"fl-89z2","to":"built"}
 {"actor":"agent:manager","at":"2026-11-18T02:24:42.421209991Z","from":"built","task":"fl-89z2","to":"integrated"}
+{"actor":"human","at":"2026-11-18T02:31:09.895Z","from":"","task":"fl-t8xv","to":"pending"}
