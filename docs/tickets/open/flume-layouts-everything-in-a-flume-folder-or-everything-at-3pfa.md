@@ -237,3 +237,7 @@ Advisor's reading:
 - Assumed file naming: one file per role or guide, `roles/<role>.md`, `guides/<guide>.md`.
 - Prime: given a role, prints the role's text from base/ then from projects/<project>/, after the workflow layers.
 - Open: how guides reach agents. Agents don't read files, so presumably a flume command prints one (e.g. `flume guide <name>`), and prime lists the guides available. Which roles exist is up to the workspace (they are files), so flume does not need a fixed list.
+
+The human, 2026-11-17, on the guides question above: "yes. that's right"
+
+Settled: `flume guide <name>` prints a guide (project's over the workspace's); prime lists the guides available. Roles: no fixed list in flume; the role files are the roles.
