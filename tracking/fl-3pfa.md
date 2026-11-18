@@ -2,9 +2,9 @@
 id = "fl-3pfa"
 title = "flume layouts: everything in a flume/ folder, or everything at the repo top level, chosen at init"
 kind = "feature"
-state = "open"
+state = "planned"
 created_at = "2026-11-17T23:27:25.101Z"
-updated_at = "2026-11-18T02:45:17.978110981Z"
+updated_at = "2026-11-18T02:51:19.619332387Z"
 created_by = "external:advisor"
 watchers = ["external:advisor"]
 ticket = "3pfa"
@@ -28,3 +28,6 @@ readied by external:advisor
 
 ### note · external:advisor · 2026-11-18T02:45:17.978Z
 human via advisor: go. The human, 2026-11-17 ~10:30 PM ET: "build it". Hold lifted; readied.
+
+### note · external:orchestrator · 2026-11-18T02:51:19.619Z
+From orchestrator: fl-3pfa planned and queued (hold lifted: human via advisor 'build it'). Sonnet. Build from The ask + Design only; Discussion is background.

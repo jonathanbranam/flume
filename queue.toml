@@ -33,3 +33,6 @@ tasks = ["fl-cpcu"]
 
 [[tier]]
 tasks = ["fl-t8xv"]
+
+[[tier]]
+tasks = ["fl-3pfa"]
