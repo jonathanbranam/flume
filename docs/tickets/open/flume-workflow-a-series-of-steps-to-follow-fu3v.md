@@ -39,7 +39,7 @@ For whoever edits this ticket (the human, 2026-11-17): "the design at the top is
 
 - `body.md`: the proposal: goal and scope.
 - `design.md`, `spec.md`, `plan.md`: one per phase.
-- Important conversation with the human: see Open question 1.
+- `comments.md` (fl-3pfa): the task's comments, written with `flume task comment`. Important conversations with the human are recorded there, the human's words verbatim. No separate discussion file.
 
 ### Built-in base text
 
@@ -59,6 +59,7 @@ Working a task:
    - plan: read body.md, design.md and spec.md, then write plan.md: how to implement the task, step by step. Then mark the task ready: flume task phase ID implement.
    - implement: read body.md, design.md and spec.md for context, then follow the steps in plan.md. When writing code, enter a git worktree to make the changes; when done, merge main into it, then exit the worktree and merge it into main. Close the task when done.
 3. When your phase is done, set the next phase (flume task phase ID PHASE). The same agent may not do every phase. If you are waiting on the human, assign the task back to them (flume task assign ID human).
+4. In every phase, record important conversations with the human as comments (flume task comment ID), quoting the human verbatim.
 ```
 
 ### Not in v1
@@ -68,8 +69,7 @@ Working a task:
 
 ### Open (for the human)
 
-1. Important conversations: the human named `discussions.md`; fl-3pfa (being built) has `comments.md` for `flume task comment`. One file or two? Advisor recommends one: keep `comments.md` and tell agents to record important conversations as comments.
-2. Do agents write `body.md`, `design.md`, `spec.md`, `plan.md` through flume (e.g. `flume task write ID design.md --file -`) so the audit trail (fl-eg2q) records each update, or edit the files directly and flume records only its own commands? Advisor recommends through flume, since body updates are in the audit ask.
+1. Do agents write `body.md`, `design.md`, `spec.md`, `plan.md` through flume (e.g. `flume task write ID design.md --file -`) so the audit trail (fl-eg2q) records each update, or edit the files directly and flume records only its own commands? Advisor recommends through flume, since body updates are in the audit ask.
 
 ## Discussion (for reference, not authoritative)
 
@@ -118,6 +118,10 @@ Then the human:
 > I guess, if CLAIM is shorthand for "assign my-id" that's totally fine, but they should work exactly the same
 
 > sure, then just say "claim the task"
+
+Asked one file or two for important conversations (discussions.md vs fl-3pfa's comments.md):
+
+> sure, one file: comments
 
 Context: asked what flume's built-in workflow text is, advisor showed today's prime text (identity, flume --help, never start flume serve; no workflow steps). Advisor: Open questions 1-7 below (from before the v1 flow) are superseded for v1 by the Design; they stay for the later OpenSpec-like model. The audit trail went to its own ticket, fl-eg2q.
 
