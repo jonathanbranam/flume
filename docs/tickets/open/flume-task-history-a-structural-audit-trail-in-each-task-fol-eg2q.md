@@ -20,7 +20,7 @@ For whoever edits this ticket (the human, 2026-11-17): "the design at the top is
 ## Design
 
 - Each task folder holds `history.jsonl`: one JSON object per line, appended, never rewritten. Flume writes it; nobody edits it by hand.
-- Every flume command that changes a task appends one line: create, field updates, claim, assign, phase, comment, close, reopen, and file writes (if fl-fu3v open question 2 goes "through flume").
+- Every flume command that changes a task appends one line: create, field updates, assign, phase, comment, close, reopen, and file writes (if fl-fu3v open question 2 goes "through flume").
 - Each line: `time` (UTC, ISO 8601 with Z), `by` (`$AGENT_NAME`, or `human` when unset), `action`, and the action's data: `field`, `from`, `to` for field changes; `file` for a file write (the name only, not the text).
 - `flume task history ID` prints it, one line per entry, oldest first; `--json` prints a JSON array (rule cli-json-output).
 - Moves with the task folder (open/resolved).
