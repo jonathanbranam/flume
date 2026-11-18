@@ -41,3 +41,5 @@ The human, 2026-11-17 (verbatim): "flume agent show should print something human
 Survey of `src/cli` at the time: `--json` exists in task.ts (all task commands) and roadmap.ts (`roadmap show` only); `agent show` printed `JSON.stringify(entry)` (src/cli/agent.ts:270).
 
 The human, 2026-11-17: "yes" (errors stay text on stderr with `--json`).
+
+The human, 2026-11-17: "right, anything I might want to pipe through jq or anything an agent might want to read or pipe through jq should support --json; your list looks good; write this as a bridle rule for this project's CLI commands as well". Rule requested from the orchestrator (project rule, like specs-for-every-surface).
