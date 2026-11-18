@@ -211,3 +211,5 @@
 {"actor":"external:orchestrator","at":"2026-11-18T02:59:21.744432753Z","from":"open","task":"fl-x6xn","to":"planned"}
 {"actor":"external:orchestrator","at":"2026-11-18T02:59:21.754885592Z","queue":"reprioritized"}
 {"actor":"agent:layout","at":"2026-11-18T03:04:37.544869299Z","from":"claimed","task":"fl-3pfa","to":"built"}
+{"actor":"agent:manager","at":"2026-11-18T03:05:17.116717486Z","from":"built","task":"fl-3pfa","to":"integrated"}
+{"actor":"human","at":"2026-11-18T03:05:38.479Z","from":"","task":"fl-eg2q","to":"pending"}

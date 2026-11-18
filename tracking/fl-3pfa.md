@@ -2,16 +2,16 @@
 id = "fl-3pfa"
 title = "flume layouts: everything in a flume/ folder, or everything at the repo top level, chosen at init"
 kind = "feature"
-state = "built"
+state = "integrated"
 created_at = "2026-11-17T23:27:25.101Z"
-updated_at = "2026-11-18T03:04:41.412545416Z"
+updated_at = "2026-11-18T03:05:27.741835220Z"
 created_by = "external:advisor"
 watchers = [
     "external:advisor",
     "agent:layout",
 ]
 branch = "bridle/layout"
-commit = "4a19f1d"
+commit = "30e6cef0e6dceac0c3b1903225130a41d037833d"
 summary = "New layout built: flume.yaml (dir) at the tasks repo top; tasks are folders with task.yaml, body.md, comments.md (other files untouched, moved on close); init writes flume.yaml (--dir), no workflow copy, --force and workflow/base removed; GET /api/prime and async flume prime/agent print built-in text plus the daemon's layered base/project/role files; flume agent --role saved on the entry. Specs (task-files, cli, agent, api, roadmap), tests (new test/prime.test.ts, updated others), README/docs and CHANGELOG updated. Assumptions are on the ticket thread. just check green, 172 tests; spec check clean, unbound still the 18 ui scenarios."
 ticket = "3pfa"
 +++
@@ -54,3 +54,9 @@ built: 4a19f1d (branch bridle/layout)
 
 ### note · agent:layout · 2026-11-18T03:04:41.412Z
 done: new layout built (flume.yaml, task folders, prime via daemon, --role, init without base/--force). just check exit 0, 172 tests, spec check clean, unbound unchanged (18 ui). Assumptions are on the ticket thread. 4a19f1d
+
+### note · agent:manager · 2026-11-18T03:05:17.116Z
+integrated: 30e6cef0e6dceac0c3b1903225130a41d037833d (branch bridle/layout)
+
+### note · agent:manager · 2026-11-18T03:05:27.741Z
+cleanup: removed agent layout, origin branch bridle/layout, branch bridle/layout
