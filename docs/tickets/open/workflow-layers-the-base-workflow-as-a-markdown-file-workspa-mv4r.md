@@ -21,15 +21,16 @@ One rule for every layered document in flume: the workflow, roles, guides and te
 
 ### Documents are Markdown files that pass the linter
 
-- Flume ships its base workflow as one Markdown file (today's DEFAULT_BASE overview, plus PHASE_STEPS and COMMON_STEPS, word for word), read at run time, no build step. Base roles, guides and templates are Markdown files too.
+- Flume ships its base workflow as two Markdown files, read at run time, no build step:
+  - workflow.md: the overview flume prime prints (today's DEFAULT_BASE, word for word).
+  - phases.md: the steps per phase, one H2 per phase (proposal, design, specs, plan, implement), and an H2 for the steps of every phase (today's PHASE_STEPS and COMMON_STEPS, word for word). flume task instructions ID prints the merged H2 for the task's current phase and the every-phase H2, then the template and pushed guides (fl-4tx8 otherwise unchanged). A phase with no H2 left prints a line saying the workflow has no steps for it.
+- Base roles, guides and templates are Markdown files too.
 - Every layered file passes rumdl (markdownlint rules): in particular exactly one H1 per document.
-- The workflow's shape: H2 sections for the overview parts; an H2 Phases with one H3 per phase (proposal, design, specs, plan, implement) holding that phase's steps; an H2 for the steps of every phase.
-- flume prime prints the merged workflow minus the Phases detail; flume task instructions ID prints the merged section for the task's current phase, the every-phase section, the template and pushed guides (fl-4tx8 otherwise unchanged). A phase with no section left prints a line saying the workflow has no steps for it.
 - Placeholders ({name}, {project}) work as today.
 
 ### Layers, in order
 
-base (shipped with flume) -> workspace (flume/base/ in the tasks repo) -> project (flume/projects/P/). For each document (workflow.md, roles/R.md, guides/G.md, the templates), each layer's file of the same name merges into the result of the layers before it. The role layer is the role file in base, then in the project, merged the same way.
+base (shipped with flume) -> workspace (flume/base/ in the tasks repo) -> project (flume/projects/P/). For each document (workflow.md, phases.md, roles/R.md, guides/G.md, the templates), each layer's file of the same name merges into the result of the layers before it. The role layer is the role file in base, then in the project, merged the same way.
 
 ### Merging: replace is the default
 
@@ -49,7 +50,7 @@ base (shipped with flume) -> workspace (flume/base/ in the tasks repo) -> projec
 
 ### Preview and check
 
-- Preview: `flume preview workflow`, `flume preview role R`, `flume preview guide G`, `flume preview template PART`, each with --project P; prints the merged document. `--layers` marks which file each section came from. `--json` gives the sections with their source.
+- Preview: `flume preview workflow`, `flume preview phases`, `flume preview role R`, `flume preview guide G`, `flume preview template PART`, each with --project P; prints the merged document. `--layers` marks which file each section came from. `--json` gives the sections with their source.
 - `flume check` checks every layered file in the tasks repo by the rules above and reports each error with file, line and heading.
 - When a layer has an error, prime, instructions and guide print the error (file, line, heading) to standard error and exit 1, instead of guessing.
 - Prime's XML (fl-87h9) changes: the merged workflow is one element instead of flume_base plus workspace_workflow, project_workflow and role (spec updated in the same change).
@@ -57,15 +58,13 @@ base (shipped with flume) -> workspace (flume/base/ in the tasks repo) -> projec
 ### Example: a docs repo (flume/projects/docs/workflow.md)
 
 ```
-# Workflow
-
-## Working a task @replace
+# Workflow @replace
 
 This repo is documents. When the human asks for an edit, make it directly on main.
 No task, no worktree, unless the human asks for one.
-
-## Phases @remove
 ```
+
+(phases.md needs no override: with no tasks, no instructions are asked for.)
 
 ### Assumed (advisor; change if wrong)
 
@@ -109,3 +108,5 @@ Advisor's first draft used {replace}-style tags, front matter for whole-file rep
 > Let's do replace as the default, and anything that isn't a replace, you have to give it a tag. If you have a header and you're not going to replace the header, then you have to put a tag: either add, append, or remove. If you remove a header and then have subheaders below it, that's an error. Any header that doesn't have an add tag must be a replace. If there's a header that doesn't match and it doesn't say add, remove, or append, then that's an error.
 
 ("rumdml" read as rumdl, the Markdown linter.)
+
+The human, 2026-11-18, verbatim: "Why not have two Markdown files, a different one for Prime and a different one for Phases? I'm not sure I understand that part." Advisor: no good reason for one file; two files means prime prints its file whole and instructions picks one H2, with nothing to cut out. Design changed to workflow.md and phases.md.
