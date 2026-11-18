@@ -19,7 +19,7 @@ For whoever edits this ticket (the human, 2026-11-17): "the design at the top is
 
 ## Design
 
-Modeled on OpenSpec's flow: `new-change` -> `continue-change` -> `continue-change` -> ... -> `apply`.
+Modeled on OpenSpec's flow: `new-change` -> `continue-change` -> `continue-change` -> ... -> `apply`. The overall design is OpenSpec's; the details need not copy it, and should improve on it where they can.
 
 - A workflow is a series of steps to follow. The workflow defines the steps and the order through them; each step produces an artifact in the task's folder (fl-3pfa: spec artifacts beside `task.yaml`, `body.md`, `comments.md`).
 - One generic "continue" skill drives every workflow: it runs `flume` to find the task's next step and to print that step's instructions, generated from the workflow, then the agent does the step. The skill holds no workflow-specific text; the workflow does.
@@ -55,3 +55,5 @@ How OpenSpec does it (advisor read the skills and ran the CLI, see fl-87h9): `op
 5. Commands: flume equivalents of `openspec status` and `openspec instructions <artifact>` (e.g. `flume task status <id>`, `flume task instructions <id> <step>`)?
 6. Where a workflow's steps are defined: a YAML file listing steps, their artifact file and what each needs (like an OpenSpec schema), with each step's instruction and template as Markdown files?
 7. Does flume ship the generic continue skill (and new / apply), installed where Claude Code finds skills?
+
+The human, 2026-11-17: "we don't have to copy openspec exactly, we should improve on it, but the overall design is sound."
