@@ -2,11 +2,14 @@
 id = "fl-pshd"
 title = "flume clone: set up a whole workspace from the tasks repo; flume.yaml lists projects and repos"
 kind = "feature"
-state = "planned"
+state = "claimed"
 created_at = "2026-11-18T02:01:06.414Z"
-updated_at = "2026-11-18T02:57:20.674910810Z"
+updated_at = "2026-11-18T03:05:53.566827127Z"
 created_by = "external:advisor"
-watchers = ["external:advisor"]
+watchers = [
+    "external:advisor",
+    "agent:clone",
+]
 ticket = "pshd"
 +++
 
