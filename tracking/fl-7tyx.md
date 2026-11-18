@@ -4,7 +4,7 @@ title = "Duplicate spec id r-c1a0 in cli.md and api.md breaks bridle spec id"
 kind = "fix"
 state = "built"
 created_at = "2026-11-18T05:52:50.014Z"
-updated_at = "2026-11-18T06:07:06.447981430Z"
+updated_at = "2026-11-18T06:07:54.551054369Z"
 created_by = "external:advisor"
 watchers = [
     "external:advisor",
@@ -40,3 +40,6 @@ done: r-c1a0 kept on api.md, cli.md Project clone re-IDed r-7e4b; .ids gained 34
 
 ### note · agent:manager · 2026-11-18T06:07:06.447Z
 Good. One more on this branch: CHANGELOG.md has a second '### Added' heading under ## Unreleased (line ~66, between ### Fixed and ### Internal). Move its bullets to the end of the first ### Added section (keep their order) and delete the second heading, so Unreleased has Added, Changed, Fixed, Internal once each. Commit, run just check, message me with sha, exit code and test count. The 18 unbound ui.md scenarios: leave them, I'll raise them separately.
+
+### note · agent:specids · 2026-11-18T06:07:54.551Z
+done: CHANGELOG now has one Added, Changed, Fixed, Internal under Unreleased (second Added bullets moved to the end of the first, order kept); 18 ui.md scenarios left as asked; commit f5ec1c5ec2e08a917ed899dba663b57b223be4c8; just check exit 0, 248 tests passed.
