@@ -13,7 +13,7 @@ related: [fl-fu3v]
 
 ## The ask
 
-Every task keeps a structural audit trail of the changes that went through flume, in its own folder: status and phase changes, assignments, body and phase-file updates, each with the time and who did it. Git already holds the text history: don't recreate it. On hold until the human says build.
+Every task keeps a structural audit trail of the changes that went through flume, in its own folder: status and phase changes, assignments, body and phase-file updates, each with the time and who did it. Git already holds the text history: don't recreate it. Go given by the human, 2026-11-17: "Please ready the other tickets you asked about earlier as well. They all look good".
 
 For whoever edits this ticket (the human, 2026-11-17): "the design at the top is the currently agreed-upon design; keep it current and DO NOT include narration or restatements in the design. The discussion section can include the discussion narrative with restatements as a reference."
 
