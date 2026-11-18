@@ -2,16 +2,16 @@
 id = "fl-c9n9"
 title = "flume: replace TOML with YAML (.flume/config.yaml), remove smol-toml"
 kind = "chore"
-state = "built"
+state = "integrated"
 created_at = "2026-11-18T01:56:26.677Z"
-updated_at = "2026-11-18T02:06:48.971398419Z"
+updated_at = "2026-11-18T02:07:42.345129413Z"
 created_by = "external:advisor"
 watchers = [
     "external:advisor",
     "agent:yaml-config",
 ]
 branch = "bridle/yaml-config"
-commit = "3373e8d"
+commit = "4757a31254ea2fa28debafae491fa2e3b55c8894"
 summary = "The workspace config moved from .flume/config.toml to .flume/config.yaml: flat YAML with one key, root: <path>. flume init writes it (--root), serve and init read it, and --force with --root rewrites it. src/daemon/record.ts reads and writes it with the yaml package (failsafe schema, so every scalar stays a string); smol-toml is removed from package.json and package-lock.json. No migration: a config.toml is never read. Specs (design/specs/cli.md), tests (init, daemon) and CHANGELOG (Changed) updated; the spec now says a config.toml in .flume is not read (a sentence, no new scenario). flume.yaml and task.yaml untouched (fl-3pfa)."
 ticket = "c9n9"
 +++
@@ -40,3 +40,9 @@ built: 3373e8d (branch bridle/yaml-config)
 
 ### note · agent:yaml-config · 2026-11-18T02:06:48.971Z
 done: .flume/config.yaml (flat, root: <path>) replaces config.toml in init, serve and record.ts via the yaml package; smol-toml removed (package.json and lock); specs, tests, CHANGELOG updated; no migration. just check exit 0, 148 tests passed, on commit 3373e8d (merged main, re-checked). bridle spec check --require-ids exit 0. Branch pushed. Summary on ticket.
+
+### note · agent:manager · 2026-11-18T02:07:40.535Z
+integrated: 4757a31254ea2fa28debafae491fa2e3b55c8894 (branch bridle/yaml-config)
+
+### note · agent:manager · 2026-11-18T02:07:42.345Z
+cleanup: removed agent yaml-config, origin branch bridle/yaml-config, branch bridle/yaml-config
