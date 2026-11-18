@@ -75,6 +75,83 @@ be listed, and has no numbered-sequence rule.
   idea from the brief. Projects come in through epics, which may span them
   (docs/design/epics.md).
 
+## The problem the roadmap must solve (the human, 2026-11-18)
+
+Verbatim:
+
+> with the agents, we tend to get very short-sighted and get distracted on recent issues
+> (following and making new tickets for things that came up during the last issue). We then lose
+> sight of the overall picture, the bigger picture of where we're going. I end up with an epic
+> that languishes for a few weeks, never gets done, because these side tickets come up, and then
+> they go in the queue in front of the epic that should be worked on. The other thing that happens
+> is that epics end up getting blocked waiting for me, and my attention is very limited compared
+> to the number of projects I have. [...] An epic will stall out completely while I work on other
+> things that are easier to decide.
+>
+> The whole idea of getting the roadmap system in was to help focus and finish things. The main
+> thing here is I want at least the main agents that I'm planning with to focus really closely on
+> the roadmap, not on what I said last or the individual tickets or things like that. To say,
+> "Hey, this is the highest priority epic in the roadmap, and it's blocked on these three things.
+> That's what we should work on: not this side ticket, not this bug, not these tickets that are on
+> some epic that aren't even in the roadmap or are way low priority."
+
+Two failures: side tickets jump ahead of the epic; the epic stalls waiting on the human, whose
+attention goes to what is easiest to decide instead of what is most important.
+
+The human's questions (same day): how do roadmap order, epic order and priorities decide the work
+actually done? With an order of epics and an order of tasks within each, how are the two compared?
+With P0-P3, when do the P3s get done, and do priorities compare across epics?
+
+## Proposal (advisor, 2026-11-18; not agreed)
+
+### Order decides the work; flume derives "what's next"
+
+- Epics are ranked on the roadmap; tasks are ranked within their epic. Ranks compare only within
+  their level: the epics' order settles any comparison between tasks of different epics.
+- The work order is derived, never kept by hand: the Now epics in roadmap order, each epic's tasks
+  in their order; skip what is blocked, already held, or not in the asking agent's project; take
+  the first left. (Close to bridle's "epic rank, then priority".)
+- With several agents on several projects, an agent with nothing it can take in the top epic falls
+  through to the next epic. Epic 2 does not wait for epic 1 to be done, only for it to have
+  nothing that agent can take. (Choice for the human: this, or strict finish-first.)
+- Now limits what is in flight: Now epics run side by side in rank order; Next and Later do not
+  start. Focus means keeping Now short.
+
+### Priority is an exception, not a sort key
+
+- No P0-P3: under strict order, low levels are never done, and levels mean different things in
+  different epics. One flag instead: **urgent**, which goes ahead of every epic (a real breakage,
+  something blocking the human). Everything else is its position; work that does not matter yet
+  is unplaced, honestly "not now".
+- A task with no epic goes on the roadmap like an epic of one, or waits until the Now epics have
+  nothing an agent can take, unless urgent.
+
+### Side tickets do not jump the queue
+
+- A ticket filed during other work lands **unplaced**: in no Now epic, not urgent. It waits.
+- Only the human places a ticket into a Now epic or marks it urgent. An agent may propose it, with
+  a reason, on the ticket.
+- Planning agents, when the human raises a side issue: file it unplaced and say where it sits
+  against the top epic ("filed; it waits behind epic X unless you place it").
+
+### The top epic's blockers on the human come first
+
+- A task can be marked as waiting on the human (a decision, a review, a go), with the ask written
+  so it can be answered quickly: the question, the options, a recommendation.
+- `flume roadmap focus` (with `--json`): the Now epics in order, each with its "Done when", its
+  progress (resolved of all children), what waits on the human (in roadmap order) and what agent
+  work can be taken now. `flume prime` for planning roles opens with it.
+- The human's queue is ordered by the roadmap, not by ease or recency: the top epic's decisions
+  first.
+- An epic in Now with no progress for some days is called out in the focus view. If the human
+  cannot attend to it, it moves out of Now, rather than stalling there.
+
+### Planning agents lead with the roadmap
+
+- A rule for the roles the human plans with: open with the focus view ("the top epic is X; it is
+  blocked on these three things"), steer back to it, and never ready side work ahead of the top
+  epic without the human placing it.
+
 ## Open (to talk through)
 
 - **Where order lives**: a hand-edited file (today), or a rank on each epic that flume keeps, so
