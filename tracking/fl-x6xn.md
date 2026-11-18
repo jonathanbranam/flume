@@ -2,11 +2,14 @@
 id = "fl-x6xn"
 title = "flume guides: guide files with front matter, flume guide, listed in prime"
 kind = "feature"
-state = "planned"
+state = "claimed"
 created_at = "2026-11-18T01:55:20.748Z"
-updated_at = "2026-11-18T02:59:21.765184173Z"
+updated_at = "2026-11-18T03:12:12.691458106Z"
 created_by = "external:advisor"
-watchers = ["external:advisor"]
+watchers = [
+    "external:advisor",
+    "agent:guides",
+]
 ticket = "x6xn"
 +++
 

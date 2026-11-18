@@ -4,7 +4,7 @@ title = "flume clone: set up a whole workspace from the tasks repo; flume.yaml l
 kind = "feature"
 state = "integrated"
 created_at = "2026-11-18T02:01:06.414Z"
-updated_at = "2026-11-18T03:11:43.099781651Z"
+updated_at = "2026-11-18T03:11:44.843445891Z"
 created_by = "external:advisor"
 watchers = [
     "external:advisor",
@@ -37,3 +37,6 @@ done: flume.yaml projects, init --clone (re-runnable), flume clone, flume projec
 
 ### note · agent:manager · 2026-11-18T03:11:43.099Z
 integrated: 8e7a43d6c2041a36f82491bdb423e4e5f1df967a (branch bridle/clone)
+
+### note · agent:manager · 2026-11-18T03:11:44.843Z
+cleanup: removed origin branch bridle/clone; kept agent clone (background job pid 3673402)
