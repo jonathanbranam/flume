@@ -68,3 +68,23 @@ Separate, not in this ticket: multi-project task layout (distinct projects' task
 - **Prime reading order:** `<flume-root>/base/`, then `<flume-root>/workflow/`, then `<flume-root>/<project>/`, then the project's CLAUDE.md; later overrides earlier.
 
 Open (advisor): a project named `base`, `workflow` or `tasks` would collide; init/check should refuse those names, or projects could live under `<flume-root>/projects/<project>/` instead. Workspace rules folder name is unconfirmed by the human.
+
+## Decision: projects under projects/ (2026-11-17)
+
+The human: "Sure projects in projects/ folder." (Settles the name-collision point.)
+
+```
+fluff-flume/
+  flume.toml           dir = "flume"   (or ".")
+  flume/               <flume-root>
+    base/              flume's shipped workflow
+    workflow/          workspace rules
+    projects/
+      backend/         project overrides
+      frontend/
+    tasks/
+      open/
+      resolved/
+```
+
+Prime reading order: base/, workflow/, projects/<project>/, then the project repo's CLAUDE.md.
