@@ -2,11 +2,14 @@
 id = "fl-4tx8"
 title = "guides in the plan: the planner names guides per plan group; flume task next prints them with the group"
 kind = "feature"
-state = "planned"
+state = "claimed"
 created_at = "2026-11-18T03:54:08.812Z"
-updated_at = "2026-11-18T05:39:10.969635816Z"
+updated_at = "2026-11-18T05:44:35.185383269Z"
 created_by = "external:advisor"
-watchers = ["external:advisor"]
+watchers = [
+    "external:advisor",
+    "agent:instructions",
+]
 ticket = "4tx8"
 +++
 
