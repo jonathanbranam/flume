@@ -250,13 +250,25 @@ When flume project list is run in a workspace, flume SHALL print one line per pr
 - **THEN** the text has the line backend, its URL and develop, and the line frontend, its URL and an empty branch, and the JSON is the same data without any present or missing field
 
 ### Requirement: Project add sets a project up  {#r-b6a8}
-When flume project add <git-url> [--name NAME] [--branch BRANCH] is run in a workspace, flume SHALL add the project to flume.yaml (the name defaults to the last part of the URL without .git; branch is written only when --branch is given), commit flume.yaml in the tasks repository as one commit, and clone the project into <workspace>/<name>/ as flume project clone does. It SHALL refuse, changing nothing and exiting with code 1, when the name is already in flume.yaml or <workspace>/<name>/ exists and is not a clone of that URL. It SHALL NOT start the daemon or push.
+When flume project add <git-url | name> [--name NAME] [--branch BRANCH] is run in a workspace, flume SHALL treat the argument as a git URL when it contains "://", or has the form user@host:path, or contains a path separator; otherwise it SHALL treat it as the project's name. For a URL, flume SHALL add the project to flume.yaml (the name defaults to the last part of the URL without .git; branch is written only when --branch is given), commit flume.yaml in the tasks repository as one commit, and clone the project into <workspace>/<name>/ as flume project clone does. For a name, flume SHALL add the project to flume.yaml with no url, commit it the same way, and clone nothing; it SHALL print a warning to standard error that the project has no URL and so cannot be set up on another machine until a url is added to flume.yaml, and exit with code 0. It SHALL refuse, changing nothing and exiting with code 1, when the name is already in flume.yaml, or, for a URL, when <workspace>/<name>/ exists and is not a clone of that URL. It SHALL refuse, changing nothing and exiting with code 2, a name given with --branch, or a name given with --name. It SHALL NOT start the daemon or push.
 
 #### Scenario: Add a project  {#s-9440}
 *Verification*: **executable**
 - **GIVEN** a workspace set up with flume init and a local repository
 - **WHEN** flume project add with that repository's path and --branch develop is run
 - **THEN** the exit code is 0, flume.yaml lists the project under the repository's name with url and branch develop, the task repository has one new commit, and the project is cloned in the workspace
+
+#### Scenario: Add a project by name, with no URL  {#s-8d3e}
+*Verification*: **executable**
+- **GIVEN** a workspace set up with flume init
+- **WHEN** flume project add backend is run
+- **THEN** the exit code is 0, standard error warns that project backend has no URL, flume.yaml lists backend with no url, the task repository has one new commit, and no folder backend is made in the workspace
+
+#### Scenario: Add by name refuses a branch  {#s-f003}
+*Verification*: **executable**
+- **GIVEN** a workspace set up with flume init
+- **WHEN** flume project add backend --branch develop is run
+- **THEN** the exit code is 2 and flume.yaml and the task repository's history are unchanged
 
 #### Scenario: Add refuses a known name  {#s-bd6a}
 *Verification*: **executable**

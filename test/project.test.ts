@@ -220,6 +220,33 @@ describe("flume init and projects", () => {
     expect(git(join(ws, "backend"), "rev-parse", "--abbrev-ref", "HEAD")).toBe("develop");
   });
 
+  it("s-8d3e project add by name, with no URL, warns and clones nothing", () => {
+    const { ws, tasks } = setup({});
+    flume(ws, "init", "--root", tasks);
+    const n = Number(count(tasks));
+    const r = flume(ws, "project", "add", "backend");
+    expect(r.status).toBe(0);
+    expect(r.stderr).toMatch(/warning.*backend.*no URL/);
+    const y = readFileSync(join(tasks, "flume.yaml"), "utf8");
+    expect(y).toMatch(/backend:\s*(\{\}|null)?\s*$/m);
+    expect(y).not.toContain("url:");
+    expect(Number(count(tasks))).toBe(n + 1);
+    expect(existsSync(join(ws, "backend"))).toBe(false);
+    const j = JSON.parse(flume(ws, "project", "list", "--json").stdout);
+    expect(j).toEqual([{ name: "backend", url: "", branch: "" }]);
+  });
+
+  it("s-f003 project add by name refuses a branch", () => {
+    const { ws, tasks } = setup({});
+    flume(ws, "init", "--root", tasks);
+    const before = readFileSync(join(tasks, "flume.yaml"), "utf8");
+    const n = count(tasks);
+    const r = flume(ws, "project", "add", "backend", "--branch", "develop");
+    expect(r.status).toBe(2);
+    expect(readFileSync(join(tasks, "flume.yaml"), "utf8")).toBe(before);
+    expect(count(tasks)).toBe(n);
+  });
+
   it("s-bd6a project add refuses a known name", () => {
     const backend = source("backend");
     const { ws, tasks } = setup({ backend: { url: backend } });
@@ -244,11 +271,11 @@ describe("flume init and projects", () => {
     expect(count(tasks)).toBe(n);
   });
 
-  it("s-a386 check reports a project without a url", () => {
+  it("s-a386 check does not report a project without a url", () => {
     const { tasks } = setup({ backend: { branch: "main" } });
     const r = flume(tasks, "check");
-    expect(r.status).toBe(1);
-    expect(r.stdout).toMatch(/flume\.yaml.*backend/);
+    expect(r.status).toBe(0);
+    expect(r.stdout).not.toMatch(/backend/);
   });
 
   it("s-7873 check reports a bad project name", () => {

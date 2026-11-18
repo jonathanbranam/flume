@@ -20,6 +20,8 @@
 
 ### Changed
 
+- `flume project add` takes a git URL or a bare project name (fl-mvu7): a name adds the project to `flume.yaml` with no url, warns on stderr, and clones nothing; `flume check` no longer reports a project for having no url (only a bad name); `flume project clone` says "no url" when it skips one.
+
 - Projects are names (fl-gr36): `flume init` only sets up the workspace and no longer checks project folders or takes `--clone`; new `flume project clone [<name>...] [--json]` clones projects into `<workspace>/<name>` (skips existing folders and projects with no url, exit 1 if any clone fails, exit 2 for an unknown name); `flume project list` drops the present/missing column; `flume clone` runs init then project clone.
 
 - `flume task new` prints the ID only; `flume task show ID` prints task.yaml and a `parts:` line (use `show ID PART` for text); `task list` lines gain phase and assignee columns; the built-in prime text teaches the five-phase workflow (fl-fu3v).

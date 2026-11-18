@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { isMap, parseDocument } from "yaml";
-import { FLUME_YAML, readProjects, repoName, validProjectName } from "../core/index.ts";
+import { FLUME_YAML, isGitUrl, readProjects, repoName, validProjectName } from "../core/index.ts";
 import {
   cloneRepo,
   commitPaths,
@@ -21,7 +21,8 @@ const HELP = `usage: flume project <command> [options]
 Commands:
   list [--json]                                 projects in flume.yaml: name, url, branch
   clone [<name>...] [--json]                    clone the named projects (default all) into the workspace
-  add <git-url> [--name N] [--branch B]         add a project to flume.yaml, commit it, and clone it
+  add <git-url | name> [--name N] [--branch B]  add a project to flume.yaml and commit it; a URL is cloned,
+                                                a bare name is added with no url (warns)
 
 These work on files and git directly; they do not use the daemon.
 `;
@@ -64,8 +65,8 @@ function list(cwd: string, args: string[]): number {
 }
 
 function add(cwd: string, args: string[]): number {
-  const usage = "usage: flume project add <git-url> [--name NAME] [--branch BRANCH]";
-  let url: string | undefined;
+  const usage = "usage: flume project add <git-url | name> [--name NAME] [--branch BRANCH]";
+  let arg: string | undefined;
   let name: string | undefined;
   let branch: string | undefined;
   for (let i = 0; i < args.length; i++) {
@@ -78,16 +79,26 @@ function add(cwd: string, args: string[]): number {
       }
       if (a === "--name") name = v;
       else branch = v;
-    } else if (a.startsWith("--") || url !== undefined) {
+    } else if (a.startsWith("--") || arg !== undefined) {
       err(`flume: unexpected argument '${a}'\n${usage}`);
       return 2;
-    } else url = a;
+    } else arg = a;
   }
-  if (url === undefined) {
-    err(`flume: project add needs a git url\n${usage}`);
+  if (arg === undefined) {
+    err(`flume: project add needs a git url or a project name\n${usage}`);
     return 2;
   }
-  const use = name ?? repoName(url);
+  // A URL is cloned; a bare name is added with no url (no clone, and a warning).
+  const url = isGitUrl(arg) ? arg : undefined;
+  if (url === undefined && name !== undefined) {
+    err(`flume: ${arg} is a name, so --name is not needed\n${usage}`);
+    return 2;
+  }
+  if (url === undefined && branch !== undefined) {
+    err(`flume: a project with no url has no branch to check out; drop --branch\n${usage}`);
+    return 2;
+  }
+  const use = url === undefined ? arg : (name ?? repoName(url));
   if (!validProjectName(use)) {
     err(`flume: '${use}' is not a valid project folder name; give one with --name`);
     return 2;
@@ -116,17 +127,23 @@ function add(cwd: string, args: string[]): number {
   }
   const dest = join(ws, use);
   const there = existsSync(dest);
-  if (there && !(inRepo(dest) && originUrl(dest) === url)) {
+  if (url !== undefined && there && !(inRepo(dest) && originUrl(dest) === url)) {
     err(`flume: ${dest} already exists and is not a clone of ${url}; nothing changed`);
     return 1;
   }
   const doc = parseDocument(readFileSync(file, "utf8"));
   if (!doc.getIn(["projects"], true) || !isMap(doc.get("projects", true)))
     doc.set("projects", doc.createNode({}));
-  doc.setIn(["projects", use], branch ? { url, branch } : { url });
+  doc.setIn(["projects", use], url === undefined ? {} : branch ? { url, branch } : { url });
   writeFileSync(file, String(doc));
   commitPaths(taskRoot, [FLUME_YAML], `flume project add: ${use}`);
   out(`added project ${use} to ${FLUME_YAML}`);
+  if (url === undefined) {
+    err(
+      `flume: warning: project ${use} has no URL, so flume clone and flume project clone cannot set it up on another machine; add a url to ${FLUME_YAML} by hand`,
+    );
+    return 0;
+  }
   if (there) {
     out(`project ${use}: already there`);
     return 0;
@@ -173,8 +190,10 @@ function cloneProjects(cwd: string, args: string[]): number {
   const results: Result[] = [];
   for (const p of chosen) {
     const dest = join(loc.ws, p.name);
-    if (!validProjectName(p.name) || p.url === undefined) {
-      results.push({ name: p.name, status: "skipped", reason: "no url or a bad name" });
+    if (!validProjectName(p.name)) {
+      results.push({ name: p.name, status: "skipped", reason: "bad name" });
+    } else if (p.url === undefined) {
+      results.push({ name: p.name, status: "skipped", reason: "no url" });
     } else if (existsSync(dest)) {
       results.push({ name: p.name, status: "skipped", reason: "folder exists" });
     } else {

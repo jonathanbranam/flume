@@ -49,7 +49,7 @@ export function readProjects(root: string): ProjectEntry[] {
   });
 }
 
-/** Problems in the projects of flume.yaml: a name that is not a folder name, or no url. */
+/** Problems in the projects of flume.yaml: a name that is not a folder name. A missing url is allowed. */
 export function checkProjects(root: string): { path: string; message: string }[] {
   let list: ProjectEntry[];
   try {
@@ -62,8 +62,13 @@ export function checkProjects(root: string): { path: string; message: string }[]
     if (!validProjectName(p.name)) {
       out.push({ path: FLUME_YAML, message: `project ${p.name} is not a valid folder name` });
     }
-    if (p.url === undefined)
-      out.push({ path: FLUME_YAML, message: `project ${p.name} has no url` });
   }
   return out;
 }
+
+/**
+ * Is a `project add` argument a git URL rather than a project name? A URL has `://`, or the
+ * `user@host:path` form, or a path separator (a local repository). A name never has one.
+ */
+export const isGitUrl = (arg: string): boolean =>
+  arg.includes("://") || /^[^/\\]+@[^/\\]+:/.test(arg) || /[/\\]/.test(arg);
