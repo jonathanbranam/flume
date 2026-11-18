@@ -39,7 +39,7 @@ export async function serve(cwd: string, args: string[]): Promise<number> {
       port = Number(v);
     } else return usage(`unknown option '${a}'`);
   }
-  // The workspace is the folder serve runs in; its .flume/ holds daemon.json and config.toml.
+  // The workspace is the folder serve runs in; its .flume/ holds daemon.json and config.yaml.
   const ws = resolve(cwd);
   if (!existsSync(join(ws, ".flume"))) {
     err("flume: no flume workspace here; run flume init first");

@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, isAbsolute, join, resolve } from "node:path";
-import { parse, stringify } from "smol-toml";
+import { parseDocument, stringify } from "yaml";
 
 export interface DaemonRecord {
   url: string;
@@ -40,26 +40,32 @@ export function ensureFlumeDir(ws: string): string {
   return dir;
 }
 
-/** The saved task root from `<ws>/.flume/config.toml`, as an absolute path; undefined when none. */
-export function readConfigRoot(ws: string): string | undefined {
+/** The flat keys of `<ws>/.flume/config.yaml`; empty when the file is missing or not a mapping. */
+function readConfig(ws: string): Record<string, unknown> {
   try {
-    const cfg = parse(readFileSync(join(ws, DIR, "config.toml"), "utf8"));
-    return typeof cfg.root === "string" ? resolve(ws, cfg.root) : undefined;
+    // Failsafe schema: every scalar stays a string (a root named `1.0` or `no` is still a path).
+    const cfg = parseDocument(readFileSync(join(ws, DIR, "config.yaml"), "utf8"), {
+      schema: "failsafe",
+    }).toJS();
+    return cfg && typeof cfg === "object" && !Array.isArray(cfg) ? cfg : {};
   } catch {
-    return undefined;
+    return {};
   }
 }
 
-/** Save `root` in config.toml, keeping other keys. A path inside the workspace is stored relative to it. */
+/** The saved task root from `<ws>/.flume/config.yaml`, as an absolute path; undefined when none. */
+export function readConfigRoot(ws: string): string | undefined {
+  const root = readConfig(ws).root;
+  return typeof root === "string" ? resolve(ws, root) : undefined;
+}
+
+/** Save `root` in config.yaml, keeping other keys. A path inside the workspace is stored relative to it. */
 export function saveConfigRoot(ws: string, root: string): void {
-  const file = join(ensureFlumeDir(ws), "config.toml");
-  let cfg: Record<string, unknown> = {};
-  try {
-    cfg = parse(readFileSync(file, "utf8"));
-  } catch {}
+  const file = join(ensureFlumeDir(ws), "config.yaml");
+  const cfg = readConfig(ws);
   const rel = root.startsWith(`${ws}/`) ? root.slice(ws.length + 1) : root;
   cfg.root = isAbsolute(rel) || rel ? rel : ".";
-  writeFileSync(file, `${stringify(cfg)}\n`);
+  writeFileSync(file, stringify(cfg));
 }
 
 export function writeRecord(ws: string, rec: DaemonRecord): void {

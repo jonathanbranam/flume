@@ -54,7 +54,7 @@ describe("flume init", () => {
     const r = flume(ws, "init", "--root", "tasks");
     expect(r.status).toBe(0);
     expect(readFileSync(join(ws, ".flume/.gitignore"), "utf8")).toBe("*\n");
-    expect(readFileSync(join(ws, ".flume/config.toml"), "utf8")).toContain('root = "tasks"');
+    expect(readFileSync(join(ws, ".flume/config.yaml"), "utf8")).toContain("root: tasks");
     expect(existsSync(join(ws, ".flume/workflow"))).toBe(false);
     expect(readFileSync(join(tasks, "workflow/base/workflow.md"), "utf8")).toContain(
       "base workflow",
@@ -87,7 +87,7 @@ describe("flume init", () => {
     );
     expect(readFileSync(join(tasks, "workflow/mine.md"), "utf8")).toBe("mine\n");
     expect(count(tasks)).toBe("4");
-    expect(readFileSync(join(ws, ".flume/config.toml"), "utf8")).toContain('root = "tasks"');
+    expect(readFileSync(join(ws, ".flume/config.yaml"), "utf8")).toContain("root: tasks");
   });
 
   it("s-1d06 init in a repository uses it as the task root", () => {

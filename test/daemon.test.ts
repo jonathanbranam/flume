@@ -451,7 +451,7 @@ describe("flume serve, status and stop", () => {
     git(tasks, "add", "-A");
     git(tasks, "commit", "-qm", "init");
     await serve(ws, "--root", "tasks");
-    expect(readFileSync(join(ws, ".flume/config.toml"), "utf8")).toContain('root = "tasks"');
+    expect(readFileSync(join(ws, ".flume/config.yaml"), "utf8")).toContain("root: tasks");
     expect(existsSync(join(ws, ".git"))).toBe(false);
     flume(ws, "stop");
     await serve(ws);
@@ -473,7 +473,7 @@ describe("flume serve, status and stop", () => {
     flume(ws, "init", "--force", "--root", "b");
     await serve(ws);
     expect(flume(ws, "status").stdout).toContain(`root ${join(ws, "b")}`);
-    expect(readFileSync(join(ws, ".flume/config.toml"), "utf8")).toContain('root = "b"');
+    expect(readFileSync(join(ws, ".flume/config.yaml"), "utf8")).toContain("root: b");
     flume(ws, "stop");
   });
 
