@@ -1,6 +1,6 @@
 ---
 id: fl-fu3v
-title: "flume workflow v1: phases, claim and assign, built-in base text"
+title: "flume workflow v1: phases, assign, built-in base text"
 kind: feature
 created: 2026-11-18
 created_by: external:advisor
