@@ -19,6 +19,12 @@ For whoever edits this ticket (the human, 2026-11-17): "the design at the top is
 
 ## Design
 
+### Everything through flume
+
+- Every change to anything in the tasks repo goes through a flume command. Agents never read or edit its files directly, and do not need to know where they are.
+- Agents refer to a task's parts by name (`body`, `design`, `spec`, `plan`, `comments`), never by file path. The task commands' default output names no paths in the tasks repo (`flume task new` prints the ID only).
+- Each command that changes a task commits it (as today) and appends to its history (fl-eg2q).
+
 ### Task fields (task.yaml, flat; layout fl-3pfa)
 
 - `assignee`: who must act next: an agent name, or `human`. Empty when nobody holds the task.
@@ -26,20 +32,22 @@ For whoever edits this ticket (the human, 2026-11-17): "the design at the top is
 - `phase`: one of `proposal`, `design`, `specs`, `plan`, `implement`. A new task starts at `proposal`.
 - A task is ready to build when its phase is `implement`.
 
+### Task parts (files in the task's folder; agents see only the names)
+
+- `body` (`body.md`): the proposal: goal and scope.
+- `design` (`design.md`), `spec` (`spec.md`), `plan` (`plan.md`): one per phase.
+- `comments` (`comments.md`, fl-3pfa): written only by `flume task comment`. Important conversations with the human are recorded there, the human's words verbatim. No separate discussion file.
+
 ### Commands
 
+- `flume task show ID`: the task's fields (including the three below) and which parts it has.
+- `flume task show ID PART`: prints that part's text. A part the task does not have: exit 1, with a message.
+- `flume task write ID PART [--file PATH|-]`: replaces the part's text (body, design, spec or plan) with the file's or standard input's. `--remove` removes the part instead.
 - `flume task assign ID [NAME|human] [--force]`: sets `assignee` to NAME, or to `$AGENT_NAME` when NAME is left out (an agent taking the task). When the assignee is an agent, sets `agent` too. Assigning a task to whoever already holds it succeeds and changes nothing.
 - When an agent (`$AGENT_NAME` set) assigns a task that someone else holds, without `--force` flume changes nothing, exits 1, and says who holds it and that `--force` takes it over. The human (no `$AGENT_NAME`) never needs `--force`: they re-assign at any point.
 - `flume task claim ID [--force]` is shorthand for `flume task assign ID [--force]` (to yourself) and works exactly the same: same checks, messages, exit codes and history.
 - `flume task phase ID PHASE`: sets `phase`. Any phase may follow any other (forwards, backwards, skipping).
 - `flume task list` shows `phase` and `assignee`, and takes `--assignee NAME|human` and `--phase PHASE`. `--json` as rule cli-json-output.
-- `flume task show` shows the three fields.
-
-### Phase files (in the task's folder)
-
-- `body.md`: the proposal: goal and scope.
-- `design.md`, `spec.md`, `plan.md`: one per phase.
-- `comments.md` (fl-3pfa): the task's comments, written with `flume task comment`. Important conversations with the human are recorded there, the human's words verbatim. No separate discussion file.
 
 ### Built-in base text
 
@@ -48,16 +56,18 @@ Replaces today's built-in prime text (`src/cli/agent.ts`); printed first by `flu
 ```
 You are agent {name}, stored in $AGENT_NAME. Use the flume CLI to work with tasks; run flume --help to learn it. Never start flume serve yourself; only the human does. If flume says the server is not running, ask the human to start it.
 
+Read and change tasks only with flume commands. Never read or edit task files directly.
+
 The human is in control. They may move a task to any phase, forwards or backwards, or skip phases ("write design and specs", "remove the specs and start over on the design", "the ticket is simple, skip specs and plan, just implement"). Do what they ask.
 
 Working a task:
 1. Claim the task (flume task claim ID). Read its phase (flume task show ID) and continue from that phase.
-2. The phases, in order:
-   - proposal: check that the task has a clear proposal, goal and scope. If not, ask the human. Write them in body.md.
-   - design: when goal and scope are clear, think through the design questions and write design.md.
-   - specs: when the design is clear, write spec.md: clear requirements in EARS form ("When <trigger>, the system SHALL <response>").
-   - plan: read body.md, design.md and spec.md, then write plan.md: how to implement the task, step by step. Then mark the task ready: flume task phase ID implement.
-   - implement: read body.md, design.md and spec.md for context, then follow the steps in plan.md. When writing code, enter a git worktree to make the changes; when done, merge main into it, then exit the worktree and merge it into main. Close the task when done.
+2. The phases, in order (read a part with flume task show ID PART; write one with flume task write ID PART):
+   - proposal: check that the task has a clear proposal, goal and scope. If not, ask the human. Write them in the body.
+   - design: when goal and scope are clear, think through the design questions and write the design.
+   - specs: when the design is clear, write the spec: clear requirements in EARS form ("When <trigger>, the system SHALL <response>").
+   - plan: read the body, design and spec, then write the plan: how to implement the task, step by step. Then mark the task ready: flume task phase ID implement.
+   - implement: read the body, design and spec for context, then follow the steps in the plan. When writing code, enter a git worktree to make the changes; when done, merge main into it, then exit the worktree and merge it into main. Close the task when done.
 3. When your phase is done, set the next phase (flume task phase ID PHASE). The same agent may not do every phase. If you are waiting on the human, assign the task back to them (flume task assign ID human).
 4. In every phase, record important conversations with the human as comments (flume task comment ID), quoting the human verbatim.
 ```
@@ -67,9 +77,10 @@ Working a task:
 - No workflow schema file, no per-step instruction commands, no shipped continue skill (the OpenSpec-like model in Discussion is for later).
 - Project and workspace workflows stay free text printed by prime (fl-3pfa); flume does not parse them.
 
-### Open (for the human)
+### Assumed (advisor; change if wrong)
 
-1. Do agents write `body.md`, `design.md`, `spec.md`, `plan.md` through flume (e.g. `flume task write ID design.md --file -`) so the audit trail (fl-eg2q) records each update, or edit the files directly and flume records only its own commands? Advisor recommends through flume, since body updates are in the audit ask.
+- Part names `body`, `design`, `spec`, `plan`; `flume task show ID PART` to read and `flume task write ID PART` to write, `--remove` to drop one ("remove the specs and start over").
+- The everything-through-flume rule covers the task commands in this ticket. Other flume output that names tasks-repo paths (e.g. `flume init`, `flume status` for the human) is left alone.
 
 ## Discussion (for reference, not authoritative)
 
@@ -122,6 +133,10 @@ Then the human:
 Asked one file or two for important conversations (discussions.md vs fl-3pfa's comments.md):
 
 > sure, one file: comments
+
+Asked whether agents write the task files through flume (so the audit trail records each update) or edit them directly:
+
+> all task updates go through flume; agents shouldn't even know where the files are. EVERYTHING that is editing in fluff-flume must go through flume.
 
 Context: asked what flume's built-in workflow text is, advisor showed today's prime text (identity, flume --help, never start flume serve; no workflow steps). Advisor: Open questions 1-7 below (from before the v1 flow) are superseded for v1 by the Design; they stay for the later OpenSpec-like model. The audit trail went to its own ticket, fl-eg2q.
 
