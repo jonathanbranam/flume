@@ -24,12 +24,16 @@ For whoever edits this ticket (the human, 2026-11-17): "the design at the top is
 ```yaml
 dir: flume
 projects:
-  backend: git@github.com:org/backend.git
-  frontend: git@github.com:org/frontend.git
+  backend:
+    url: git@github.com:org/backend.git
+    branch: main
+  frontend:
+    url: git@github.com:org/frontend.git
+    branch: develop
 ```
 
-- `projects` maps each project's name to its git URL: one level, nothing deeper. The name is the project's folder in the workspace and its folder under `<flume-root>/projects/`.
-- Edited by hand; `flume check` reports a project without a URL or a name that is not a valid folder name.
+- `projects` maps each project's name to a dict with `url` (the git URL) and `branch`. Nothing deeper. The name is the project's folder in the workspace and its folder under `<flume-root>/projects/`.
+- Edited by hand; `flume check` reports a project without a `url`, or a name that is not a valid folder name.
 
 ### flume init
 
@@ -41,7 +45,7 @@ projects:
 4. **Writes `flume.yaml`** at the task root's top with `dir: flume` when it has none, and commits it there as one commit. An existing `flume.yaml` is read, never changed.
 5. **Checks the projects** in `flume.yaml`'s `projects`: each one with no folder at `<workspace>/<name>/` is missing.
    - Without `--clone`: prints each missing project's name and URL, and a line saying `flume init --clone` clones them. Clones nothing.
-   - With `--clone`: clones each missing project into `<workspace>/<name>/` with plain `git clone <url>`. A failed clone is reported on stderr with its name and URL; init carries on with the rest.
+   - With `--clone`: clones each missing project into `<workspace>/<name>/` with `git clone --branch <branch> <url>` (plain `git clone <url>` when `branch` is not set). A failed clone is reported on stderr with its name and URL; init carries on with the rest.
    - A folder that already exists is left alone either way.
 6. **Prints** what it did (workspace, task root, each project cloned, already there or missing) and ends by telling the human to run `flume serve` in the workspace.
 
@@ -56,7 +60,7 @@ projects:
 
 ### Assumed (advisor; change if wrong)
 
-- Projects are cloned on their default branch; flume does no other git setup.
+- `branch` is optional; without it the clone takes the repo's default branch. Flume does no other git setup.
 - Running init again is allowed (step list above) instead of today's "already set up" error, because fl-3pfa drops `--force` and a re-run is how newly listed projects are found.
 - Init commits `flume.yaml` when it writes one (as today's init commits the base workflow) and does not create empty task folders (git can't hold empty folders).
 
@@ -97,3 +101,7 @@ Advisor: the Design's flume init section now lists every step, including what is
 The human, 2026-11-17: "I don't think flume init should clone by default. I think it should print a message for missing projects and support an optional `--clone` to clone them"
 
 Settled: `flume init` reports missing projects; `flume init --clone` clones them; `flume clone` runs `flume init --clone`.
+
+The human, 2026-11-17: "in flume.yaml, <project> should be a dict. then have the url and branch"
+
+Settled: each project is `{url, branch}`. This replaces the name-to-URL map above.
