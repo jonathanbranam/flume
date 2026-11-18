@@ -2,11 +2,14 @@
 id = "fl-gr36"
 title = "projects are names: only the clone commands look at folders; flume project clone replaces init --clone"
 kind = "fix"
-state = "planned"
+state = "claimed"
 created_at = "2026-11-18T03:48:34.973Z"
-updated_at = "2026-11-18T03:54:21.897880688Z"
+updated_at = "2026-11-18T03:55:01.238880746Z"
 created_by = "external:advisor"
-watchers = ["external:advisor"]
+watchers = [
+    "external:advisor",
+    "agent:projclone",
+]
 ticket = "gr36"
 +++
 
