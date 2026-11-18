@@ -118,3 +118,67 @@ describe("prime prints the workflow", () => {
     flume(w, "stop");
   });
 });
+
+const GUIDE = (n: string, d: string, body: string) =>
+  `---\nname: ${n}\ndescription: ${d}\n---\n${body}\n`;
+
+describe("guides", () => {
+  it("s-7c2b print a base guide", async () => {
+    const w = workspace();
+    put(w, "base/guides/deploy.md", GUIDE("deploy", "Ship it", "STEPS"));
+    await serve(w);
+    const r = flume(w, "guide", "deploy");
+    expect(r.status).toBe(0);
+    expect(r.stdout).toBe("STEPS\n");
+    flume(w, "stop");
+  });
+
+  it("s-a846 a project guide overrides", async () => {
+    const w = workspace();
+    put(w, "base/guides/deploy.md", GUIDE("deploy", "Ship it", "BASE"));
+    put(w, "projects/web/guides/deploy.md", GUIDE("deploy", "Ship web", "WEB"));
+    await serve(w);
+    const r = flume(w, "guide", "deploy", "--project", "web");
+    expect(r.status).toBe(0);
+    expect(r.stdout).toBe("WEB\n");
+    flume(w, "stop");
+  });
+
+  it("s-8ee7 no such guide", async () => {
+    const w = workspace();
+    await serve(w);
+    const r = flume(w, "guide", "nope");
+    expect(r.status).toBe(1);
+    expect(r.stderr).toContain("nope");
+    flume(w, "stop");
+  });
+
+  it("s-c6b5 guide with no daemon", () => {
+    const w = workspace();
+    const r = flume(w, "guide", "deploy");
+    expect(r.status).toBe(1);
+    expect(r.stderr).toContain("not running");
+    expect(existsSync(join(w.d, ".flume/daemon.json"))).toBe(false);
+  });
+
+  it("s-193a prime lists guides", async () => {
+    const w = workspace();
+    put(w, "base/guides/deploy.md", GUIDE("deploy", "Ship it", "STEPS"));
+    put(w, "projects/web/guides/lint.md", "no front matter\n");
+    await serve(w);
+    const r = flume(w, "prime", "--name", "a", "--project", "web");
+    expect(r.status).toBe(0);
+    expect(r.stdout).toContain("flume guide");
+    expect(r.stdout).toContain("deploy: Ship it");
+    expect(r.stdout).not.toContain("lint");
+    flume(w, "stop");
+  });
+
+  it("s-0630 check reports a guide without front matter", () => {
+    const w = workspace();
+    put(w, "base/guides/deploy.md", "no front matter\n");
+    const r = flume(w, "check");
+    expect(r.status).toBe(1);
+    expect(r.stdout).toContain("base/guides/deploy.md");
+  });
+});

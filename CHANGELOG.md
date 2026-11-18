@@ -4,6 +4,8 @@
 
 ### Added
 
+- Guides: Markdown files with flat YAML front matter (`name`, `description`, optional `stage`) in `base/guides/` and `projects/<project>/guides/` of the flume-root (project overrides base). `flume guide <name> [--project P]` prints the body; `flume prime` lists each guide's name and description; `flume check` reports guides with bad front matter. New `GET /api/guides/<name>` and a `guides` list in `GET /api/prime`; both go through the daemon like prime (fl-x6xn).
+
 - `flume.yaml` can list `projects:` (name -> `url`, optional `branch`); `flume check` reports a project with no url or a bad folder name. `flume clone <git-url> [<workspace>]` clones the tasks repo into the workspace (current folder by default) and runs `flume init --clone`; `flume init --clone` clones each missing project into `<workspace>/<name>/` (a failed clone is reported, the rest go on, exit 1); `flume project list [--json]` and `flume project add <git-url> [--name N] [--branch B]`. None use the daemon (fl-pshd).
 
 - `flume prime` and `flume agent` ask the daemon for the workflow text and print it: built-in text, `base/workflow.md`, `projects/<project>/workflow.md`, `base/roles/<role>.md`, then `projects/<project>/roles/<role>.md` of the flume-root (missing files skipped; with no daemon the built-in text plus a line saying the rest is missing). New `GET /api/prime`, `flume agent --role <role>` (saved on the agent entry like `project`), `flume task new --project`, and a `project` field in `task.yaml` (fl-3pfa).

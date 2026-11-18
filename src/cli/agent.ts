@@ -194,8 +194,14 @@ async function primeText(name: string, project: string, role: string): Promise<s
       "\nThe workflow text is missing because the flume server is not running. Ask the human to start it: flume serve (in its own pane).\n";
   } else if (r.status !== 200) {
     text += `\nThe workflow text is missing: ${r.body?.error ?? `request failed (${r.status})`}\n`;
-  } else if (r.body.text) {
-    text += `\n${r.body.text}`;
+  } else {
+    if (r.body.text) text += `\n${r.body.text}`;
+    const guides = (r.body.guides ?? []) as { name: string; description: string; stage?: string }[];
+    if (guides.length > 0) {
+      text += "\nGuides available (print one with: flume guide <name>):\n";
+      for (const g of guides)
+        text += `- ${g.name}${g.stage ? ` [stage: ${g.stage}]` : ""}: ${g.description}\n`;
+    }
   }
   return text;
 }
@@ -267,6 +273,56 @@ function show(args: string[]): number {
     return 1;
   }
   process.stdout.write(args.includes("--json") ? `${JSON.stringify(e, null, 2)}\n` : stringify(e));
+  return 0;
+}
+
+/** `flume guide <name> [--name N] [--project P]`: print a guide's text, via the daemon like prime. */
+export async function guide(args: string[]): Promise<number> {
+  if (args.includes("--help") || args.includes("-h")) {
+    process.stdout.write("usage: flume guide <guide-name> [--name <agent>] [--project <p>]\n");
+    return 0;
+  }
+  const opts: Record<string, string> = {};
+  const bare: string[] = [];
+  for (let i = 0; i < args.length; i++) {
+    const a = args[i] as string;
+    if (a === "--name" || a === "--project") {
+      const v = args[++i];
+      if (v === undefined) {
+        process.stderr.write(`flume: ${a} needs a value\n`);
+        return 2;
+      }
+      opts[a.slice(2)] = v;
+    } else if (a.startsWith("-")) {
+      process.stderr.write(`flume: unknown option ${a}\nusage: flume guide <guide-name>\n`);
+      return 2;
+    } else bare.push(a);
+  }
+  if (bare.length !== 1) {
+    process.stderr.write("flume: guide needs one guide name\nusage: flume guide <guide-name>\n");
+    return 2;
+  }
+  const agentName = opts.name ?? paneName() ?? process.env.AGENT_NAME;
+  const project = opts.project ?? (agentName ? readEntry(agentName)?.project : undefined) ?? "";
+  const url = daemonUrl(process.cwd());
+  if (!url) {
+    process.stderr.write(
+      "flume: the flume server is not running. Ask the human to start it: flume serve (in its own pane).\n",
+    );
+    return 1;
+  }
+  const q = new URLSearchParams({ project });
+  const r = await request(url, "GET", `/api/guides/${encodeURIComponent(bare[0] as string)}?${q}`);
+  if (!r) {
+    process.stderr.write("flume: the flume server did not answer\n");
+    return 1;
+  }
+  if (r.status !== 200) {
+    process.stderr.write(`flume: ${r.body?.error ?? `request failed (${r.status})`}\n`);
+    return 1;
+  }
+  const body = r.body.body as string;
+  process.stdout.write(body.endsWith("\n") ? body : `${body}\n`);
   return 0;
 }
 

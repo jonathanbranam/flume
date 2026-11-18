@@ -7,8 +7,10 @@ import {
   addComment,
   checkProject,
   createTask,
+  listGuides,
   listTaskFiles,
   PATCH_FIELDS,
+  readGuide,
   readRoadmap,
   reopenTask,
   resolveRef,
@@ -104,7 +106,22 @@ export function startDaemon(opts: {
       allow("GET");
       const project = url.searchParams.get("project") ?? "";
       const role = url.searchParams.get("role") ?? "";
-      return [200, { text: bad(() => workflowText(root, project, role)) }];
+      return [
+        200,
+        {
+          text: bad(() => workflowText(root, project, role)),
+          guides: bad(() => listGuides(root, project)),
+        },
+      ];
+    }
+    if (a === "guides" && parts.length === 3) {
+      allow("GET");
+      const name = decodeURIComponent(parts[2] as string);
+      const project = url.searchParams.get("project") ?? "";
+      const r = bad(() => readGuide(root, project, name));
+      if (!r) throw new HttpError(404, `no guide ${name}`);
+      if (!r.ok) throw new HttpError(400, r.error);
+      return [200, r.guide];
     }
     if (a === "stop" && parts.length === 2) {
       allow("POST");

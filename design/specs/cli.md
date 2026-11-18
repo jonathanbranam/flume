@@ -396,6 +396,15 @@ When flume check is run, it SHALL print the result of the check described in the
 - **WHEN** flume check is run
 - **THEN** one problem line names that task folder and the exit code is 1
 
+### Requirement: Check reports bad guides  {#r-353a}
+When flume check is run, it SHALL also report each guide file (base/guides/NAME.md or projects/PROJECT/guides/NAME.md of the flume root) whose front matter is missing, unparsable, not flat, has a name differing from the file name, or has no description, as one problem naming the file.
+
+#### Scenario: Guide without front matter  {#s-0630}
+*Verification*: **executable**
+- **GIVEN** a base/guides/deploy.md with no front matter
+- **WHEN** flume check is run
+- **THEN** one problem line names base/guides/deploy.md and the exit code is 1
+
 ### Requirement: Status takes --json  {#r-9bef}
 
 When flume status is run with --json, flume SHALL print one JSON object on standard output with the keys running (true or false), address and root, and exit with the same code as without --json.

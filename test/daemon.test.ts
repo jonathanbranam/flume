@@ -340,6 +340,37 @@ describe("daemon api", () => {
     expect((await call("GET", "/api/prime?project=a/b")).status).toBe(400);
   });
 
+  it("s-000f prime lists guides", async () => {
+    putFlume(
+      "base/guides/deploy.md",
+      "---\nname: deploy\ndescription: Ship it\nstage: build\n---\nB\n",
+    );
+    putFlume("projects/web/guides/deploy.md", "---\nname: deploy\ndescription: Ship web\n---\nW\n");
+    putFlume("base/guides/bad.md", "no front matter\n");
+    const r = await call("GET", "/api/prime?project=web");
+    expect(r.status).toBe(200);
+    expect(r.body.guides).toEqual([{ name: "deploy", description: "Ship web" }]);
+    const b = await call("GET", "/api/prime");
+    expect(b.body.guides).toEqual([{ name: "deploy", description: "Ship it", stage: "build" }]);
+  });
+
+  it("s-e610 read a guide", async () => {
+    putFlume("base/guides/deploy.md", "---\nname: deploy\ndescription: Ship it\n---\nSTEPS\n");
+    const r = await call("GET", "/api/guides/deploy?project=web");
+    expect(r.status).toBe(200);
+    expect(r.body.body).toBe("STEPS\n");
+    expect(r.body.name).toBe("deploy");
+  });
+
+  it("s-b6e2 unknown or broken guide", async () => {
+    putFlume("base/guides/bad.md", "no front matter\n");
+    const a = await call("GET", "/api/guides/nope");
+    const b = await call("GET", "/api/guides/bad");
+    expect([a.status, b.status]).toEqual([404, 400]);
+    expect(a.body.error).toBeTruthy();
+    expect(b.body.error).toBeTruthy();
+  });
+
   it("s-0e75 stop", async () => {
     let stopped = false;
     await d?.close();

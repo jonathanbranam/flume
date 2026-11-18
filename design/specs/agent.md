@@ -266,6 +266,42 @@ When the user runs "flume prime [--name <name>] [--project <p>] [--role <r>]", f
 - **WHEN** the user runs flume prime --name alpha --project web
 - **THEN** the output contains "You are agent alpha" and "You are working on the web project. Read that project's CLAUDE.md and follow its instructions."
 
+### Requirement: Guides  {#r-c7a5}
+A guide is a Markdown file with flat YAML front matter holding name (the file name without .md), description (what the guide covers and when to use it) and optionally stage, kept at base/guides/NAME.md or projects/PROJECT/guides/NAME.md of the flume root, a project's guide overriding the base guide of the same name. When the user runs "flume guide <name> [--name <agent>] [--project <p>]", flume SHALL ask the daemon (the guides endpoint of the api spec) and print the guide's text without its front matter, using the project given, else the one saved on the agent entry, and exit with code 0; when no such guide exists, or its front matter is missing or unparsable, flume SHALL print an error naming the guide to standard error and exit with code 1; when no daemon answers flume SHALL say so on standard error, exit with code 1 and SHALL NOT start the daemon. flume SHALL NOT read the guide files itself.
+
+#### Scenario: Print a base guide  {#s-7c2b}
+*Verification*: **executable**
+- **GIVEN** a running daemon whose flume root has base/guides/deploy.md with front matter name deploy and a description, then the body STEPS
+- **WHEN** the user runs flume guide deploy
+- **THEN** the output is STEPS without the front matter and the exit code is 0
+
+#### Scenario: A project guide overrides  {#s-a846}
+*Verification*: **executable**
+- **GIVEN** a running daemon whose flume root has base/guides/deploy.md with body BASE and projects/web/guides/deploy.md with body WEB
+- **WHEN** the user runs flume guide deploy --project web
+- **THEN** the output is WEB and the exit code is 0
+
+#### Scenario: No such guide  {#s-8ee7}
+*Verification*: **executable**
+- **GIVEN** a running daemon whose flume root has no guide named nope
+- **WHEN** the user runs flume guide nope
+- **THEN** the exit code is 1 and standard error names nope
+
+#### Scenario: No daemon  {#s-c6b5}
+*Verification*: **executable**
+- **GIVEN** no daemon running
+- **WHEN** the user runs flume guide deploy
+- **THEN** the exit code is 1, standard error says the server is not running and no daemon was started
+
+### Requirement: Prime lists the guides  {#r-5dfe}
+When flume prime or flume agent builds the prime text and the daemon returns guides, flume SHALL print after the workflow text a line saying a guide is printed with flume guide <name>, then one line per guide with its name, its stage in brackets when it has one, and its description; guides with missing or unparsable front matter SHALL NOT be listed; with no guides flume SHALL print no guides part.
+
+#### Scenario: Prime lists guides  {#s-193a}
+*Verification*: **executable**
+- **GIVEN** a running daemon whose flume root has base/guides/deploy.md with description Ship it, and projects/web/guides/lint.md with no front matter
+- **WHEN** the user runs flume prime --name a --project web
+- **THEN** the output contains "flume guide" and "deploy: Ship it" and does not contain lint
+
 ### Requirement: list  {#r-b1c0}
 
 When the user runs "flume agent list", flume SHALL print a header line NAME PANE PROJECT LIVE LAST-LAUNCH LAST-SEEN and one line per entry, where LIVE is yes when the pane exists and runs claude, pane when it exists running something else, and - when it is gone or when not in tmux, and LAST-SEEN is the entry's last_seen, or - when it has none. With --json, flume SHALL print one JSON array with one object per entry instead, holding the entry's fields and live (yes, pane or -), and exit with code 0.

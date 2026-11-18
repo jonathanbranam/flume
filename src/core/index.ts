@@ -1,4 +1,5 @@
 export * from "./check.ts";
+export * from "./guides.ts";
 export * from "./ids.ts";
 export * from "./layout.ts";
 export * from "./prime.ts";

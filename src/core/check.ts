@@ -1,3 +1,4 @@
+import { checkGuides } from "./guides.ts";
 import { isValidId } from "./ids.ts";
 import { checkProjects } from "./projects.ts";
 import { checkRoadmap } from "./roadmap.ts";
@@ -142,6 +143,7 @@ export function checkProject(root: string): Problem[] {
   }
   problems.push(...checkProjects(root));
   problems.push(...checkRoadmap(root));
+  problems.push(...checkGuides(root));
   return problems;
 }
 

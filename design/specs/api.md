@@ -174,6 +174,28 @@ When GET /api/prime is requested with the optional query parameters project and 
 - **WHEN** GET /api/prime is requested with role ../x
 - **THEN** the status is 400 and the body has an error message
 
+### Requirement: Guides  {#r-eee6}
+When GET /api/prime is requested, the daemon SHALL also answer in the object a list guides with one object per guide available to the project (those of base/guides and, when project is given, projects/PROJECT/guides, a project's guide replacing the base one of the same name) holding name, description and, when the guide has one, stage, ordered by name; a guide whose front matter is missing, unparsable, has a name differing from the file name or no description is left out. When GET /api/guides/NAME is requested with the optional query parameter project, the daemon SHALL answer 200 with an object holding name, description, stage (when present) and body (the text after the front matter) of the project's guide if its file exists, else the base guide; 404 with an error message when neither file exists; 400 with an error message when the guide's front matter is missing or unparsable or when NAME or project is not one plain name.
+
+#### Scenario: Prime lists guides  {#s-000f}
+*Verification*: **executable**
+- **GIVEN** a flume root with base/guides/deploy.md (description Ship it, stage build), projects/web/guides/deploy.md (description Ship web) and base/guides/bad.md with no front matter
+- **WHEN** GET /api/prime is requested with project web
+- **THEN** the status is 200 and guides holds one guide, deploy, with description Ship web
+
+#### Scenario: Read a guide  {#s-e610}
+*Verification*: **executable**
+- **GIVEN** a flume root with base/guides/deploy.md holding front matter and the body STEPS, and no guide for project web
+- **WHEN** GET /api/guides/deploy is requested with project web
+- **THEN** the status is 200 and body is STEPS and name is deploy
+
+#### Scenario: Unknown or broken guide  {#s-b6e2}
+*Verification*: **executable**
+- **GIVEN** a flume root with base/guides/bad.md with no front matter
+- **WHEN** GET /api/guides/nope and GET /api/guides/bad are requested
+- **THEN** the first answers 404 and the second 400, each with an error message
+
+
 ### Requirement: Stop  {#r-23b5}
 When POST /api/stop is requested, the daemon SHALL answer 200 and then exit, and a later request to its address SHALL fail to connect.
 

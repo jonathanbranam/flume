@@ -1,4 +1,4 @@
-import { agent, prime } from "./agent.ts";
+import { agent, guide, prime } from "./agent.ts";
 import { bugTemplate } from "./bug.ts";
 import { check } from "./check.ts";
 import { serve, status, stop } from "./daemon.ts";
@@ -24,6 +24,7 @@ Commands:
   check      validate the task files; one line per problem, exit 1 if any [--json]
   agent      launch Claude as a named agent; list, show (flume agent --help)
   prime      print the prime text flume agent would send [--role R]
+  guide      print a guide: flume guide <name> [--project P]
   bug        print a bug-report template to paste into an email
 
 Options:
@@ -62,6 +63,7 @@ export async function main(args: string[]): Promise<number> {
   if (command === "roadmap") return roadmap(process.cwd(), args.slice(1));
   if (command === "agent") return await agent(args.slice(1));
   if (command === "prime") return await prime(args.slice(1));
+  if (command === "guide") return await guide(args.slice(1));
   if (command === "check") return check(process.cwd(), args.slice(1));
   process.stderr.write(`flume: unknown command '${command}'\n\n${HELP}`);
   return 2;
