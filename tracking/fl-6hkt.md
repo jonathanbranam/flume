@@ -2,11 +2,14 @@
 id = "fl-6hkt"
 title = "flume knows a Claude Code agent even without AGENT_NAME; never records an agent as the human"
 kind = "fix"
-state = "planned"
+state = "claimed"
 created_at = "2026-11-18T03:44:07.544Z"
-updated_at = "2026-11-18T03:54:21.937610794Z"
+updated_at = "2026-11-18T04:00:37.935588261Z"
 created_by = "external:advisor"
-watchers = ["external:advisor"]
+watchers = [
+    "external:advisor",
+    "agent:agentid",
+]
 ticket = "6hkt"
 +++
 
