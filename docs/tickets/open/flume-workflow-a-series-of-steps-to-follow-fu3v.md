@@ -46,7 +46,7 @@ Earlier (handover): the human will send their own agent workflow (worktrees, mer
 
 ### The OpenSpec flow as the model (2026-11-17)
 
-The human, verbatim: "I really like the openspec flow of new-change -> continue-change -> continue-change -> apply. the workflow itself defines the flow through artifacts. \"continue\" is a generic skill that uses `openspec` cli to dynamically generate the prompts for the agent. this is the model for flume workflows."
+The human, verbatim: "I really like the openspec flow of new-change -> continue-change -> continue-change -> apply. the workflow itself defines the flow through artifacts. "continue" is a generic skill that uses `openspec` cli to dynamically generate the prompts for the agent. this is the model for flume workflows."
 
 How OpenSpec does it (advisor read the skills and ran the CLI, see fl-87h9): `openspec status --change <name> --json` lists the schema's artifacts with status (done / ready / blocked by ...); the continue skill picks the first `ready` artifact, runs `openspec instructions <artifact> --change <name> --json`, writes that one artifact from `template`, `instruction`, `context`, `rules` and `dependencies`, and stops. The schema (`spec-driven`: proposal -> specs + design -> tasks) defines the artifacts and their dependencies. `apply` then works through `tasks.md`.
 
