@@ -60,6 +60,17 @@ For whoever edits this ticket (the human, 2026-11-17): "the design at the top is
 - `flume task next ID`: the current plan group, then the guides the group names and the guides pushed to `implement`, each in its own `<guide>` element.
 - A pushed guide that has since disappeared is reported in the output, not an error.
 
+### Prime and instructions
+
+- `flume prime` keeps the high-level overview of the workflow: the phases, what each is for, the human is in control.
+- `flume task instructions ID` gives the specific steps for the task's current phase. Each phase's step text is built into flume (split out of fl-fu3v's base text), with its template and pushed guides.
+
+### No advancing without the instructions
+
+- `flume task instructions ID` (and `claim`, which prints them) records in the task's history (fl-eg2q) that this agent fetched the instructions for the current phase.
+- When an agent moves a task to a later phase (`flume task phase ID PHASE`, forwards, including skipping), flume refuses (exit 1, nothing changed) unless that same agent fetched the instructions for the task's current phase since the task entered it. The message names the command to run.
+- Moving backwards is not gated. The human (no agent detected, fl-6hkt) is never gated.
+
 ### Agents find the instructions without knowing to look
 
 - `flume task show ID` is the task's data (fields, parts, pushed guides) for humans and scripts; `flume task instructions ID` is what to do now, for the agent.
@@ -115,3 +126,7 @@ Advisor's reading: nesting stays; keys stay lowercase, matching the phase names.
 > What difference between show and instruction? It sounds right but I'm worried agents will run show. It needs to be made clear and explocit
 
 Advisor: kept the new command, and made claim print the instructions, phase and show point to it, and the built-in text say which to run.
+
+> Yes prime should list the high level overview of the workflow but instructions show the specific steps.
+>
+> I think flume should refuse to advance the task in the workflow if this same agent has not run instructions
