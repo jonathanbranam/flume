@@ -105,3 +105,7 @@ Settled: `flume init` reports missing projects; `flume init --clone` clones them
 The human, 2026-11-17: "in flume.yaml, <project> should be a dict. then have the url and branch"
 
 Settled: each project is `{url, branch}`. This replaces the name-to-URL map above.
+
+The human, 2026-11-17: "similar to submodules"
+
+Advisor note: modeled on `.gitmodules`, which gives each submodule `path`, `url` and `branch`. Flume keeps `url` and `branch` with the same meanings and has no `path`: the project's folder is always `<workspace>/<name>/` (YAGNI; add `path` if a project ever needs a different folder).
