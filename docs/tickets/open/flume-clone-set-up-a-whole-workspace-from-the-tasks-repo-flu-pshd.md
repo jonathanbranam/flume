@@ -60,6 +60,8 @@ projects:
 
 ### flume project
 
+- `flume init`, `flume clone`, `flume project list` and `flume project add` are plain commands: they work on the files and git directly, not through the daemon, and need no `flume serve` running.
+
 - `flume project list`: one line per project in `flume.yaml`: name, url, branch (blank when not set), and whether its folder is in the workspace (present or missing).
 - `flume project add <git-url> [--name NAME] [--branch BRANCH]` sets the project up:
   1. Adds it to `flume.yaml`'s `projects` (name defaults to the URL's last part without `.git`, as `git clone` names its folder; `branch` is written only when `--branch` is given) and commits `flume.yaml` in the tasks repo.
@@ -70,7 +72,6 @@ projects:
 
 - `flume project` is singular, like `flume task` and `flume agent` (and `git remote`, `gh repo`).
 - `flume project add` does not make `<flume-root>/projects/<name>/`; the folder is only needed once it holds a workflow, role or guide.
-- `flume project add` goes through the daemon like `flume task` commands (one writer for the tasks repo), so it needs `flume serve` running.
 - No `flume project remove` yet (YAGNI): delete the entry by hand.
 
 - Flume does no other git setup.
@@ -132,3 +133,7 @@ The human, 2026-11-17: "We need a command for project(s). I can't remember what 
 The human, 2026-11-17: "sorry, you're right, missing `branch:` should use the repo's own default branch"
 
 Settled: no `branch` means the repo's own default branch. This replaces "defaults to main" above.
+
+The human, 2026-11-17: "I think `init` `clone` `project add` are just normal commands, not through the daemon. we don't need `flume serve` running to do these things"
+
+Settled: no daemon for these commands. This replaces the advisor's assumption that `project add` goes through the daemon.
