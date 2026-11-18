@@ -27,3 +27,6 @@ tasks = ["fl-35bq"]
 
 [[tier]]
 tasks = ["fl-89z2"]
+
+[[tier]]
+tasks = ["fl-cpcu"]
