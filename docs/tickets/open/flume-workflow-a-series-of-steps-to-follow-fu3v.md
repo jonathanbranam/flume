@@ -22,15 +22,15 @@ For whoever edits this ticket (the human, 2026-11-17): "the design at the top is
 ### Task fields (task.yaml, flat; layout fl-3pfa)
 
 - `assignee`: who must act next: an agent name, or `human`. Empty when nobody holds the task.
-- `agent`: the working agent: the agent that last claimed the task or was assigned it. Kept when the task is assigned to the human for feedback, so the human can see which running agent is on it.
+- `agent`: the working agent: the agent the task was last assigned to. Kept when the task is assigned to the human for feedback, so the human can see which running agent is on it.
 - `phase`: one of `proposal`, `design`, `specs`, `plan`, `implement`. A new task starts at `proposal`.
 - A task is ready to build when its phase is `implement`.
 
 ### Commands
 
-- `flume task claim ID [--force]`: sets `assignee` and `agent` to `$AGENT_NAME`. Needs `$AGENT_NAME`. Claiming a task you already hold succeeds and changes nothing.
-- When the task is assigned to someone else, `claim` without `--force` changes nothing, exits 1, and says who holds it and that `--force` takes it over. With `--force` it claims it.
-- `flume task assign ID NAME|human`: sets `assignee`. When NAME is an agent, sets `agent` too. Anyone may run it (the human re-assigns at any point).
+- `flume task assign ID [NAME|human] [--force]`: sets `assignee` to NAME, or to `$AGENT_NAME` when NAME is left out (an agent taking the task). When the assignee is an agent, sets `agent` too. Assigning a task to whoever already holds it succeeds and changes nothing.
+- When an agent (`$AGENT_NAME` set) assigns a task that someone else holds, without `--force` flume changes nothing, exits 1, and says who holds it and that `--force` takes it over. The human (no `$AGENT_NAME`) never needs `--force`: they re-assign at any point.
+- There is no separate claim command.
 - `flume task phase ID PHASE`: sets `phase`. Any phase may follow any other (forwards, backwards, skipping).
 - `flume task list` shows `phase` and `assignee`, and takes `--assignee NAME|human` and `--phase PHASE`. `--json` as rule cli-json-output.
 - `flume task show` shows the three fields.
@@ -51,7 +51,7 @@ You are agent {name}, stored in $AGENT_NAME. Use the flume CLI to work with task
 The human is in control. They may move a task to any phase, forwards or backwards, or skip phases ("write design and specs", "remove the specs and start over on the design", "the ticket is simple, skip specs and plan, just implement"). Do what they ask.
 
 Working a task:
-1. Claim it (flume task claim ID). Read its phase (flume task show ID) and continue from that phase.
+1. Take it: assign it to yourself (flume task assign ID). Read its phase (flume task show ID) and continue from that phase.
 2. The phases, in order:
    - proposal: check that the task has a clear proposal, goal and scope. If not, ask the human. Write them in body.md.
    - design: when goal and scope are clear, think through the design questions and write design.md.
@@ -104,6 +104,12 @@ Advisor asked: a claim is refused when the task is already assigned to someone e
 > it should be prompted and require a flag though
 
 Advisor's reading: the refusal message is the prompt (agents run without a terminal, so no interactive question), and `--force` takes the task over.
+
+Asked the difference between assign and claim (claim = assign to yourself, with the --force check), the human:
+
+> one command
+
+Advisor: one `flume task assign ID [NAME]`, no NAME = yourself; the --force check applies only when an agent takes a task someone else holds, so the human's re-assigning ("at any point") never needs it.
 
 Context: asked what flume's built-in workflow text is, advisor showed today's prime text (identity, flume --help, never start flume serve; no workflow steps). Advisor: Open questions 1-7 below (from before the v1 flow) are superseded for v1 by the Design; they stay for the later OpenSpec-like model. The audit trail went to its own ticket, fl-eg2q.
 
