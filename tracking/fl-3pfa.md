@@ -2,9 +2,9 @@
 id = "fl-3pfa"
 title = "flume layouts: everything in a flume/ folder, or everything at the repo top level, chosen at init"
 kind = "feature"
-state = "pending"
+state = "open"
 created_at = "2026-11-17T23:27:25.101Z"
-updated_at = "2026-11-18T01:16:05.707101118Z"
+updated_at = "2026-11-18T02:45:17.978110981Z"
 created_by = "external:advisor"
 watchers = ["external:advisor"]
 ticket = "3pfa"
@@ -22,3 +22,9 @@ human via advisor: decisions added (dir = . or flume in a versioned config; all 
 
 ### note · external:advisor · 2026-11-18T01:16:05.707Z
 human via advisor: projects go under <flume-root>/projects/<project>/ ("Sure projects in projects/ folder.").
+
+### note · external:advisor · 2026-11-18T02:45:15.411Z
+readied by external:advisor
+
+### note · external:advisor · 2026-11-18T02:45:17.978Z
+human via advisor: go. The human, 2026-11-17 ~10:30 PM ET: "build it". Hold lifted; readied.
