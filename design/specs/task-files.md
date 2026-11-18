@@ -201,3 +201,18 @@ When flume check runs, it SHALL report a folder name that is not a slug of lower
 - **GIVEN** two open tasks that each name the other in blocked_by
 - **WHEN** flume check runs
 - **THEN** it exits with code 1 and prints a problem for each of the two folders
+
+### Requirement: flume.yaml lists the projects  {#r-686f}
+flume.yaml MAY hold projects, mapping each project's name (its folder in the workspace) to a set of fields: url (the git URL, required) and branch (optional; without it the repository's own default branch). The check SHALL report, as a problem naming flume.yaml, each project with no url and each project name that is not a valid folder name.
+
+#### Scenario: A project without a url  {#s-a386}
+*Verification*: **executable**
+- **GIVEN** a tasks repository whose flume.yaml lists a project backend with only a branch
+- **WHEN** flume check is run
+- **THEN** one problem line names flume.yaml and backend and the exit code is 1
+
+#### Scenario: A bad project name  {#s-7873}
+*Verification*: **executable**
+- **GIVEN** a tasks repository whose flume.yaml lists a project named a/b with a url
+- **WHEN** flume check is run
+- **THEN** one problem line names flume.yaml and a/b and the exit code is 1

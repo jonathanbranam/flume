@@ -3,6 +3,7 @@ import { bugTemplate } from "./bug.ts";
 import { check } from "./check.ts";
 import { serve, status, stop } from "./daemon.ts";
 import { init } from "./init.ts";
+import { cloneCmd, project } from "./project.ts";
 import { roadmap } from "./roadmap.ts";
 import { task } from "./task.ts";
 import { version } from "./version.ts";
@@ -12,7 +13,9 @@ const HELP = `flume - a workflow tool for agents
 Usage: flume <command>
 
 Commands:
-  init       set up this workspace folder [--root PATH] [--dir NAME]
+  init       set up this workspace folder [--root PATH] [--dir NAME] [--clone]
+  clone      clone a tasks repo and set up its workspace: <git-url> [<workspace>]
+  project    list, add (flume project --help)
   serve      run the daemon in the foreground [--port N] (the human runs this; agents never do)
   status     show whether the daemon runs, its address and root [--json]
   stop       ask the daemon to exit
@@ -44,6 +47,8 @@ export async function main(args: string[]): Promise<number> {
     return 0;
   }
   if (command === "init") return init(process.cwd(), args.slice(1));
+  if (command === "clone") return cloneCmd(process.cwd(), args.slice(1));
+  if (command === "project") return project(process.cwd(), args.slice(1));
   if (command === "serve") return serve(process.cwd(), args.slice(1));
   if (command === "status") return status(process.cwd(), args.slice(1));
   if (command === "stop") {

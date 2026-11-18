@@ -1,7 +1,15 @@
 import { existsSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
-import { DEFAULT_DIR, FLUME_YAML, readDir, validDir } from "../core/index.ts";
 import {
+  DEFAULT_DIR,
+  FLUME_YAML,
+  readDir,
+  readProjects,
+  validDir,
+  validProjectName,
+} from "../core/index.ts";
+import {
+  cloneRepo,
   commitPaths,
   ensureFlumeDir,
   findProject,
@@ -14,7 +22,7 @@ import {
 const err = (s: string) => process.stderr.write(`${s}\n`);
 
 function usage(msg: string): number {
-  err(`flume: ${msg}\nusage: flume init [--root PATH] [--dir NAME]`);
+  err(`flume: ${msg}\nusage: flume init [--root PATH] [--dir NAME] [--clone]`);
   return 2;
 }
 
@@ -22,6 +30,7 @@ function usage(msg: string): number {
 export function init(cwd: string, args: string[]): number {
   let root: string | undefined;
   let dir: string | undefined;
+  let clone = false;
   for (let i = 0; i < args.length; i++) {
     const a = args[i];
     if (a === "--root") {
@@ -33,13 +42,10 @@ export function init(cwd: string, args: string[]): number {
       if (v === undefined) return usage("--dir needs a folder name");
       if (!validDir(v)) return usage(`--dir must be . or one plain folder name, not '${v}'`);
       dir = v;
-    } else return usage(`unknown option '${a}'`);
+    } else if (a === "--clone") clone = true;
+    else return usage(`unknown option '${a}'`);
   }
   const ws = resolve(cwd);
-  if (existsSync(join(ws, ".flume"))) {
-    err("flume: this folder is already set up (.flume exists); nothing changed");
-    return 1;
-  }
   const taskRoot = root ?? readConfigRoot(ws) ?? findProject(ws)?.mainCheckout;
   if (!taskRoot) {
     err("flume: no task root: run flume init --root PATH, or run it inside a git repository");
@@ -71,8 +77,40 @@ export function init(cwd: string, args: string[]): number {
       commitPaths(taskRoot, [FLUME_YAML], "flume init: flume.yaml");
     }
   }
-  process.stdout.write(
-    `set up ${ws}\nflume root ${use === "." ? taskRoot : join(taskRoot, use)}\n`,
-  );
-  return 0;
+  const out = (t: string) => process.stdout.write(`${t}\n`);
+  out(`set up ${ws}`);
+  out(`flume root ${use === "." ? taskRoot : join(taskRoot, use)}`);
+  let projects: ReturnType<typeof readProjects>;
+  try {
+    projects = readProjects(taskRoot);
+  } catch (e) {
+    err(`flume: ${(e as Error).message}`);
+    return 1;
+  }
+  let failed = 0;
+  const missing: string[] = [];
+  for (const p of projects) {
+    const dest = join(ws, p.name);
+    if (!validProjectName(p.name) || p.url === undefined) {
+      err(
+        `flume: skipping project ${p.name}: ${FLUME_YAML} gives no url or a bad name (flume check)`,
+      );
+      continue;
+    }
+    if (existsSync(dest)) out(`project ${p.name}: already there`);
+    else if (!clone) {
+      out(`project ${p.name}: missing (${p.url})`);
+      missing.push(p.name);
+    } else {
+      const e = cloneRepo(p.url, dest, p.branch);
+      if (e === undefined) out(`project ${p.name}: cloned`);
+      else {
+        failed++;
+        err(`flume: clone of project ${p.name} (${p.url}) failed: ${e}`);
+      }
+    }
+  }
+  if (missing.length > 0) out("flume init --clone clones the missing projects");
+  out("next: run flume serve in this folder");
+  return failed > 0 ? 1 : 0;
 }

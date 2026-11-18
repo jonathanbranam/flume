@@ -63,15 +63,6 @@ describe("flume init", () => {
     expect(existsSync(join(ws, ".git"))).toBe(false);
   });
 
-  it("s-1d04 init again is refused", () => {
-    const { ws, tasks } = workspace();
-    flume(ws, "init", "--root", "tasks");
-    const r = flume(ws, "init", "--root", "tasks");
-    expect(r.status).toBe(1);
-    expect(r.stderr).toContain("already set up");
-    expect(count(tasks)).toBe("2");
-  });
-
   it("s-88ec init has no --force", () => {
     const repo = folder();
     git(repo, "init", "-q", "-b", "main");

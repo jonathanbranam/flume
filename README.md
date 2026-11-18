@@ -36,6 +36,8 @@ through the Artifactory npm mirror.
 
    ```sh
    flume init --root <task-repo>   # once; omit --root inside a git repo
+   # or, from a tasks repo's git URL: flume clone <git-url> [<workspace>]
+   # (clones the tasks repo and the projects listed in its flume.yaml; flume project list|add)
    flume serve     # runs in the foreground and prints its address; leave it running
    flume status    # in another terminal: "running at <address>" and the root; exit 1 if not running (--json for jq)
    flume stop      # stops the daemon

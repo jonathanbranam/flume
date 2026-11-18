@@ -44,3 +44,24 @@ export function commitPaths(dir: string, paths: string[], message: string): void
 export function hasChanges(dir: string, path: string): boolean {
   return git(dir, ["status", "--porcelain", "--", path]).trim() !== "";
 }
+
+/** `git clone [--branch B] URL DEST`; returns undefined on success, else git's error text. Never pushes. */
+export function cloneRepo(url: string, dest: string, branch?: string): string | undefined {
+  const args = ["clone", "-q", ...(branch ? ["--branch", branch] : []), "--", url, dest];
+  try {
+    execFileSync("git", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+    return undefined;
+  } catch (e) {
+    const x = e as { stderr?: string; message: string };
+    return (x.stderr || x.message).trim();
+  }
+}
+
+/** The URL of remote `origin` in `dir`, or undefined. */
+export function originUrl(dir: string): string | undefined {
+  try {
+    return git(dir, ["config", "--get", "remote.origin.url"]).trim() || undefined;
+  } catch {
+    return undefined;
+  }
+}

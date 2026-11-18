@@ -4,6 +4,8 @@
 
 ### Added
 
+- `flume.yaml` can list `projects:` (name -> `url`, optional `branch`); `flume check` reports a project with no url or a bad folder name. `flume clone <git-url> [<workspace>]` clones the tasks repo into the workspace (current folder by default) and runs `flume init --clone`; `flume init --clone` clones each missing project into `<workspace>/<name>/` (a failed clone is reported, the rest go on, exit 1); `flume project list [--json]` and `flume project add <git-url> [--name N] [--branch B]`. None use the daemon (fl-pshd).
+
 - `flume prime` and `flume agent` ask the daemon for the workflow text and print it: built-in text, `base/workflow.md`, `projects/<project>/workflow.md`, `base/roles/<role>.md`, then `projects/<project>/roles/<role>.md` of the flume-root (missing files skipped; with no daemon the built-in text plus a line saying the rest is missing). New `GET /api/prime`, `flume agent --role <role>` (saved on the agent entry like `project`), `flume task new --project`, and a `project` field in `task.yaml` (fl-3pfa).
 
 - Agent entries gain `last_seen` (UTC time): every flume command that calls the daemon sends `AGENT_NAME` in an `X-Flume-Agent` header, and the daemon sets that existing entry's `last_seen` on each request (never creates one). `flume agent list` has a LAST-SEEN column; `show` includes it (fl-t8xv).
@@ -11,6 +13,8 @@
 - `flume init [--root PATH] [--force]` sets up a workspace folder: `.flume/` (`.gitignore`, `config.toml` root) and flume's shipped base workflow (one placeholder `workflow.md`) copied to `<root>/workflow/base/` in the task repo and committed there (never pushed). A second init fails and points at `--force`, which rewrites only `workflow/base/`. `flume prime` gains one line naming the reading order (base, workspace, project workflow files, then CLAUDE.md; later overrides earlier) when `<root>/workflow/` exists (fl-7sme).
 
 ### Changed
+
+- `flume init` can be run again in a set-up workspace instead of failing with "already set up": it repeats its steps, reports projects missing from the workspace (without `--clone`) and changes nothing else (fl-pshd).
 
 - New layout, no migration (fl-3pfa): the tasks repo holds a versioned `flume.yaml` (`dir: flume`, or `.`) naming the flume-root; a task is a folder `tasks/open/<slug>-<id>/` with `task.yaml` (flat fields, now including `status`), `body.md` (the ask, no front matter) and `comments.md`; other files in the folder are left alone and move with it on close. `flume init` writes `flume.yaml` (`--dir NAME`) and no longer copies a base workflow, `init --force` and the shipped `workflow/base/` folder are gone, and `roadmap.md` now sits in the flume-root. `flume task show` prints task.yaml, body.md and comments.md; the API task object has `body`, `comments` and `fields` instead of `file`.
 
