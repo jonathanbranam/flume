@@ -37,12 +37,12 @@ projects:
 
 ### flume init
 
-`flume init [--root PATH] [--clone]`, run in the workspace folder (which need not be a git repository), does exactly this, in order:
+`flume init [--root PATH] [--dir NAME] [--clone]`, run in the workspace folder (which need not be a git repository), does exactly this, in order:
 
 1. **Finds the task root**: `--root PATH`, else `root` in `.flume/config.yaml`, else the git repository the current folder is in (its main checkout). When there is none, or it is not a git repository: error on stderr saying there is no task root, exit 1, nothing created.
 2. **Makes `.flume/`** in the workspace folder (if missing), with a `.gitignore` holding `*`.
 3. **Writes `.flume/config.yaml`** with `root: <path>` when `--root` is given (relative to the workspace folder when inside it); without `--root` it keeps the file as it is.
-4. **Writes `flume.yaml`** at the task root's top with `dir: flume` when it has none, and commits it there as one commit. An existing `flume.yaml` is read, never changed.
+4. **Writes `flume.yaml`** at the task root's top with `dir: <NAME>` (`--dir`, default `flume`) when it has none, and commits it there as one commit. An existing `flume.yaml` is read, never changed.
 5. **Checks the projects** in `flume.yaml`'s `projects`: each one with no folder at `<workspace>/<name>/` is missing.
    - Without `--clone`: prints each missing project's name and URL, and a line saying `flume init --clone` clones them. Clones nothing.
    - With `--clone`: clones each missing project into `<workspace>/<name>/` with `git clone --branch <branch> <url>`, or plain `git clone <url>` when `branch` is not set. A failed clone is reported on stderr with its name and URL; init carries on with the rest.
