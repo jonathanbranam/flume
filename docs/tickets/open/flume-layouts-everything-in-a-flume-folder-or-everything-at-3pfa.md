@@ -142,7 +142,7 @@ The human: "'other task related files' should be indented to indicate they are i
             |       |-- task.toml      fields: id, title, status, ...
             |       |-- body.md        the ask (root file of the task)
             |       |-- comments.md
-            |       `-- ...    spec artifacts (later: pluggable, e.g. OpenSpec)
+            |       `-- ...    spec artifacts, attachments (images, CSVs)
             `-- resolved/
                 `-- <slug>-<id>/   (same as open/)
 ```
@@ -214,3 +214,7 @@ Advisor's reading:
 - Not in this ticket (YAGNI): the pluggable spec solution is later work and gets its own ticket. For v1 flume only needs to leave other files in a task folder alone (keep them on resolve, which moves the whole folder).
 - Note: both tools write a `tasks.md` (the implementation checklist) inside the flume task folder. No file clash with flume's own files (`task.toml`, `body.md`, `comments.md`), only a naming echo.
 - Settles open point 3.
+
+The human, 2026-11-17: "could also be attachments as well, yes. Images, CSVs, etc"
+
+So a task folder may also hold attachments (any file type). Same v1 rule: flume leaves files it doesn't own alone and moves them with the folder.
