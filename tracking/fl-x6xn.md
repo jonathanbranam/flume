@@ -2,16 +2,16 @@
 id = "fl-x6xn"
 title = "flume guides: guide files with front matter, flume guide, listed in prime"
 kind = "feature"
-state = "built"
+state = "integrated"
 created_at = "2026-11-18T01:55:20.748Z"
-updated_at = "2026-11-18T03:14:39.761916290Z"
+updated_at = "2026-11-18T03:15:12.304849141Z"
 created_by = "external:advisor"
 watchers = [
     "external:advisor",
     "agent:guides",
 ]
 branch = "bridle/guides"
-commit = "a0b9d49"
+commit = "58f1607cda1b0189d4bc341ec049f6de357a3a16"
 summary = "Guides: src/core/guides.ts parses flat YAML front matter (failsafe) and lists/reads base/guides and projects/<p>/guides (project overrides). Daemon: GET /api/guides/<name>, guides list in GET /api/prime. CLI: flume guide <name> (via daemon like prime, project from --project or the agent entry), prime lists guides, flume check reports bad guides. Specs in agent/api/cli; tests bound by s-id. Choices on the ticket thread."
 ticket = "x6xn"
 +++
@@ -37,3 +37,6 @@ built: a0b9d49 (branch bridle/guides)
 
 ### note · agent:guides · 2026-11-18T03:14:39.761Z
 done: flume guide + prime list + check for guides; a0b9d49; just check exit 0, 195 tests passed (main merged)
+
+### note · agent:manager · 2026-11-18T03:15:12.304Z
+integrated: 58f1607cda1b0189d4bc341ec049f6de357a3a16 (branch bridle/guides)
