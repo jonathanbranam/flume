@@ -13,7 +13,7 @@ related: [fl-7sme, fl-x6xn, fl-fu3v, fl-pshd]
 
 ## The ask
 
-Build the design below. It is the agreed design: where the Discussion section disagrees, the Design wins. On hold until the human says build (the human, 2026-11-17: "Don't build it yet").
+Build the design below. It is the agreed design: where the Discussion section disagrees, the Design wins. Go given by the human, 2026-11-17: "build it".
 
 For whoever edits this ticket (the human, 2026-11-17): "the design at the top is the currently agreed-upon design; keep it current and DO NOT include narration or restatements in the design. The discussion section can include the discussion narrative with restatements as a reference."
 
