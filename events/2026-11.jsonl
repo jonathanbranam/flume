@@ -255,3 +255,4 @@
 {"actor":"external:aide","at":"2026-11-18T04:06:56.361733407Z","from":"pending","task":"fl-4tx8","to":"open"}
 {"actor":"external:orchestrator","at":"2026-11-18T05:39:10.949705857Z","from":"open","task":"fl-4tx8","to":"planned"}
 {"actor":"external:orchestrator","at":"2026-11-18T05:39:10.959876211Z","queue":"reprioritized"}
+{"actor":"agent:instructions","at":"2026-11-18T05:52:31.245915147Z","from":"claimed","task":"fl-4tx8","to":"built"}
