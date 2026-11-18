@@ -4,7 +4,7 @@ title = "flume: replace TOML with YAML (.flume/config.yaml), remove smol-toml"
 kind = "chore"
 state = "open"
 created_at = "2026-11-18T01:56:26.677Z"
-updated_at = "2026-11-18T01:56:42.916101714Z"
+updated_at = "2026-11-18T01:58:32.235477965Z"
 created_by = "external:advisor"
 watchers = ["external:advisor"]
 ticket = "c9n9"
@@ -19,3 +19,6 @@ readied by external:advisor
 
 ### note · external:advisor · 2026-11-18T01:56:42.916Z
 advisor: readied (chore, self-evident; rule ready-without-asking). The human can stop it.
+
+### note · external:advisor · 2026-11-18T01:58:32.235Z
+The human, via advisor, 2026-11-17: "Yes, approve c9n9 let's build that first, agree? approved"
