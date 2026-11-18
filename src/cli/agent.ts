@@ -7,8 +7,8 @@ import { findInitialized, findProject, readConfigRoot } from "../daemon/index.ts
 
 const USAGE = `Usage:
   flume agent [--name <name>] [--project <p>] [--force] [<prompt>] [-- <claude-arg>...]
-  flume agent list
-  flume agent show <name>
+  flume agent list [--json]
+  flume agent show <name> [--json]
   flume prime [--name <name>] [--project <p>]
 
 Launch Claude Code as a named agent. The name comes only from --name, else from the tmux
@@ -230,21 +230,34 @@ function paneName(): string | undefined {
   return v || undefined;
 }
 
-function list(): number {
+/** `flume agent list [--json]`: one line per entry, or with --json a JSON array of entries plus live. */
+function list(args: string[]): number {
+  const extra = args.filter((a) => a !== "--json");
+  if (extra.length > 0) {
+    process.stderr.write(`flume: unexpected argument '${extra[0]}'\n\n${USAGE}`);
+    return 2;
+  }
   const dir = join(flumeHome(), "agents");
   let files: string[] = [];
   try {
     files = readdirSync(dir).filter((f) => f.endsWith(".yaml"));
   } catch {}
   const panes = livePanes();
-  const rows = [["NAME", "PANE", "PROJECT", "LIVE", "LAST-LAUNCH"]];
+  const entries: (Entry & { live: string })[] = [];
   for (const f of files.sort()) {
     const e = readEntry(f.slice(0, -5));
     if (!e) continue;
     const cmd = e.pane ? panes.get(e.pane) : undefined;
     const live = cmd === undefined ? "-" : cmd === "claude" ? "yes" : "pane";
-    rows.push([e.name, e.pane || "-", e.project || "-", live, e.last_launch]);
+    entries.push({ ...e, live });
   }
+  if (args.includes("--json")) {
+    process.stdout.write(`${JSON.stringify(entries)}\n`);
+    return 0;
+  }
+  const rows = [["NAME", "PANE", "PROJECT", "LIVE", "LAST-LAUNCH"]];
+  for (const e of entries)
+    rows.push([e.name, e.pane || "-", e.project || "-", e.live, e.last_launch]);
   const widths =
     rows[0]?.map((_, c) => Math.max(...rows.map((r) => (r[c] as string).length))) ?? [];
   for (const r of rows)
@@ -257,9 +270,12 @@ function list(): number {
   return 0;
 }
 
-function show(name: string | undefined): number {
-  if (!name) {
-    process.stderr.write(`flume: agent show needs a name\n\n${USAGE}`);
+/** `flume agent show <name> [--json]`: the entry as YAML, or as a JSON object with --json. */
+function show(args: string[]): number {
+  const rest = args.filter((a) => a !== "--json");
+  const name = rest[0];
+  if (!name || rest.length > 1) {
+    process.stderr.write(`flume: agent show needs one name\n\n${USAGE}`);
     return 2;
   }
   const e = readEntry(name);
@@ -267,7 +283,7 @@ function show(name: string | undefined): number {
     process.stderr.write(`flume: no agent '${name}'\n`);
     return 1;
   }
-  process.stdout.write(`${JSON.stringify(e, null, 2)}\n`);
+  process.stdout.write(args.includes("--json") ? `${JSON.stringify(e, null, 2)}\n` : stringify(e));
   return 0;
 }
 
@@ -305,8 +321,8 @@ export function agent(args: string[]): number {
     process.stdout.write(USAGE);
     return 0;
   }
-  if (first === "list") return list();
-  if (first === "show") return show(args[1]);
+  if (first === "list") return list(args.slice(1));
+  if (first === "show") return show(args.slice(1));
   const p = parse(args);
   if (typeof p === "string") {
     process.stderr.write(`flume: ${p}\n`);

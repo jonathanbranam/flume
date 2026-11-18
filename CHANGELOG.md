@@ -8,6 +8,7 @@
 
 ### Changed
 
+- `flume status`, `flume check`, `flume roadmap check` and `flume agent list` and `show` take `--json` (one JSON document on stdout: status an object with running, address and root; the checks an array of problems with path and message; list an array of entries; show an object). `flume agent show` prints YAML by default, JSON with `--json` (fl-cpcu).
 - `flume agent` writes each agent's registry entry to `~/.flume/agents/<name>.yaml` (flat YAML, same fields) instead of `<name>.json`; `list` and `show` read `.yaml` only, `.json` entries are ignored, no migration (fl-89z2).
 - The workspace config is `.flume/config.yaml` (flat YAML, `root: <path>`) instead of `.flume/config.toml`; a config.toml is not read, with no migration. `smol-toml` is removed; flume reads and writes config with the `yaml` package (fl-c9n9).
 - `flume --help` and `flume serve --help` say the human runs `flume serve` and agents never do; a serve usage error says it too, and the built-in prime tells agents never to start it and to ask the human when the server is not running (fl-xxym).

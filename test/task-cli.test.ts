@@ -350,3 +350,30 @@ describe("flume task commands", () => {
     flume(repo, ["stop"]);
   });
 });
+
+describe("flume check as JSON", () => {
+  it("s-938a check as JSON with no problems", () => {
+    const repo = tempRepo();
+    mkdirSync(join(repo, "flume/tasks/open"), { recursive: true });
+    const r = flume(repo, ["check", "--json"]);
+    expect(r.status).toBe(0);
+    expect(JSON.parse(r.stdout)).toEqual([]);
+    expect(r.stderr).toBe("");
+  });
+
+  it("s-2e9d check as JSON with a problem", () => {
+    const repo = tempRepo();
+    mkdirSync(join(repo, "flume/tasks/open"), { recursive: true });
+    // The file name ends in aaaa but the id in its front matter is bbbb.
+    writeFileSync(
+      join(repo, "flume/tasks/open/hello-aaaa.md"),
+      "---\nid: bbbb\ntitle: Hello\nkind: feature\ncreated: 2026-11-16\n---\n\nbody\n",
+    );
+    const r = flume(repo, ["check", "--json"]);
+    expect(r.status).toBe(1);
+    const problems = JSON.parse(r.stdout) as { path: string; message: string }[];
+    expect(problems).toHaveLength(1);
+    expect(problems[0]?.path).toContain("hello-aaaa.md");
+    expect(problems[0]?.message).not.toBe("");
+  });
+});

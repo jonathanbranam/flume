@@ -14,11 +14,11 @@ Usage: flume <command>
 Commands:
   init       set up this workspace folder [--root PATH] [--force]
   serve      run the daemon in the foreground [--port N] (the human runs this; agents never do)
-  status     show whether the daemon runs, its address and root
+  status     show whether the daemon runs, its address and root [--json]
   stop       ask the daemon to exit
   task       new, show, list, update, comment, close, reopen (flume task --help)
   roadmap    show, check (flume roadmap --help)
-  check      validate the task files; one line per problem, exit 1 if any
+  check      validate the task files; one line per problem, exit 1 if any [--json]
   agent      launch Claude as a named agent; list, show (flume agent --help)
   prime      print the prime text flume agent would send
   bug        print a bug-report template to paste into an email
@@ -45,18 +45,19 @@ export async function main(args: string[]): Promise<number> {
   }
   if (command === "init") return init(process.cwd(), args.slice(1));
   if (command === "serve") return serve(process.cwd(), args.slice(1));
-  if (command === "status" || command === "stop") {
+  if (command === "status") return status(process.cwd(), args.slice(1));
+  if (command === "stop") {
     if (args.length > 1) {
-      process.stderr.write(`flume: ${command} takes no arguments\n`);
+      process.stderr.write("flume: stop takes no arguments\n");
       return 2;
     }
-    return command === "status" ? status(process.cwd()) : stop(process.cwd());
+    return stop(process.cwd());
   }
   if (command === "task") return task(process.cwd(), args.slice(1));
   if (command === "roadmap") return roadmap(process.cwd(), args.slice(1));
   if (command === "agent") return agent(args.slice(1));
   if (command === "prime") return prime(args.slice(1));
-  if (command === "check") return check(process.cwd());
+  if (command === "check") return check(process.cwd(), args.slice(1));
   process.stderr.write(`flume: unknown command '${command}'\n\n${HELP}`);
   return 2;
 }

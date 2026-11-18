@@ -242,7 +242,7 @@ When the user runs "flume prime [--name <name>] [--project <p>]", flume SHALL pr
 
 ### Requirement: list  {#r-b1c0}
 
-When the user runs "flume agent list", flume SHALL print a header line NAME PANE PROJECT LIVE LAST-LAUNCH and one line per entry, where LIVE is yes when the pane exists and runs claude, pane when it exists running something else, and - when it is gone or when not in tmux.
+When the user runs "flume agent list", flume SHALL print a header line NAME PANE PROJECT LIVE LAST-LAUNCH and one line per entry, where LIVE is yes when the pane exists and runs claude, pane when it exists running something else, and - when it is gone or when not in tmux. With --json, flume SHALL print one JSON array with one object per entry instead, holding the entry's fields and live (yes, pane or -), and exit with code 0.
 
 #### Scenario: Live column  {#s-b1c1}
 
@@ -252,9 +252,17 @@ When the user runs "flume agent list", flume SHALL print a header line NAME PANE
 - **WHEN** the user runs flume agent list
 - **THEN** the lines for a, b and c show yes, pane and - in the LIVE column
 
+#### Scenario: List as JSON  {#s-b1c2}
+
+*Verification*: **executable**
+
+- **GIVEN** entries for a in pane %1 (running claude) and b in pane %2 (running zsh)
+- **WHEN** the user runs flume agent list --json
+- **THEN** standard output is a JSON array of two objects, a with live yes and b with live pane, each with name, project and last_launch
+
 ### Requirement: show  {#r-b2c0}
 
-When the user runs "flume agent show <name>", flume SHALL print the entry as JSON and exit with code 0, and for an unknown name SHALL print an error to standard error and exit with code 1.
+When the user runs "flume agent show <name>", flume SHALL print the entry as YAML and exit with code 0; with --json it SHALL print the entry as one JSON object instead; and for an unknown name SHALL print an error to standard error and exit with code 1.
 
 #### Scenario: Show  {#s-b2c1}
 
@@ -262,7 +270,15 @@ When the user runs "flume agent show <name>", flume SHALL print the entry as JSO
 
 - **GIVEN** an agent alpha with project web
 - **WHEN** the user runs flume agent show alpha, and then flume agent show nope
-- **THEN** the first prints JSON holding "project": "web" and exits 0, the second exits 1
+- **THEN** the first prints YAML holding project: web and exits 0, the second exits 1
+
+#### Scenario: Show as JSON  {#s-b2c2}
+
+*Verification*: **executable**
+
+- **GIVEN** an agent alpha with project web
+- **WHEN** the user runs flume agent show alpha --json
+- **THEN** standard output is one JSON object holding "project": "web" and the exit code is 0
 
 ### Requirement: Conflicts  {#r-c1c0}
 

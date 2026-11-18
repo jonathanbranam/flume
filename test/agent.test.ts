@@ -287,11 +287,34 @@ describe("flume agent specs", () => {
     expect(row("c")[3]).toBe("-");
   });
 
+  it("s-b1c2 list as JSON", () => {
+    writeEntry("a", { name: "a", project: "web", pane: "%1", created: "", last_launch: "t1" });
+    writeEntry("b", { name: "b", project: "", pane: "%2", created: "", last_launch: "t2" });
+    writeFileSync(join(dir, "panes"), "%1 claude\n%2 zsh\n");
+    const r = flume(["agent", "list", "--json"]);
+    expect(r.code).toBe(0);
+    const rows = JSON.parse(r.out) as Record<string, string>[];
+    expect(rows.map((x) => [x.name, x.live])).toEqual([
+      ["a", "yes"],
+      ["b", "pane"],
+    ]);
+    expect(rows[0]).toMatchObject({ project: "web", pane: "%1", last_launch: "t1" });
+  });
+
   it("s-b2c1 show", () => {
     flume(["agent", "--name", "alpha", "--project", "web"]);
     const r = flume(["agent", "show", "alpha"]);
     expect(r.code).toBe(0);
-    expect(r.out).toContain('"project": "web"');
+    expect(r.out).toContain("project: web");
+    expect(() => JSON.parse(r.out)).toThrow();
     expect(flume(["agent", "show", "nope"]).code).toBe(1);
+  });
+
+  it("s-b2c2 show as JSON", () => {
+    flume(["agent", "--name", "alpha", "--project", "web"]);
+    const r = flume(["agent", "show", "alpha", "--json"]);
+    expect(r.code).toBe(0);
+    expect(JSON.parse(r.out)).toMatchObject({ name: "alpha", project: "web" });
+    expect(flume(["agent", "show", "nope", "--json"]).code).toBe(1);
   });
 });

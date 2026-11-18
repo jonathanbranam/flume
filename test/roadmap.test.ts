@@ -169,6 +169,15 @@ describe("roadmap", () => {
     expect(r.status).toBe(0);
   });
 
+  it("s-6c1e check as JSON", () => {
+    const r = flume(project("## Now\n- [[no-such-task-zzzz]]\n"), ["roadmap", "check", "--json"]);
+    expect(r.status).toBe(1);
+    const problems = JSON.parse(r.stdout) as { path: string; message: string }[];
+    expect(problems).toHaveLength(1);
+    expect(problems[0]?.path).toBe("flume/roadmap.md");
+    expect(problems[0]?.message).toContain("no-such-task-zzzz");
+  });
+
   it("s-f2e5 check without a roadmap", () => {
     const r = flume(project(), ["roadmap", "check"]);
     expect(r.status).toBe(1);

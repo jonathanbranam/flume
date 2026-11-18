@@ -412,6 +412,24 @@ describe("flume serve, status and stop", () => {
     expect(r.status).toBe(1);
   });
 
+  it("s-458a status as JSON when running", async () => {
+    const repo = tempRepo();
+    const { url } = await serve(repo, "--port", "0");
+    const r = flume(repo, "status", "--json");
+    expect(r.status).toBe(0);
+    const j = JSON.parse(r.stdout);
+    expect(j).toEqual({ running: true, address: url, root: expect.any(String) });
+    expect(flume(repo, "stop").status).toBe(0);
+  });
+
+  it("s-7007 status as JSON when stopped", () => {
+    const repo = tempRepo();
+    const r = flume(repo, "status", "--json");
+    expect(r.status).toBe(1);
+    expect(JSON.parse(r.stdout)).toEqual({ running: false, address: null, root: null });
+    expect(r.stderr).toBe("");
+  });
+
   it("s-8ee4 stop then status", async () => {
     const repo = tempRepo();
     await serve(repo);

@@ -1,6 +1,6 @@
-import { checkRoadmap, formatProblem, ROADMAP_PATH, readRoadmap } from "../core/index.ts";
+import { checkRoadmap, ROADMAP_PATH, readRoadmap } from "../core/index.ts";
 import { daemonUrl, NOT_RUNNING, request } from "../daemon/index.ts";
-import { findRoot } from "./check.ts";
+import { findRoot, printProblems } from "./check.ts";
 
 const err = (s: string) => process.stderr.write(`${s}\n`);
 const out = (s: string) => process.stdout.write(`${s}\n`);
@@ -9,7 +9,7 @@ const HELP = `usage: flume roadmap <command> [options]
 
 Commands:
   show [--json]    print the roadmap with each task's state (needs the daemon)
-  check            report links to no task and resolved tasks listed as upcoming
+  check [--json]   report links to no task and resolved tasks listed as upcoming
 
 The roadmap is ${ROADMAP_PATH}. Every command takes --help.
 `;
@@ -25,13 +25,13 @@ export async function roadmap(cwd: string, args: string[]): Promise<number> {
     err(`flume: unknown roadmap command '${sub}'\n\n${HELP.trimEnd()}`);
     return 2;
   }
-  const usage = sub === "show" ? "flume roadmap show [--json]" : "flume roadmap check";
+  const usage = `flume roadmap ${sub} [--json]`;
   if (rest.includes("--help") || rest.includes("-h")) {
     out(`usage: ${usage}`);
     return 0;
   }
-  const json = sub === "show" && rest.includes("--json");
-  const extra = rest.filter((a) => !(json && a === "--json"));
+  const json = rest.includes("--json");
+  const extra = rest.filter((a) => a !== "--json");
   if (extra.length > 0) {
     err(`flume: unexpected argument '${extra[0]}'\nusage: ${usage}`);
     return 2;
@@ -43,9 +43,7 @@ export async function roadmap(cwd: string, args: string[]): Promise<number> {
       err(`flume: there is no ${ROADMAP_PATH}`);
       return 1;
     }
-    const problems = checkRoadmap(root);
-    for (const p of problems) out(formatProblem(p));
-    return problems.length === 0 ? 0 : 1;
+    return printProblems(checkRoadmap(root), json);
   }
 
   const url = daemonUrl(cwd);

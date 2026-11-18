@@ -77,15 +77,26 @@ export async function serve(cwd: string, args: string[]): Promise<number> {
   return 0;
 }
 
-/** `flume status`. */
-export async function status(cwd: string): Promise<number> {
-  const d = await liveDaemon(cwd);
-  if (!d) {
-    process.stdout.write("not running\n");
-    return 1;
+/** `flume status [--json]`: running or not, the address and the root; exit 1 when not running. */
+export async function status(cwd: string, args: string[] = []): Promise<number> {
+  if (args.includes("--help") || args.includes("-h")) {
+    process.stdout.write("usage: flume status [--json]\n");
+    return 0;
   }
-  process.stdout.write(`running at ${d.url}\nroot ${d.root}\n`);
-  return 0;
+  const extra = args.filter((a) => a !== "--json");
+  if (extra.length > 0) {
+    err(`flume: unexpected argument '${extra[0]}'\nusage: flume status [--json]`);
+    return 2;
+  }
+  const d = await liveDaemon(cwd);
+  if (args.includes("--json")) {
+    const j = d
+      ? { running: true, address: d.url, root: d.root }
+      : { running: false, address: null, root: null };
+    process.stdout.write(`${JSON.stringify(j)}\n`);
+  } else if (!d) process.stdout.write("not running\n");
+  else process.stdout.write(`running at ${d.url}\nroot ${d.root}\n`);
+  return d ? 0 : 1;
 }
 
 /** `flume stop`: ask the daemon to exit and wait until it has. */

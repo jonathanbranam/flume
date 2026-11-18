@@ -43,7 +43,7 @@ When flume roadmap show is run, it SHALL print each section heading followed by 
 - **THEN** an error is printed and the exit code is 1
 
 ### Requirement: Roadmap check validates the roadmap  {#r-62d7}
-When flume roadmap check is run, it SHALL print one line per problem, holding the file path, the line number and a message, and exit 0 when there are none and 1 otherwise; it SHALL report a wiki link that names no task file, and a resolved task listed in a section other than Done with no note on its item; it SHALL work without a running daemon; when the roadmap file does not exist it SHALL print an error and exit 1.
+When flume roadmap check is run, it SHALL print one line per problem, holding the file path, the line number and a message, and exit 0 when there are none and 1 otherwise; with --json it SHALL print one JSON array with one object per problem, holding path and message, instead of lines, with the same exit codes; it SHALL report a wiki link that names no task file, and a resolved task listed in a section other than Done with no note on its item; it SHALL work without a running daemon; when the roadmap file does not exist it SHALL print an error and exit 1.
 
 #### Scenario: Clean roadmap  {#s-3d2c}
 *Verification*: **executable**
@@ -68,6 +68,12 @@ When flume roadmap check is run, it SHALL print one line per problem, holding th
 - **GIVEN** a roadmap listing a resolved task under Now with the note "reopen planned"
 - **WHEN** flume roadmap check is run
 - **THEN** nothing is printed and the exit code is 0
+
+#### Scenario: Check as JSON  {#s-6c1e}
+*Verification*: **executable**
+- **GIVEN** a roadmap with an entry linking to no-such-task-zzzz
+- **WHEN** flume roadmap check --json is run
+- **THEN** standard output is a JSON array of one object whose path is flume/roadmap.md, and the exit code is 1
 
 #### Scenario: Check without a roadmap  {#s-f2e5}
 *Verification*: **executable**

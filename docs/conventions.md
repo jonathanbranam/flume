@@ -30,6 +30,16 @@ human-readable record.
   open questions. Terms: the unit is a task; a command is written `flume task list`; paths are
   relative to the project root; no language, library or module names.
 
+## CLI output
+
+- Rule `cli-json-output` (fl-cpcu). A command that prints data prints human-readable text by
+  default and takes `--json` to print the same data as JSON, for `| jq` and for agents.
+- With `--json`, stdout holds exactly one JSON document and nothing else. Errors stay text on
+  stderr, with the same exit codes, with or without `--json`.
+- Not data, so no `--json`: `flume --version`, `flume --help`, `flume bug`, `flume prime`.
+- A YAML default is fine for a single record (`flume agent show`).
+- A new command that prints data ships with `--json`, its spec and its test.
+
 ## Stack
 
 - TypeScript on Node for the daemon, the CLI and the UI; Go was the alternative. Ticket fl-28pa.

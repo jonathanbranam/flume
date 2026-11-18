@@ -308,3 +308,39 @@ When flume check is run, it SHALL print the result of the check described in the
 - **GIVEN** no daemon running and a project with one task whose id differs from its file name
 - **WHEN** flume check is run
 - **THEN** one problem line names that file and the exit code is 1
+
+### Requirement: Status takes --json  {#r-9bef}
+
+When flume status is run with --json, flume SHALL print one JSON object on standard output with the keys running (true or false), address and root, and exit with the same code as without --json.
+
+#### Scenario: Status as JSON when running  {#s-458a}
+
+*Verification*: **executable**
+- **GIVEN** a daemon running in a workspace
+- **WHEN** flume status --json is run
+- **THEN** standard output is one JSON object with running true, the daemon's address and the task root, and the exit code is 0
+
+#### Scenario: Status as JSON when stopped  {#s-7007}
+
+*Verification*: **executable**
+- **GIVEN** no daemon running
+- **WHEN** flume status --json is run
+- **THEN** standard output is one JSON object with running false and null address and root, and the exit code is 1
+
+### Requirement: Check takes --json  {#r-d801}
+
+When flume check is run with --json, flume SHALL print one JSON array on standard output, with one object per problem holding path and message (an empty array when there are none), and exit with the same code as without --json.
+
+#### Scenario: Check as JSON with no problems  {#s-938a}
+
+*Verification*: **executable**
+- **GIVEN** no daemon running and valid task files
+- **WHEN** flume check --json is run
+- **THEN** standard output is an empty JSON array and the exit code is 0
+
+#### Scenario: Check as JSON with a problem  {#s-2e9d}
+
+*Verification*: **executable**
+- **GIVEN** no daemon running and a task whose id differs from its file name
+- **WHEN** flume check --json is run
+- **THEN** standard output is a JSON array of one object whose path names that file and whose message is not empty, and the exit code is 1
