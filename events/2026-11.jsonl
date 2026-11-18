@@ -222,3 +222,5 @@
 {"actor":"external:advisor","at":"2026-11-18T03:20:04.414357729Z","from":"pending","task":"fl-fu3v","to":"open"}
 {"actor":"agent:xmlprime","at":"2026-11-18T03:20:32.919016155Z","from":"claimed","task":"fl-87h9","to":"built"}
 {"actor":"agent:manager","at":"2026-11-18T03:21:47.631843880Z","from":"built","task":"fl-87h9","to":"integrated"}
+{"actor":"external:orchestrator","at":"2026-11-18T03:27:31.461217175Z","from":"open","task":"fl-fu3v","to":"planned"}
+{"actor":"external:orchestrator","at":"2026-11-18T03:27:31.471499015Z","queue":"reprioritized"}
