@@ -215,3 +215,4 @@
 {"actor":"human","at":"2026-11-18T03:05:38.479Z","from":"","task":"fl-eg2q","to":"pending"}
 {"actor":"external:orchestrator","at":"2026-11-18T03:05:49.109627854Z","from":"open","task":"fl-87h9","to":"planned"}
 {"actor":"external:orchestrator","at":"2026-11-18T03:05:49.119097834Z","queue":"reprioritized"}
+{"actor":"agent:clone","at":"2026-11-18T03:10:36.724621240Z","from":"claimed","task":"fl-pshd","to":"built"}
