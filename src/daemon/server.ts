@@ -2,6 +2,7 @@ import { createServer, type IncomingMessage, type Server, type ServerResponse } 
 import type { AddressInfo } from "node:net";
 import { userInfo } from "node:os";
 import { version } from "../cli/version.ts";
+import { touchSeen } from "../core/agents.ts";
 import {
   addComment,
   checkProject,
@@ -224,6 +225,12 @@ export function startDaemon(opts: {
     req.on("end", () => {
       try {
         guard(req);
+        const who = req.headers["x-flume-agent"];
+        if (typeof who === "string" && who) {
+          try {
+            touchSeen(who);
+          } catch {}
+        }
         const url = new URL(req.url ?? "/", "http://127.0.0.1");
         const raw = Buffer.concat(chunks).toString("utf8");
         let body: Json = {};

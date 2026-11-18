@@ -26,7 +26,10 @@ export async function request(
   try {
     const res = await fetch(`${url}${path}`, {
       method,
-      headers: body === undefined ? {} : { "content-type": "application/json" },
+      headers: {
+        ...(body === undefined ? {} : { "content-type": "application/json" }),
+        ...(process.env.AGENT_NAME ? { "x-flume-agent": process.env.AGENT_NAME } : {}),
+      },
       body: body === undefined ? undefined : JSON.stringify(body),
       signal: AbortSignal.timeout(5000),
     });

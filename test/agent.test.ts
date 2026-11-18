@@ -310,6 +310,25 @@ describe("flume agent specs", () => {
     expect(flume(["agent", "show", "nope"]).code).toBe(1);
   });
 
+  it("s-e1c4 show and list display last_seen", () => {
+    writeEntry("alpha", {
+      name: "alpha",
+      project: "",
+      pane: "",
+      created: "c",
+      last_launch: "l",
+      last_seen: "2026-11-17T10:00:00.000Z",
+    });
+    writeEntry("b", { name: "b", project: "", pane: "", created: "c", last_launch: "l" });
+    expect(JSON.parse(flume(["agent", "show", "alpha", "--json"]).out).last_seen).toBe(
+      "2026-11-17T10:00:00.000Z",
+    );
+    const lines = flume(["agent", "list"]).out.split("\n");
+    expect(lines[0]).toContain("LAST-SEEN");
+    expect(lines.find((l) => l.startsWith("alpha"))).toMatch(/2026-11-17T10:00:00.000Z$/);
+    expect(lines.find((l) => l.startsWith("b"))).toMatch(/ -$/);
+  });
+
   it("s-b2c2 show as JSON", () => {
     flume(["agent", "--name", "alpha", "--project", "web"]);
     const r = flume(["agent", "show", "alpha", "--json"]);

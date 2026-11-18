@@ -107,7 +107,7 @@ flume SHALL parse the arguments for claude by claude's own option rules: an opti
 
 ### Requirement: Registry entry  {#r-a3c0}
 
-flume SHALL store one YAML file per agent name at .flume/agents/<name>.yaml in the home folder, a flat mapping of string values holding name, project (empty when none), pane, created and last_launch, and when "--project" is not given SHALL use the project saved on the entry. flume SHALL NOT read a .json file in that folder, and SHALL ignore it in list and show. flume SHALL accept only a name of lowercase letters, digits and dashes that starts with a letter or digit, and SHALL refuse any other name with exit code 2, naming the name and the allowed pattern on standard error, before it reads or writes the registry or runs claude.
+flume SHALL store one YAML file per agent name at .flume/agents/<name>.yaml in the home folder, a flat mapping of string values holding name, project (empty when none), pane, created and last_launch (and last_seen once the daemon has set it), and when "--project" is not given SHALL use the project saved on the entry. flume SHALL NOT read a .json file in that folder, and SHALL ignore it in list and show. flume SHALL accept only a name of lowercase letters, digits and dashes that starts with a letter or digit, and SHALL refuse any other name with exit code 2, naming the name and the allowed pattern on standard error, before it reads or writes the registry or runs claude.
 
 #### Scenario: Project is saved and reused  {#s-a3c1}
 
@@ -242,7 +242,7 @@ When the user runs "flume prime [--name <name>] [--project <p>]", flume SHALL pr
 
 ### Requirement: list  {#r-b1c0}
 
-When the user runs "flume agent list", flume SHALL print a header line NAME PANE PROJECT LIVE LAST-LAUNCH and one line per entry, where LIVE is yes when the pane exists and runs claude, pane when it exists running something else, and - when it is gone or when not in tmux. With --json, flume SHALL print one JSON array with one object per entry instead, holding the entry's fields and live (yes, pane or -), and exit with code 0.
+When the user runs "flume agent list", flume SHALL print a header line NAME PANE PROJECT LIVE LAST-LAUNCH LAST-SEEN and one line per entry, where LIVE is yes when the pane exists and runs claude, pane when it exists running something else, and - when it is gone or when not in tmux, and LAST-SEEN is the entry's last_seen, or - when it has none. With --json, flume SHALL print one JSON array with one object per entry instead, holding the entry's fields and live (yes, pane or -), and exit with code 0.
 
 #### Scenario: Live column  {#s-b1c1}
 
@@ -279,6 +279,42 @@ When the user runs "flume agent show <name>", flume SHALL print the entry as YAM
 - **GIVEN** an agent alpha with project web
 - **WHEN** the user runs flume agent show alpha --json
 - **THEN** standard output is one JSON object holding "project": "web" and the exit code is 0
+
+### Requirement: Last seen  {#r-e1c0}
+
+When the daemon receives a request carrying the header X-Flume-Agent with the name of an existing agent entry, the daemon SHALL set that entry's last_seen to the current time as an ISO 8601 UTC string, keeping the entry's other fields. The daemon SHALL NOT create an entry, and SHALL change nothing for a request without the header or naming an unknown agent. Every flume command that calls the daemon SHALL send that header with the value of the environment variable AGENT_NAME when it is set, and SHALL NOT send it otherwise. flume agent show and flume agent list SHALL show last_seen.
+
+#### Scenario: Request from an agent sets last_seen  {#s-e1c1}
+
+*Verification*: **executable**
+
+- **GIVEN** a running daemon and an entry for alpha with project web and no last_seen
+- **WHEN** GET /api/status is requested with the header X-Flume-Agent: alpha
+- **THEN** the entry for alpha holds a last_seen that is a UTC time within the last minute, and still holds project web and its created and last_launch values
+
+#### Scenario: No name or unknown name changes nothing  {#s-e1c2}
+
+*Verification*: **executable**
+
+- **GIVEN** a running daemon and an entry for alpha with no last_seen
+- **WHEN** GET /api/status is requested with no X-Flume-Agent header, and again with X-Flume-Agent: ghost
+- **THEN** the entry for alpha is unchanged and no entry for ghost exists
+
+#### Scenario: A command sends AGENT_NAME  {#s-e1c3}
+
+*Verification*: **executable**
+
+- **GIVEN** a running daemon, an entry for alpha, and the environment variable AGENT_NAME set to alpha
+- **WHEN** the user runs flume task list
+- **THEN** the entry for alpha holds a last_seen
+
+#### Scenario: Show and list display last_seen  {#s-e1c4}
+
+*Verification*: **executable**
+
+- **GIVEN** an entry for alpha with last_seen 2026-11-17T10:00:00.000Z and an entry for b with none
+- **WHEN** the user runs flume agent show alpha --json, and flume agent list
+- **THEN** the JSON holds that last_seen, the list line for alpha shows it under LAST-SEEN, and the line for b shows - there
 
 ### Requirement: Conflicts  {#r-c1c0}
 

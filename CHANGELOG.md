@@ -4,6 +4,8 @@
 
 ### Added
 
+- Agent entries gain `last_seen` (UTC time): every flume command that calls the daemon sends `AGENT_NAME` in an `X-Flume-Agent` header, and the daemon sets that existing entry's `last_seen` on each request (never creates one). `flume agent list` has a LAST-SEEN column; `show` includes it (fl-t8xv).
+
 - `flume init [--root PATH] [--force]` sets up a workspace folder: `.flume/` (`.gitignore`, `config.toml` root) and flume's shipped base workflow (one placeholder `workflow.md`) copied to `<root>/workflow/base/` in the task repo and committed there (never pushed). A second init fails and points at `--force`, which rewrites only `workflow/base/`. `flume prime` gains one line naming the reading order (base, workspace, project workflow files, then CLAUDE.md; later overrides earlier) when `<root>/workflow/` exists (fl-7sme).
 
 ### Changed

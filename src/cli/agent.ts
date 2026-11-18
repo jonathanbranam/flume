@@ -1,8 +1,8 @@
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
-import { homedir } from "node:os";
+import { existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
-import { parseDocument, stringify } from "yaml";
+import { stringify } from "yaml";
+import { agentsDir, type Entry, readEntry, writeEntry } from "../core/agents.ts";
 import { findInitialized, findProject, readConfigRoot } from "../daemon/index.ts";
 
 const USAGE = `Usage:
@@ -27,35 +27,12 @@ const DEFAULT_PROJECT =
 const DEFAULT_PROMPT = "Check your tickets and status, suggest next steps, and follow up.";
 const NAME_RE = /^[a-z0-9][a-z0-9-]*$/;
 
-interface Entry {
-  name: string;
-  project: string;
-  pane: string;
-  created: string;
-  last_launch: string;
-}
-
 interface Parsed {
   name?: string;
   project?: string;
   force: boolean;
   prompt?: string;
   passthrough: string[];
-}
-
-const flumeHome = () => join(process.env.HOME ?? homedir(), ".flume");
-const entryFile = (name: string) => join(flumeHome(), "agents", `${name}.yaml`);
-
-function readEntry(name: string): Entry | undefined {
-  try {
-    // Failsafe schema: every scalar stays a string, as in config.yaml.
-    const e = parseDocument(readFileSync(entryFile(name), "utf8"), {
-      schema: "failsafe",
-    }).toJS();
-    return e && typeof e === "object" && !Array.isArray(e) ? (e as Entry) : undefined;
-  } catch {
-    return undefined;
-  }
 }
 
 function tmux(args: string[]): string | undefined {
@@ -237,7 +214,7 @@ function list(args: string[]): number {
     process.stderr.write(`flume: unexpected argument '${extra[0]}'\n\n${USAGE}`);
     return 2;
   }
-  const dir = join(flumeHome(), "agents");
+  const dir = agentsDir();
   let files: string[] = [];
   try {
     files = readdirSync(dir).filter((f) => f.endsWith(".yaml"));
@@ -255,9 +232,9 @@ function list(args: string[]): number {
     process.stdout.write(`${JSON.stringify(entries)}\n`);
     return 0;
   }
-  const rows = [["NAME", "PANE", "PROJECT", "LIVE", "LAST-LAUNCH"]];
+  const rows = [["NAME", "PANE", "PROJECT", "LIVE", "LAST-LAUNCH", "LAST-SEEN"]];
   for (const e of entries)
-    rows.push([e.name, e.pane || "-", e.project || "-", e.live, e.last_launch]);
+    rows.push([e.name, e.pane || "-", e.project || "-", e.live, e.last_launch, e.last_seen || "-"]);
   const widths =
     rows[0]?.map((_, c) => Math.max(...rows.map((r) => (r[c] as string).length))) ?? [];
   for (const r of rows)
@@ -350,9 +327,15 @@ export function agent(args: string[]): number {
     return 1;
   }
   const now = new Date().toISOString();
-  const entry: Entry = { name, project, pane, created: old?.created ?? now, last_launch: now };
-  mkdirSync(join(flumeHome(), "agents"), { recursive: true });
-  writeFileSync(entryFile(name), stringify(entry));
+  const entry: Entry = {
+    ...old,
+    name,
+    project,
+    pane,
+    created: old?.created ?? now,
+    last_launch: now,
+  };
+  writeEntry(entry);
   if (pane) tmux(["set-option", "-p", "-t", pane, "@flume_agent", name]);
 
   const claudeArgs = [

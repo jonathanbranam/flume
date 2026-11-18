@@ -1,4 +1,4 @@
-import { execFileSync, spawn, spawnSync } from "node:child_process";
+import { execFile, execFileSync, spawn, spawnSync } from "node:child_process";
 import {
   existsSync,
   mkdirSync,
@@ -13,6 +13,7 @@ import { request } from "node:http";
 import { networkInterfaces, tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, afterEach, beforeEach, describe, expect, it } from "vitest";
+import { parse } from "yaml";
 import { type Daemon, startDaemon } from "../src/daemon/index.ts";
 
 const bin = new URL("../bin/flume.js", import.meta.url).pathname;
@@ -106,6 +107,54 @@ function raw(method: string, path: string, headers: Record<string, string>, body
     req.end(text);
   });
 }
+
+describe("agent last_seen", () => {
+  const oldHome = process.env.HOME;
+  let home: string;
+  const agentFile = (n: string) => join(home, ".flume", "agents", `${n}.yaml`);
+  beforeEach(() => {
+    home = mkdtempSync(join(tmpdir(), "flume-home-"));
+    dirs.push(home);
+    process.env.HOME = home;
+    mkdirSync(join(home, ".flume", "agents"), { recursive: true });
+    writeFileSync(
+      agentFile("alpha"),
+      'name: alpha\nproject: web\npane: "%1"\ncreated: c1\nlast_launch: l1\n',
+    );
+  });
+  afterEach(() => {
+    process.env.HOME = oldHome;
+  });
+
+  it("s-e1c1 request from an agent sets last_seen", async () => {
+    const r = await raw("GET", "/api/status", { "x-flume-agent": "alpha" });
+    expect(r.status).toBe(200);
+    const e = parse(readFileSync(agentFile("alpha"), "utf8"));
+    expect(e).toMatchObject({ name: "alpha", project: "web", created: "c1", last_launch: "l1" });
+    expect(e.last_seen).toMatch(/^\d{4}-\d\d-\d\dT[\d:.]+Z$/);
+    expect(Date.now() - Date.parse(e.last_seen)).toBeLessThan(60_000);
+  });
+
+  it("s-e1c2 no name or unknown name changes nothing", async () => {
+    const before = readFileSync(agentFile("alpha"), "utf8");
+    await raw("GET", "/api/status", {});
+    await raw("GET", "/api/status", { "x-flume-agent": "ghost" });
+    expect(readFileSync(agentFile("alpha"), "utf8")).toBe(before);
+    expect(existsSync(agentFile("ghost"))).toBe(false);
+  });
+
+  it("s-e1c3 a command sends AGENT_NAME", async () => {
+    await new Promise<void>((done, fail) =>
+      execFile(
+        "node",
+        [bin, "task", "list"],
+        { cwd: root, env: { ...gitEnv, HOME: home, FLUME_URL: d?.url, AGENT_NAME: "alpha" } },
+        (err) => (err ? fail(err) : done()),
+      ),
+    );
+    expect(parse(readFileSync(agentFile("alpha"), "utf8")).last_seen).toBeTruthy();
+  });
+});
 
 describe("daemon api", () => {
   it("s-7c20 foreign Host refused", async () => {
