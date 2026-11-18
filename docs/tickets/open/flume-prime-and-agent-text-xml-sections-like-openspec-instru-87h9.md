@@ -61,6 +61,10 @@ base/roles/reviewer.md, then projects/backend/roles/reviewer.md
 
 - `project` and `role` attributes appear only when known.
 
+### No --json
+
+- Agent text is XML only; `flume prime` and `flume guide` take no `--json`. They print agent instructions, not data (rule cli-json-output).
+
 ### flume guide
 
 - `flume guide <name>` prints `<guide name="..." stage="...">` around the guide's text (`stage` only when set).
@@ -69,13 +73,16 @@ base/roles/reviewer.md, then projects/backend/roles/reviewer.md
 
 - The element names above. Both role layers go inside one `<role>`, base first.
 - Scope is `flume prime` and `flume guide`. Other commands that print for agents (`flume task show`, the not-running message) are added when one needs it.
-- No `--json` form for now (YAGNI); OpenSpec has one (the same data as JSON).
 
 ## Discussion (for reference, not authoritative)
 
 ### 2026-11-17, the human (verbatim)
 
 > `flume prime` and other commands that list agent text should use the current best known formats for giving agents instructions. This can be a separate ticket from the layout. They should use XML sections to inform the agent what each section it. Refer to openspec.
+
+### 2026-11-17 ~10:40 PM ET, the human, on XML vs --json (verbatim)
+
+> for prime, it is XML. This isn't data, it is agent instructions
 
 ### References
 

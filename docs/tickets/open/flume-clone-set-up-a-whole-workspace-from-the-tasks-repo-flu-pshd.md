@@ -13,7 +13,7 @@ related: [fl-3pfa]
 
 ## The ask
 
-Set up a whole workspace from the tasks repo: `flume.yaml` lists the projects and their git repos, and `flume clone <git-url>` does everything. On hold until the human says build.
+Set up a whole workspace from the tasks repo: `flume.yaml` lists the projects and their git repos, and `flume clone <git-url>` does everything. Go given by the human, 2026-11-17: "ready flume-clone".
 
 For whoever edits this ticket (the human, 2026-11-17): "the design at the top is the currently agreed-upon design; keep it current and DO NOT include narration or restatements in the design. The discussion section can include the discussion narrative with restatements as a reference."
 
