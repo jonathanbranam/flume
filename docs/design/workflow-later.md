@@ -25,8 +25,7 @@ review and revision".
 4. **Steps for a different agent with a role.** "some steps MUST be done by a different agent
    with a specific role". E.g. the design is reviewed by an agent with the `reviewer` role (roles
    are files, fl-3pfa), not by the agent that wrote it; flume refuses the step to the same agent.
-5. **Templates can be overridden.** "templates can be overridden". Workspace and project
-   templates over the built-in ones, layered like workflow, roles and guides (fl-3pfa, fl-x6xn).
+5. **Templates can be overridden.** Moved into v1 (fl-fu3v), the human: "actually, template overridding can happen today; instead of concat, it should just replace." The project template replaces the base one, which replaces the built-in one.
 
 Also deferred from v1 (fl-fu3v), the human's words:
 

@@ -13,7 +13,7 @@ related: [fl-3pfa, fl-87h9, fl-eg2q]
 
 ## The ask
 
-Workflow v1: flume's built-in base text tells agents how to work a task through five phases (proposal, design, specs, plan, implement), and tasks record who holds them and which phase they are in. The human is in control of moving between phases. The audit trail is ticket fl-eg2q. On hold until the human says build.
+Workflow v1: flume's built-in base text tells agents how to work a task through five phases (proposal, design, specs, plan, implement), and tasks record who holds them and which phase they are in. The human is in control of moving between phases. The audit trail is ticket fl-eg2q. Go given by the human, 2026-11-17: "OK, I approve this to be built."
 
 For whoever edits this ticket (the human, 2026-11-17): "the design at the top is the currently agreed-upon design; keep it current and DO NOT include narration or restatements in the design. The discussion section can include the discussion narrative with restatements as a reference."
 
@@ -42,6 +42,7 @@ For whoever edits this ticket (the human, 2026-11-17): "the design at the top is
 ### Templates
 
 - Every part an agent writes (body, design, spec, plan) has a template, built into flume. `flume task template PART` prints it.
+- A template can be overridden: `<flume-root>/projects/<project>/templates/<part>.md` replaces `<flume-root>/base/templates/<part>.md`, which replaces the built-in one. The most specific one is used whole; templates are never concatenated (unlike prime's layers).
 - `flume task show ID PART` for a part the task does not have yet says so and names the template command.
 - Templates are Markdown with `<!-- -->` guidance comments for the agent, as OpenSpec's. Their content, to be tightened by the builder:
 
@@ -136,11 +137,10 @@ Working a task:
 
 ### Not in v1
 
-- No branching: v1 is linear. Later enhancements (per-task workflows, a DAG, optional steps, steps for a given role, template overrides) are in `docs/design/workflow-later.md`.
+- No branching: v1 is linear. Later enhancements (per-task workflows, a DAG, optional steps, steps for a given role) are in `docs/design/workflow-later.md`.
 - No workflow schema file, no per-step instruction commands, no shipped continue skill (the OpenSpec-like model in Discussion is for later).
 - Project and workspace workflows stay free text printed by prime (fl-3pfa); flume does not parse them.
 - No verify step before close (later).
-- Templates are built in only; workspace and project templates (like guides' layers) come when someone needs them.
 - No persistent specs: a task's spec stays with the task; merging it into living project specs comes later.
 
 ### Assumed (advisor; change if wrong)
@@ -242,6 +242,10 @@ Advisor asked about a check before close and section outlines per part. The huma
 > 5. templates can be overridden
 
 Advisor recorded the later list in docs/design/workflow-later.md.
+
+> actually, template overridding can happen today; instead of concat, it should just replace.
+
+> OK, I approve this to be built.
 
 Context: asked what flume's built-in workflow text is, advisor showed today's prime text (identity, flume --help, never start flume serve; no workflow steps). Advisor: Open questions 1-7 below (from before the v1 flow) are superseded for v1 by the Design; they stay for the later OpenSpec-like model. The audit trail went to its own ticket, fl-eg2q.
 
