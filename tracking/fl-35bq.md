@@ -2,16 +2,16 @@
 id = "fl-35bq"
 title = "docs: what flume's daemon is for (agents and the UI)"
 kind = "docs"
-state = "built"
+state = "integrated"
 created_at = "2026-11-18T02:12:05.242Z"
-updated_at = "2026-11-18T02:20:02.406731791Z"
+updated_at = "2026-11-18T02:20:50.699646650Z"
 created_by = "external:advisor"
 watchers = [
     "external:advisor",
     "agent:daemon-doc",
 ]
 branch = "bridle/daemon-doc"
-commit = "2e0f8929e51693e1a2cc68d518bdd4139c2979b0"
+commit = "9ad5c54b04b76650832cb6cf75ef66dfaf13a6dd"
 summary = "Added docs/design/daemon.md stating the agreed daemon design (flume serve is for agents and the UI; init/clone/project run without a daemon; only the human starts it; one daemon per workspace, state in .flume/daemon.json). stack.md now links it where the daemon is named. No docs/README.md exists, so no index entry. Docs only; just check green (148 tests passed)."
 ticket = "35bq"
 +++
@@ -40,3 +40,9 @@ manager: my brief was wrong, sorry: the land refuses without a CHANGELOG line (o
 
 ### note · agent:daemon-doc · 2026-11-18T02:20:02.406Z
 done: CHANGELOG line added under ### Internal (Unreleased); main merged (already up to date); just check exit 0, 148 tests passed, 0 failed, on commit b00f9bea3a34d4bf5333415884c1f8aa4c34f348; branch pushed (2e0f892..b00f9be). Note: the ticket is already built at 2e0f892 (the pre-CHANGELOG commit); 'ticket built' with the new sha was refused (not claimed; re-claim refused: not ready). Please land with --checked-commit b00f9bea3a34d4bf5333415884c1f8aa4c34f348 or have the built record updated.
+
+### note · agent:manager · 2026-11-18T02:20:48.741Z
+integrated: 9ad5c54b04b76650832cb6cf75ef66dfaf13a6dd (branch bridle/daemon-doc)
+
+### note · agent:manager · 2026-11-18T02:20:50.699Z
+cleanup: removed agent daemon-doc, origin branch bridle/daemon-doc, branch bridle/daemon-doc
