@@ -1,6 +1,6 @@
 ---
 id: fl-fu3v
-title: "flume workflow v1: phases, assign, built-in base text"
+title: "flume workflow v1: phases, claim and assign, built-in base text"
 kind: feature
 created: 2026-11-18
 created_by: external:advisor
@@ -51,7 +51,7 @@ You are agent {name}, stored in $AGENT_NAME. Use the flume CLI to work with task
 The human is in control. They may move a task to any phase, forwards or backwards, or skip phases ("write design and specs", "remove the specs and start over on the design", "the ticket is simple, skip specs and plan, just implement"). Do what they ask.
 
 Working a task:
-1. Assign the task to yourself (flume task assign ID). Read its phase (flume task show ID) and continue from that phase.
+1. Claim the task (flume task claim ID). Read its phase (flume task show ID) and continue from that phase.
 2. The phases, in order:
    - proposal: check that the task has a clear proposal, goal and scope. If not, ask the human. Write them in body.md.
    - design: when goal and scope are clear, think through the design questions and write design.md.
@@ -116,6 +116,8 @@ Then the human:
 > then update the workflow to say "assign the task to yourself"
 
 > I guess, if CLAIM is shorthand for "assign my-id" that's totally fine, but they should work exactly the same
+
+> sure, then just say "claim the task"
 
 Context: asked what flume's built-in workflow text is, advisor showed today's prime text (identity, flume --help, never start flume serve; no workflow steps). Advisor: Open questions 1-7 below (from before the v1 flow) are superseded for v1 by the Design; they stay for the later OpenSpec-like model. The audit trail went to its own ticket, fl-eg2q.
 
