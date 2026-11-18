@@ -114,26 +114,32 @@ When flume serve is run, it SHALL use as the task root, in this order: the root 
 - **WHEN** flume serve is run
 - **THEN** config.yaml in .flume holds root: tasks, and the server's task root is the tasks repository
 
-#### Scenario: Forced root replaces the saved one  {#s-fe05}
+#### Scenario: A bad flume.yaml stops serve  {#s-bdb3}
 *Verification*: **executable**
-- **GIVEN** a workspace set up with flume init --root a, and git repositories a and b in it
-- **WHEN** flume init --force --root b is run, then flume serve
-- **THEN** the task root is b and config.yaml holds root: b
+- **GIVEN** a workspace set up with flume init, and then flume.yaml in the task repository edited to say dir: a/b
+- **WHEN** flume serve is run
+- **THEN** the exit code is 1 and standard error says flume.yaml dir must be . or one folder name
 
 ### Requirement: Init sets up a workspace  {#r-1d11}
-When flume init [--root PATH] [--force] is run in a folder (the workspace, which need not be a git repository), flume SHALL create .flume in it with a .gitignore holding * and, when --root is given, a config.yaml holding root (relative to the workspace folder when inside it); the task root is --root, else the root in config.yaml, else the current folder's git repository (main checkout). flume SHALL copy the base workflow that ships with flume to workflow/base/ in the task root and commit it there as one commit (nothing when unchanged), and SHALL NOT push, run git init, or write anything else in workflow/ or in a project. flume SHALL put nothing workflow-related in .flume. When the task root is not a git repository, or there is none, flume SHALL print a message to standard error saying there is no task root, exit with code 1, and create nothing. The shipped base workflow is one file, workflow.md.
+When flume init [--root PATH] [--dir NAME] is run in a folder (the workspace, which need not be a git repository), flume SHALL create .flume in it with a .gitignore holding * and, when --root is given, a config.yaml holding root (relative to the workspace folder when inside it); the task root is --root, else the root in config.yaml, else the current folder's git repository (main checkout). When the task root has no flume.yaml, flume SHALL write one there holding dir: NAME (default flume; NAME is . or one plain folder name, else exit with code 2 and create nothing) and commit it as one commit, and when it has one flume SHALL keep it and exit with code 1, changing nothing, if --dir names a different folder. flume SHALL NOT copy any workflow into the task root, push, run git init, or write anything else in a project or in .flume. When the task root is not a git repository, or there is none, flume SHALL print a message to standard error saying there is no task root, exit with code 1, and create nothing. flume init SHALL NOT accept --force.
 
 #### Scenario: Init in a workspace  {#s-1d03}
 *Verification*: **executable**
 - **GIVEN** a folder that is not a git repository holding a git repository named tasks
 - **WHEN** flume init --root tasks is run in the folder
-- **THEN** .flume holds a .gitignore of * and config.yaml with root: tasks, tasks/workflow/base/workflow.md exists and is committed in tasks as one new commit, and the folder is not a git repository
+- **THEN** .flume holds a .gitignore of * and config.yaml with root: tasks, tasks/flume.yaml holds dir: flume and is committed in tasks as one new commit, and the folder is not a git repository
 
 #### Scenario: Init in a repository  {#s-1d06}
 *Verification*: **executable**
 - **GIVEN** a git repository
 - **WHEN** flume init is run in it
-- **THEN** workflow/base/workflow.md exists in the repository and git status lists nothing
+- **THEN** flume.yaml in the repository holds dir: flume, git status lists nothing, and there is no workflow folder
+
+#### Scenario: Init with another folder name  {#s-91f1}
+*Verification*: **executable**
+- **GIVEN** a git repository
+- **WHEN** flume init --dir . is run in it
+- **THEN** flume.yaml in the repository holds dir: .
 
 #### Scenario: Init with no task root  {#s-1d07}
 *Verification*: **executable**
@@ -141,20 +147,20 @@ When flume init [--root PATH] [--force] is run in a folder (the workspace, which
 - **WHEN** flume init is run
 - **THEN** the exit code is 1, standard error says there is no task root, and no .flume folder exists
 
-### Requirement: Init again needs force  {#r-1d12}
-When flume init is run in a folder that already has a .flume folder, it SHALL print a message to standard error that names --force, exit with code 1, and change nothing. When flume init --force is run, flume SHALL replace only workflow/base/ in the task root with the shipped copy and commit it, leaving other files in workflow/ alone; with --root it SHALL also replace root in config.yaml, and without --root it SHALL keep config.yaml.
+### Requirement: Init again changes nothing  {#r-1d12}
+When flume init is run in a folder that already has a .flume folder, it SHALL print a message to standard error saying the folder is already set up, exit with code 1, and change nothing.
 
 #### Scenario: Second init  {#s-1d04}
 *Verification*: **executable**
 - **GIVEN** a workspace already set up with flume init
 - **WHEN** flume init is run again
-- **THEN** the exit code is 1, standard error names --force, and the task repository has no new commit
+- **THEN** the exit code is 1, standard error says the folder is already set up, and the task repository has no new commit
 
-#### Scenario: Force rewrites the base only  {#s-1d05}
+#### Scenario: Force is gone  {#s-88ec}
 *Verification*: **executable**
-- **GIVEN** a set up workspace where workflow/base/workflow.md was edited and workflow/mine.md was added in the task root
-- **WHEN** flume init --force is run
-- **THEN** workflow/base/workflow.md is the shipped text again in a new commit, workflow/mine.md is unchanged, and config.yaml still holds root: tasks
+- **GIVEN** a git repository
+- **WHEN** flume init --force is run in it
+- **THEN** the exit code is 2 and no .flume folder exists
 
 ### Requirement: A second serve is refused  {#r-6579}
 When flume serve is run in a workspace folder whose .flume/daemon.json names a running daemon, it SHALL print a message naming the running daemon's address to standard error and exit with code 1.
@@ -184,13 +190,13 @@ When flume stop is run, it SHALL ask the daemon to exit, wait until it has, and 
 - **THEN** stop exits with code 0 and status prints not running with exit code 1
 
 ### Requirement: Task new creates a task  {#r-9812}
-When flume task new is run with a title, flume SHALL create the task and print its ID and the path of its file relative to the project root, separated by one space, on one line; options are -k or --kind (default feature), --parent ID, --blocked-by IDS and --related IDS (comma separated lists), and the body as --body TEXT or --body-file PATH (a dash means standard input).
+When flume task new is run with a title, flume SHALL create the task and print its ID and the path of its folder relative to the project root, separated by one space, on one line; options are -k or --kind (default feature), --project NAME, --parent ID, --blocked-by IDS and --related IDS (comma separated lists), and the body as --body TEXT or --body-file PATH (a dash means standard input).
 
 #### Scenario: New with a body from standard input  {#s-f616}
 *Verification*: **executable**
 - **GIVEN** a daemon running for a project
 - **WHEN** flume task new "Fix redirect" -k bug --body-file - is run with the text Users land on the home page on standard input
-- **THEN** one line is printed with a 4 character ID and a path under flume/tasks/open, and that file's body is Users land on the home page
+- **THEN** one line is printed with a 4 character ID and a path under flume/tasks/open, and that task's body.md is Users land on the home page
 
 #### Scenario: Default kind  {#s-803e}
 *Verification*: **executable**
@@ -208,7 +214,7 @@ When flume task new is run with a title, flume SHALL create the task and print i
 *Verification*: **executable**
 - **GIVEN** open tasks k7tm and q3rp
 - **WHEN** flume task new "Follow up" --blocked-by k7tm --related q3rp --body "Details here" is run
-- **THEN** the new task's front matter has blocked_by holding k7tm and related holding q3rp, and its body is Details here
+- **THEN** the new task's task.yaml has blocked_by holding k7tm and related holding q3rp, and its body.md is Details here
 
 ### Requirement: Task commands take --json  {#r-3d7e}
 When any flume task command is given --json, flume SHALL print the daemon's JSON answer (a task object, or a list of task objects for list) to standard output instead of the human-readable form; errors stay on standard error with exit code 1.
@@ -226,19 +232,19 @@ When any flume task command is given --json, flume SHALL print the daemon's JSON
 - **THEN** both print a usage message to standard error and exit with code 2
 
 ### Requirement: Task show prints the task  {#r-c36b}
-When flume task show is run with an ID, flume SHALL print the task file exactly as stored (front matter and body) to standard output and exit with code 0; for an ID that names no task it SHALL print a message to standard error and exit with code 1.
+When flume task show is run with an ID, flume SHALL print the task's task.yaml exactly as stored, then a blank line, then body.md exactly as stored, then (when comments.md exists) a blank line and comments.md exactly as stored, to standard output and exit with code 0; for an ID that names no task it SHALL print a message to standard error and exit with code 1.
 
 #### Scenario: Show by bare ID  {#s-e485}
 *Verification*: **executable**
 - **GIVEN** an open task with ID k7tm
 - **WHEN** flume task show k7tm is run
-- **THEN** the output equals the contents of that file
+- **THEN** the output is task.yaml, a blank line and body.md of that task, as stored
 
 #### Scenario: Show finds a resolved task  {#s-13df}
 *Verification*: **executable**
 - **GIVEN** a resolved task with ID k7tm
 - **WHEN** flume task show k7tm is run
-- **THEN** the output equals the contents of the file in resolved
+- **THEN** the output is task.yaml, a blank line and body.md of the task in resolved, as stored
 
 ### Requirement: Task list prints one line per task  {#r-1a8b}
 When flume task list is run, it SHALL print one line per task, ordered by created date and then ID, each with the ID, kind, state (open or resolved), and title separated by single tabs; it SHALL list open tasks unless --closed (resolved only) or --all (both) is given, and --kind K and --parent ID SHALL keep only matching tasks.
@@ -262,34 +268,34 @@ When flume task list is run, it SHALL print one line per task, ordered by create
 - **THEN** the first prints one line with state resolved and the second prints three lines
 
 ### Requirement: Task update changes one field  {#r-6eca}
-When flume task update is run with an ID, a field and a value, flume SHALL set that field in the task's front matter and print nothing else; the fields are title, kind, parent, blocked-by and related; for blocked-by and related the value is a comma separated list of IDs, and an empty value clears a field; an unknown field or a value that would break a rule of the task-files spec SHALL be refused with exit code 1 and the file left unchanged.
+When flume task update is run with an ID, a field and a value, flume SHALL set that field in the task's task.yaml and print nothing else; the fields are title, kind, parent, blocked-by and related; for blocked-by and related the value is a comma separated list of IDs, and an empty value clears a field; an unknown field or a value that would break a rule of the task-files spec SHALL be refused with exit code 1 and the file left unchanged.
 
 #### Scenario: Set blocked-by  {#s-9277}
 *Verification*: **executable**
 - **GIVEN** open tasks k7tm and q3rp
 - **WHEN** flume task update k7tm blocked-by q3rp is run
-- **THEN** the front matter of k7tm has blocked_by holding q3rp
+- **THEN** the task.yaml of k7tm has blocked_by holding q3rp
 
 #### Scenario: Unknown field refused  {#s-4fd6}
 *Verification*: **executable**
 - **GIVEN** an open task k7tm
 - **WHEN** flume task update k7tm color red is run
-- **THEN** the exit code is 1 and the file is byte for byte unchanged
+- **THEN** the exit code is 1 and task.yaml is byte for byte unchanged
 
 #### Scenario: Clear the parent  {#s-cf95}
 *Verification*: **executable**
 - **GIVEN** an open task with a parent
 - **WHEN** flume task update with that task's ID, the field parent and an empty value is run
-- **THEN** the front matter has no parent field
+- **THEN** task.yaml has no parent field
 
-### Requirement: Task comment adds a comment to the body  {#r-52c7}
-When flume task comment is run with an ID and text (as an argument after --text, or from a file with --body-file PATH, where a dash means standard input), flume SHALL add the text as a comment per the task-files spec (a Comments section at the end of the body, each comment under a heading ### header), using the AGENT_NAME environment variable as the author when it is set and the operating system user name otherwise, and leave the rest of the body unchanged; with neither --text nor --body-file it SHALL exit 2.
+### Requirement: Task comment adds a comment  {#r-52c7}
+When flume task comment is run with an ID and text (as an argument after --text, or from a file with --body-file PATH, where a dash means standard input), flume SHALL add the text as a comment per the task-files spec (appended to comments.md, each comment under a heading ### header), using the AGENT_NAME environment variable as the author when it is set and the operating system user name otherwise, and leave task.yaml and body.md unchanged; with neither --text nor --body-file it SHALL exit 2.
 
 #### Scenario: Two comments in order  {#s-2660}
 *Verification*: **executable**
 - **GIVEN** an open task with the default body and AGENT_NAME set to scout
 - **WHEN** flume task comment adds First and then adds Second
-- **THEN** the body has one Comments heading, then a header line ending in ", scout" and First, then a header line ending in ", scout" and Second, in that order
+- **THEN** comments.md holds a header line ending in ", scout" and First, then a header line ending in ", scout" and Second, in that order
 
 ### Requirement: Task close and reopen change the state  {#r-7226}
 When flume task close is run with an ID, flume SHALL resolve the task, and when flume task reopen is run it SHALL reopen it, per the task-files spec; closing a resolved task or reopening an open task SHALL exit with code 1 and change nothing.
@@ -305,9 +311,9 @@ When flume check is run, it SHALL print the result of the check described in the
 
 #### Scenario: Check offline  {#s-8645}
 *Verification*: **executable**
-- **GIVEN** no daemon running and a project with one task whose id differs from its file name
+- **GIVEN** no daemon running and a project with one task whose id differs from its folder name
 - **WHEN** flume check is run
-- **THEN** one problem line names that file and the exit code is 1
+- **THEN** one problem line names that task folder and the exit code is 1
 
 ### Requirement: Status takes --json  {#r-9bef}
 
@@ -341,6 +347,6 @@ When flume check is run with --json, flume SHALL print one JSON array on standar
 #### Scenario: Check as JSON with a problem  {#s-2e9d}
 
 *Verification*: **executable**
-- **GIVEN** no daemon running and a task whose id differs from its file name
+- **GIVEN** no daemon running and a task whose id differs from its folder name
 - **WHEN** flume check --json is run
-- **THEN** standard output is a JSON array of one object whose path names that file and whose message is not empty, and the exit code is 1
+- **THEN** standard output is a JSON array of one object whose path names that task folder and whose message is not empty, and the exit code is 1

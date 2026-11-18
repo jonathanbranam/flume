@@ -1,15 +1,15 @@
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { checkProject } from "./check.ts";
-import { listTaskFiles, resolveRef, type TaskEntry } from "./store.ts";
 import {
-  deleteField,
-  fields,
-  KINDS,
-  parseTaskFile,
-  serializeTaskFile,
-  setField,
-} from "./taskfile.ts";
+  COMMENTS_MD,
+  listTaskFiles,
+  parseOrThrow,
+  resolveRef,
+  TASK_YAML,
+  type TaskEntry,
+} from "./store.ts";
+import { deleteField, fields, KINDS, serializeTaskYaml, setField } from "./taskfile.ts";
 
 /** Fields `updateTask` may set. A null clears parent, blocked_by or related. */
 export interface TaskPatch {
@@ -28,12 +28,6 @@ function load(root: string, ref: string): TaskEntry {
   return e;
 }
 
-function parsed(e: TaskEntry) {
-  const r = parseTaskFile(e.text);
-  if (!r.ok) throw new Error(`${e.path}: ${r.error}`);
-  return r.file;
-}
-
 /**
  * Apply every field or none. The file is rewritten, the project is checked, and when the change
  * adds a problem the original text is put back and the change is refused.
@@ -42,7 +36,7 @@ export function updateTask(root: string, ref: string, patch: TaskPatch): TaskEnt
   const e = load(root, ref);
   const entries = listTaskFiles(root);
   const bare = (r: string) => resolveRef(entries, r)?.nameId ?? r;
-  const file = parsed(e);
+  const file = parseOrThrow(e);
   if (patch.title !== undefined) {
     if (typeof patch.title !== "string" || patch.title.trim() === "")
       throw new Error("title must be a non-empty string");
@@ -68,10 +62,11 @@ export function updateTask(root: string, ref: string, patch: TaskPatch): TaskEnt
     }
   }
   const before = new Set(checkProject(root).map((p) => `${p.path}: ${p.message}`));
-  writeFileSync(join(root, e.path), serializeTaskFile(file));
+  const yamlPath = join(root, e.path, TASK_YAML);
+  writeFileSync(yamlPath, serializeTaskYaml(file));
   const added = checkProject(root).filter((p) => !before.has(`${p.path}: ${p.message}`));
   if (added.length > 0) {
-    writeFileSync(join(root, e.path), e.text);
+    writeFileSync(yamlPath, e.yaml ?? "");
     throw new Error(added[0]?.message ?? "the change breaks a rule");
   }
   return load(root, e.stem);
@@ -85,7 +80,7 @@ export function commentTime(d: Date): string {
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())} ${off < 0 ? "-" : "+"}${p(Math.floor(a / 60))}:${p(a % 60)}`;
 }
 
-/** Append a comment under the last "## Comments" heading (added when missing). */
+/** Append a comment to comments.md (created when missing), after one blank line. */
 export function addComment(
   root: string,
   ref: string,
@@ -95,31 +90,30 @@ export function addComment(
 ): TaskEntry {
   if (typeof text !== "string" || text.trim() === "") throw new Error("text must not be empty");
   const e = load(root, ref);
-  const file = parsed(e);
-  let body = file.body.trimEnd();
-  if (!/^## Comments[ \t]*$/m.test(body)) body += `${body === "" ? "" : "\n\n"}## Comments`;
-  file.body = `${body}\n\n### ${commentTime(now)}, ${author}\n\n${text.trimEnd()}\n`;
-  writeFileSync(join(root, e.path), serializeTaskFile(file));
+  const old = e.comments.trimEnd();
+  const next = `${old === "" ? "" : `${old}\n\n`}### ${commentTime(now)}, ${author}\n\n${text.trimEnd()}\n`;
+  writeFileSync(join(root, e.path, COMMENTS_MD), next);
   return load(root, e.stem);
 }
 
-/** The task object the API returns (body included). */
+/** The task object the API returns (body and comments included). */
 export function taskObject(e: TaskEntry) {
-  const file = parsed(e);
-  const f = fields(file);
+  const f = fields(parseOrThrow(e));
   const list = (k: string) => (Array.isArray(f[k]) ? (f[k] as unknown[]).map(String) : []);
   return {
     id: String(f.id ?? e.nameId),
     title: String(f.title ?? ""),
     kind: String(f.kind ?? ""),
     state: e.state,
+    project: typeof f.project === "string" ? f.project : null,
     created: String(f.created ?? ""),
     resolved: typeof f.resolved === "string" ? f.resolved : null,
     parent: typeof f.parent === "string" ? f.parent : null,
     blocked_by: list("blocked_by"),
     related: list("related"),
     path: e.path,
-    body: file.body,
-    file: e.text,
+    body: e.body ?? "",
+    comments: e.comments,
+    fields: e.yaml ?? "",
   };
 }

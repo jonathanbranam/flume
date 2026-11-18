@@ -3,49 +3,28 @@ import { Document, isMap, parseDocument, Scalar, YAMLSeq } from "yaml";
 export const KINDS = ["feature", "bug", "chore", "docs", "research", "epic"] as const;
 export type Kind = (typeof KINDS)[number];
 
-/** A parsed task file: the YAML document keeps field order; the body is kept byte for byte. */
+/** A parsed task.yaml: the YAML document keeps field order. */
 export interface TaskFile {
   doc: Document;
-  body: string;
 }
 
 export type ParseResult = { ok: true; file: TaskFile } | { ok: false; error: string };
 
-const OPEN = "---\n";
-
-/** Split and parse "---\n<yaml>---\n<body>". Failsafe schema: every scalar stays a string. */
-export function parseTaskFile(text: string): ParseResult {
-  const src = text.replace(/\r\n/g, "\n");
-  if (!src.startsWith(OPEN)) return { ok: false, error: "front matter missing" };
-  const rest = src.slice(OPEN.length);
-  let end: number;
-  let after: number;
-  if (rest.startsWith("---\n") || rest === "---") {
-    end = 0;
-    after = rest.startsWith("---\n") ? 4 : 3;
-  } else {
-    end = rest.indexOf("\n---\n");
-    after = end + 5;
-    if (end < 0) {
-      if (!rest.endsWith("\n---")) return { ok: false, error: "front matter is not closed" };
-      end = rest.length - 4;
-      after = rest.length;
-    }
-    end += 1;
-  }
-  const doc = parseDocument(rest.slice(0, end), { schema: "failsafe" });
+/** Parse task.yaml. Failsafe schema: every scalar stays a string. */
+export function parseTaskYaml(text: string): ParseResult {
+  const doc = parseDocument(text, { schema: "failsafe" });
   if (doc.errors.length > 0) {
-    return { ok: false, error: `front matter not parsable: ${doc.errors[0]?.message}` };
+    return { ok: false, error: `task.yaml not parsable: ${doc.errors[0]?.message}` };
   }
-  if (!isMap(doc.contents)) return { ok: false, error: "front matter is not a set of fields" };
-  return { ok: true, file: { doc, body: rest.slice(after) } };
+  if (!isMap(doc.contents)) return { ok: false, error: "task.yaml is not a set of fields" };
+  return { ok: true, file: { doc } };
 }
 
-export function serializeTaskFile(file: TaskFile): string {
-  return `---\n${file.doc.toString()}---\n${file.body}`;
+export function serializeTaskYaml(file: TaskFile): string {
+  return file.doc.toString();
 }
 
-/** Plain-JS view of the front matter (strings, lists of strings). */
+/** Plain-JS view of the fields (strings, lists of strings). */
 export function fields(file: TaskFile): Record<string, unknown> {
   return (file.doc.toJS() ?? {}) as Record<string, unknown>;
 }
@@ -71,9 +50,8 @@ export function deleteField(file: TaskFile, key: string): void {
   file.doc.delete(key);
 }
 
-export function newTaskFile(body: string): TaskFile {
-  const doc = new Document({}, { schema: "failsafe" });
-  return { doc, body };
+export function newTaskFile(): TaskFile {
+  return { doc: new Document({}, { schema: "failsafe" }) };
 }
 
 /** [[stem]] and [[stem|label]] targets in a body. */

@@ -1,12 +1,13 @@
 import { existsSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { checkProject, formatProblem, type Problem } from "../core/check.ts";
+import { FLUME_YAML } from "../core/layout.ts";
 
-/** The nearest folder at or above `from` that holds flume/tasks, else `from`. */
+/** The nearest folder at or above `from` that holds flume.yaml or flume/tasks, else `from`. */
 export function findRoot(from: string): string {
   let dir = resolve(from);
   for (;;) {
-    if (existsSync(join(dir, "flume", "tasks"))) return dir;
+    if (existsSync(join(dir, FLUME_YAML)) || existsSync(join(dir, "flume", "tasks"))) return dir;
     const up = dirname(dir);
     if (up === dir) return resolve(from);
     dir = up;
@@ -31,5 +32,10 @@ export function check(cwd: string, args: string[] = []): number {
     process.stderr.write(`flume: unexpected argument '${extra[0]}'\nusage: flume check [--json]\n`);
     return 2;
   }
-  return printProblems(checkProject(findRoot(cwd)), args.includes("--json"));
+  try {
+    return printProblems(checkProject(findRoot(cwd)), args.includes("--json"));
+  } catch (e) {
+    process.stderr.write(`flume: ${(e as Error).message}\n`);
+    return 1;
+  }
 }

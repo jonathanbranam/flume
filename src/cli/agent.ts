@@ -1,19 +1,18 @@
 import { spawnSync } from "node:child_process";
-import { existsSync, readdirSync } from "node:fs";
-import { join } from "node:path";
+import { readdirSync } from "node:fs";
 import { stringify } from "yaml";
 import { agentsDir, type Entry, readEntry, writeEntry } from "../core/agents.ts";
-import { findInitialized, findProject, readConfigRoot } from "../daemon/index.ts";
+import { daemonUrl, request } from "../daemon/index.ts";
 
 const USAGE = `Usage:
-  flume agent [--name <name>] [--project <p>] [--force] [<prompt>] [-- <claude-arg>...]
+  flume agent [--name <name>] [--project <p>] [--role <r>] [--force] [<prompt>] [-- <claude-arg>...]
   flume agent list [--json]
   flume agent show <name> [--json]
-  flume prime [--name <name>] [--project <p>]
+  flume prime [--name <name>] [--project <p>] [--role <r>]
 
 Launch Claude Code as a named agent. The name comes only from --name, else from the tmux
 pane option @flume_agent. One bare argument is the prompt sent to the agent (quote it); with
-none, flume sends a short default. Before "--" flume accepts only --name, --project, --force, -h/--help and the prompt;
+none, flume sends a short default. Before "--" flume accepts only --name, --project, --role, --force, -h/--help and the prompt;
 any other option is an error (exit 2). Claude's options go after "--", which flume passes
 to claude and checks only for conflicts (a second prompt, -n/--name, --append-system-prompt[-file], a repeated single-value
 option, an option missing its value) and exits 2 on one. The prime text always goes to claude
@@ -30,6 +29,7 @@ const NAME_RE = /^[a-z0-9][a-z0-9-]*$/;
 interface Parsed {
   name?: string;
   project?: string;
+  role?: string;
   force: boolean;
   prompt?: string;
   passthrough: string[];
@@ -125,10 +125,11 @@ function parse(args: string[]): Parsed | string {
       p.force = true;
       continue;
     }
-    if (!afterDash && (a === "--project" || a === "--name")) {
+    if (!afterDash && (a === "--project" || a === "--name" || a === "--role")) {
       const v = args[++i];
       if (v === undefined) return `${a} needs a value`;
       if (a === "--project") p.project = v;
+      else if (a === "--role") p.role = v;
       else p.name = v;
       continue;
     }
@@ -176,21 +177,26 @@ function fill(text: string, vars: Record<string, string>): string {
   return text.replace(/\{(name|project)\}/g, (_, k: string) => vars[k] ?? "");
 }
 
-/** The task root of the workspace the current folder is in, when it has a workflow/ folder; else undefined. */
-function workflowRoot(): string | undefined {
-  const ws = findInitialized(process.cwd());
-  if (!ws) return undefined;
-  const root = readConfigRoot(ws) ?? findProject(ws)?.mainCheckout;
-  return root && existsSync(join(root, "workflow")) ? root : undefined;
-}
-
-function primeText(name: string, project: string): string {
+/**
+ * The prime text: flume's built-in text, then the workflow text the daemon builds from the
+ * flume-root files for this project and role. With no daemon (or a refusal) the built-in text
+ * is printed with one line saying why the rest is missing.
+ */
+async function primeText(name: string, project: string, role: string): Promise<string> {
   const vars = { name, project };
   let text = fill(DEFAULT_BASE, vars);
   if (project) text += `\n${fill(DEFAULT_PROJECT, vars)}`;
-  const root = workflowRoot();
-  if (root)
-    text += `\nWorkflow: read the .md files in ${root}/workflow/base/, then in ${root}/workflow/, then in the project's workflow/ folder, then the project's CLAUDE.md, each in name order; where they conflict, later ones override earlier ones.\n`;
+  const url = daemonUrl(process.cwd());
+  const q = new URLSearchParams({ project, role });
+  const r = url ? await request(url, "GET", `/api/prime?${q}`) : undefined;
+  if (!r) {
+    text +=
+      "\nThe workflow text is missing because the flume server is not running. Ask the human to start it: flume serve (in its own pane).\n";
+  } else if (r.status !== 200) {
+    text += `\nThe workflow text is missing: ${r.body?.error ?? `request failed (${r.status})`}\n`;
+  } else if (r.body.text) {
+    text += `\n${r.body.text}`;
+  }
   return text;
 }
 
@@ -265,7 +271,7 @@ function show(args: string[]): number {
 }
 
 /** `flume prime`: print the text the launcher would send. */
-export function prime(args: string[]): number {
+export async function prime(args: string[]): Promise<number> {
   if (args.includes("--help") || args.includes("-h")) {
     process.stdout.write(USAGE);
     return 0;
@@ -287,12 +293,15 @@ export function prime(args: string[]): number {
     process.stderr.write(`flume: ${bad}\n`);
     return 2;
   }
-  process.stdout.write(primeText(name, p.project ?? readEntry(name)?.project ?? ""));
+  const old = readEntry(name);
+  process.stdout.write(
+    await primeText(name, p.project ?? old?.project ?? "", p.role ?? old?.role ?? ""),
+  );
   return 0;
 }
 
 /** `flume agent ...`; returns the exit code (claude's, for a launch). */
-export function agent(args: string[]): number {
+export async function agent(args: string[]): Promise<number> {
   const [first] = args;
   if (first === "--help" || first === "-h") {
     process.stdout.write(USAGE);
@@ -319,6 +328,7 @@ export function agent(args: string[]): number {
   }
   const old = readEntry(name);
   const project = p.project ?? old?.project ?? "";
+  const role = p.role ?? old?.role ?? "";
   const pane = process.env.TMUX_PANE ?? "";
   if (old?.pane && old.pane !== pane && !p.force) {
     process.stderr.write(
@@ -331,6 +341,7 @@ export function agent(args: string[]): number {
     ...old,
     name,
     project,
+    role,
     pane,
     created: old?.created ?? now,
     last_launch: now,
@@ -340,7 +351,7 @@ export function agent(args: string[]): number {
 
   const claudeArgs = [
     "--append-system-prompt",
-    primeText(name, project),
+    await primeText(name, project, role),
     "--name",
     name,
     ...p.passthrough,

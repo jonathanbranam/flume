@@ -7,6 +7,7 @@ import { parseDocument, stringify } from "yaml";
 export interface Entry {
   name: string;
   project: string;
+  role: string;
   pane: string;
   created: string;
   last_launch: string;

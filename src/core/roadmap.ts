@@ -1,10 +1,12 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import type { Problem } from "./check.ts";
+import { rel } from "./layout.ts";
 import { listTaskFiles } from "./store.ts";
 import { taskObject } from "./update.ts";
 
-export const ROADMAP_PATH = "flume/roadmap.md";
+/** The roadmap file, relative to the tasks repo; it sits in the flume-root. */
+export const roadmapPath = (root: string): string => rel(root, "roadmap.md");
 
 export interface RoadmapEntry {
   /** The wiki link target: a task file name without .md. */
@@ -50,7 +52,7 @@ export function parseRoadmap(text: string): RoadmapSection[] {
 
 /** The roadmap text, or undefined when the file does not exist. */
 export function readRoadmap(root: string): string | undefined {
-  const p = join(root, ROADMAP_PATH);
+  const p = join(root, roadmapPath(root));
   return existsSync(p) ? readFileSync(p, "utf8") : undefined;
 }
 
@@ -95,12 +97,12 @@ export function checkRoadmap(root: string): Problem[] {
       const at = `line ${e.line}`;
       if (e.state === null) {
         problems.push({
-          path: ROADMAP_PATH,
+          path: roadmapPath(root),
           message: `${at}: link [[${e.link}]] names no task file`,
         });
       } else if (e.state === "resolved" && !isDone(s.heading) && e.note === null) {
         problems.push({
-          path: ROADMAP_PATH,
+          path: roadmapPath(root),
           message: `${at}: [[${e.link}]] is resolved but listed under ${s.heading || "no heading"} with no note`,
         });
       }

@@ -2,7 +2,7 @@
 
 The daemon is the only writer of task files. It serves JSON over HTTP on the local machine. Ticket: fl-47b8.
 
-Assumptions (recorded on fl-47b8): paths start with /api; requests with a body and all responses are JSON (UTF-8); an error response has the status code and a body {"error": "<message>"}; there is no login because the daemon listens on 127.0.0.1 only (a work-sandbox rule: localhost works); one daemon serves one task root, the folder holding flume/tasks (a git repository in the workspace or a separate task repository); the daemon commits each change there (advisor note on fl-47b8) and never pushes. A task object has the fields id, title, kind, state (open or resolved), created, resolved (null when open), parent (null when none), blocked_by, related, path (relative to the project root), body and file (the whole task file as stored, front matter and body). A list omits body and file.
+Assumptions (recorded on fl-47b8): paths start with /api; requests with a body and all responses are JSON (UTF-8); an error response has the status code and a body {"error": "<message>"}; there is no login because the daemon listens on 127.0.0.1 only (a work-sandbox rule: localhost works); one daemon serves one task root, the tasks repository whose flume.yaml names the flume root (a git repository in the workspace or a separate task repository); the daemon commits each change there (advisor note on fl-47b8) and never pushes. A task object has the fields id, title, kind, state (open or resolved), project (null when none), created, resolved (null when open), parent (null when none), blocked_by, related, path (the task folder, relative to the project root), body (body.md as stored), comments (comments.md as stored, empty when none) and fields (task.yaml as stored). A list omits body, comments and fields.
 
 ## Requirements
 
@@ -46,25 +46,25 @@ When GET /api/status is requested, the daemon SHALL answer 200 with the fields v
 - **THEN** the status is 200 and the body has a non-empty version and the project root as root
 
 ### Requirement: Create a task  {#r-4b3f}
-When POST /api/tasks is requested with title (required), kind (default feature), parent (optional), blocked_by (optional list of task IDs), related (optional list of task IDs) and body (optional), the daemon SHALL create the task per the task-files spec, with the links in the same file, and answer 201 with the task object; for an invalid request, including a blocked_by or related entry that names no task, it SHALL answer 400 and write and commit nothing.
+When POST /api/tasks is requested with title (required), kind (default feature), project (optional name), parent (optional), blocked_by (optional list of task IDs), related (optional list of task IDs) and body (optional), the daemon SHALL create the task per the task-files spec, with the links in the same task.yaml, and answer 201 with the task object; for an invalid request, including a blocked_by or related entry that names no task, it SHALL answer 400 and write and commit nothing.
 
 #### Scenario: Create  {#s-301e}
 *Verification*: **executable**
 - **GIVEN** a running daemon
 - **WHEN** POST /api/tasks is requested with title Fix redirect and kind bug
-- **THEN** the status is 201, the body has a 4 character id, state open, kind bug, and the file at path exists
+- **THEN** the status is 201, the body has a 4 character id, state open, kind bug, and the folder at path exists
 
 #### Scenario: Missing title  {#s-ec04}
 *Verification*: **executable**
 - **GIVEN** a running daemon
 - **WHEN** POST /api/tasks is requested with kind bug and no title
-- **THEN** the status is 400, the body has an error message, and no task file is written
+- **THEN** the status is 400, the body has an error message, and no task folder is written
 
 #### Scenario: Unknown kind  {#s-89d3}
 *Verification*: **executable**
 - **GIVEN** a running daemon
 - **WHEN** POST /api/tasks is requested with title X and kind idea
-- **THEN** the status is 400 and no task file is written
+- **THEN** the status is 400 and no task folder is written
 
 ### Requirement: Read a task  {#r-0645}
 When GET /api/tasks/{id} is requested, the daemon SHALL answer 200 with the task object, finding it in open or resolved, and 404 when no task has that ID.
@@ -97,7 +97,7 @@ When GET /api/tasks is requested, the daemon SHALL answer 200 with a list of tas
 - **THEN** the status is 400
 
 ### Requirement: Update a task  {#r-8f5d}
-When PATCH /api/tasks/{id} is requested with an object of fields to set (title, kind, parent, blocked_by, related), the daemon SHALL apply them all or none per the task-files spec and answer 200 with the task object; a null value clears parent, blocked_by or related; an unknown field or a value that breaks a rule SHALL answer 400, and an unknown task 404, with the file unchanged.
+When PATCH /api/tasks/{id} is requested with an object of fields to set (title, kind, parent, blocked_by, related), the daemon SHALL apply them all or none per the task-files spec and answer 200 with the task object; a null value clears parent, blocked_by or related; an unknown field or a value that breaks a rule SHALL answer 400, and an unknown task 404, with the files unchanged.
 
 #### Scenario: Retitle  {#s-7abb}
 *Verification*: **executable**
@@ -118,7 +118,7 @@ When POST /api/tasks/{id}/comments is requested with text and an optional author
 *Verification*: **executable**
 - **GIVEN** an open task with the default body
 - **WHEN** POST /api/tasks/{id}/comments is requested with text Found the cause and author scout
-- **THEN** the status is 200 and the body ends with a Comments heading, a header line ending in ", scout", a blank line and Found the cause
+- **THEN** the status is 200 and comments holds a header line ending in ", scout", a blank line and Found the cause
 
 ### Requirement: Close and reopen  {#r-17ac}
 When POST /api/tasks/{id}/close or POST /api/tasks/{id}/reopen is requested, the daemon SHALL change the state per the task-files spec and answer 200 with the task object; closing a resolved task or reopening an open one SHALL answer 409 with nothing changed, and an unknown task 404.
@@ -149,9 +149,30 @@ When GET /api/roadmap is requested, the daemon SHALL answer 200 with sections, a
 
 #### Scenario: No roadmap file  {#s-5c0d}
 *Verification*: **executable**
-- **GIVEN** a running daemon and no flume/roadmap.md
+- **GIVEN** a running daemon and no roadmap.md in the flume root
 - **WHEN** GET /api/roadmap is requested
 - **THEN** the status is 404 and the body has an error message
+
+### Requirement: Prime text from the flume root  {#r-216d}
+When GET /api/prime is requested with the optional query parameters project and role, the daemon SHALL answer 200 with an object whose text is the concatenation, in this order and each separated from the next by a blank line, of those of these files in the flume root that exist: base/workflow.md; projects/PROJECT/workflow.md (when project is given); base/roles/ROLE.md (when role is given); projects/PROJECT/roles/ROLE.md (when both are given); text is empty when none exists; a project or role that is not one plain name (letters, digits, dots, hyphens and underscores, starting with a letter or digit) SHALL answer 400 with an error message.
+
+#### Scenario: Layers in order  {#s-1581}
+*Verification*: **executable**
+- **GIVEN** a flume root with base/workflow.md holding BASE, projects/web/workflow.md holding WEB, base/roles/worker.md holding ROLE and projects/web/roles/worker.md holding WEBROLE
+- **WHEN** GET /api/prime is requested with project web and role worker
+- **THEN** the status is 200 and text holds BASE, WEB, ROLE and WEBROLE in that order
+
+#### Scenario: Missing files are skipped  {#s-3fa0}
+*Verification*: **executable**
+- **GIVEN** a flume root with only base/workflow.md holding BASE
+- **WHEN** GET /api/prime is requested with project web and role worker
+- **THEN** the status is 200 and text holds BASE and nothing else
+
+#### Scenario: A path-like name is refused  {#s-f8c8}
+*Verification*: **executable**
+- **GIVEN** a running daemon
+- **WHEN** GET /api/prime is requested with role ../x
+- **THEN** the status is 400 and the body has an error message
 
 ### Requirement: Stop  {#r-23b5}
 When POST /api/stop is requested, the daemon SHALL answer 200 and then exit, and a later request to its address SHALL fail to connect.
@@ -184,7 +205,7 @@ When several create or update requests arrive at the same time, the daemon SHALL
 *Verification*: **executable**
 - **GIVEN** a running daemon with no tasks
 - **WHEN** ten POST /api/tasks requests are sent at the same time
-- **THEN** all ten answer 201 with different IDs and ten files exist in open
+- **THEN** all ten answer 201 with different IDs and ten folders exist in open
 
 ### Requirement: Each change is one commit  {#r-a89d}
 When a request creates or changes a task (create, update, comment, close, reopen), the daemon SHALL commit the changed files in the git repository of the task root as one commit whose message names the task ID and the change, and SHALL NOT push.
@@ -193,13 +214,13 @@ When a request creates or changes a task (create, update, comment, close, reopen
 *Verification*: **executable**
 - **GIVEN** a running daemon whose task root is a git repository with a clean working tree
 - **WHEN** POST /api/tasks is requested with title Fix redirect
-- **THEN** the repository has one new commit that holds only the new task file, its message contains the task ID, and the working tree is clean
+- **THEN** the repository has one new commit that holds only the new task folder, its message contains the task ID, and the working tree is clean
 
 #### Scenario: A create with links is one commit  {#s-fc8d}
 *Verification*: **executable**
 - **GIVEN** open tasks k7tm and q3rp and a clean working tree
 - **WHEN** POST /api/tasks is requested with title Follow up, blocked_by k7tm and related q3rp
-- **THEN** exactly one new commit exists, it holds only the new task file, the task has blocked_by k7tm and related q3rp, and the working tree is clean
+- **THEN** exactly one new commit exists, it holds only the new task folder, the task has blocked_by k7tm and related q3rp, and the working tree is clean
 
 #### Scenario: A create with an unknown link writes nothing  {#s-88ac}
 *Verification*: **executable**
@@ -211,10 +232,10 @@ When a request creates or changes a task (create, update, comment, close, reopen
 *Verification*: **executable**
 - **GIVEN** an open task and a clean working tree
 - **WHEN** POST /api/tasks/{id}/close is requested
-- **THEN** one new commit exists, it removes the file from open and adds it to resolved, and the working tree is clean
+- **THEN** one new commit exists, it removes the folder from open and adds it to resolved, and the working tree is clean
 
 #### Scenario: A comment and an update commit  {#s-6f12}
 *Verification*: **executable**
 - **GIVEN** an open task and a clean working tree
 - **WHEN** a comment is added and then the title is changed
-- **THEN** two new commits exist, each message contains the task ID, each holds only that task file, and the working tree is clean
+- **THEN** two new commits exist, each message contains the task ID, each holds only that task folder, and the working tree is clean

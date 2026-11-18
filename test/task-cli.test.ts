@@ -71,7 +71,15 @@ const ls = (repo: string, state: string) => {
   const p = join(repo, "flume/tasks", state);
   return existsSync(p) ? readdirSync(p).sort() : [];
 };
-const read = (repo: string, path: string) => readFileSync(join(repo, path), "utf8");
+const readFile = (repo: string, folder: string, f: string) =>
+  readFileSync(join(repo, folder, f), "utf8");
+/** What flume task show prints for the task folder: task.yaml, body.md, then comments.md if any. */
+const read = (repo: string, folder: string) => {
+  const c = existsSync(join(repo, folder, "comments.md"))
+    ? readFile(repo, folder, "comments.md")
+    : "";
+  return `${readFile(repo, folder, "task.yaml")}\n${readFile(repo, folder, "body.md")}${c ? `\n${c}` : ""}`;
+};
 /** Create a task through the CLI; returns its id and path. */
 function mk(repo: string, ...args: string[]): { id: string; path: string } {
   const r = flume(repo, ["task", "new", ...args]);
@@ -126,10 +134,18 @@ describe("flume task commands", () => {
       "Users land on the home page",
     );
     expect(r.status).toBe(0);
-    expect(r.stdout).toMatch(/^[a-z0-9]{4} flume\/tasks\/open\/[^ \n]+\.md\n$/);
+    expect(r.stdout).toMatch(/^[a-z0-9]{4} flume\/tasks\/open\/[^ \n]+\n$/);
     const path = r.stdout.trim().split(" ")[1] as string;
-    expect(read(repo, path)).toMatch(/kind: bug/);
-    expect(read(repo, path).trim().endsWith("Users land on the home page")).toBe(true);
+    expect(readFile(repo, path, "task.yaml")).toMatch(/kind: bug/);
+    expect(readFile(repo, path, "body.md").trim()).toBe("Users land on the home page");
+    flume(repo, ["stop"]);
+  });
+
+  it("s-ed18 new with a project", async () => {
+    const repo = await project();
+    const t = mk(repo, "Mine", "--project", "backend");
+    expect(readFile(repo, t.path, "task.yaml")).toContain("project: backend\n");
+    expect(flume(repo, ["task", "new", "Bad", "--project", "../x"]).status).toBe(1);
     flume(repo, ["stop"]);
   });
 
@@ -297,11 +313,9 @@ describe("flume task commands", () => {
     expect(flume(repo, ["task", "comment", t.id, "--body-file", "-"], "Second\n", env).status).toBe(
       0,
     );
-    const body = read(repo, t.path);
-    expect(body).toMatch(
-      /\n## Comments\n\n### \d{4}-\d\d-\d\d \d\d:\d\d [+-]\d\d:\d\d, scout\n\nFirst\n\n### [^\n]*, scout\n\nSecond\n$/,
+    expect(readFile(repo, t.path, "comments.md")).toMatch(
+      /^### \d{4}-\d\d-\d\d \d\d:\d\d [+-]\d\d:\d\d, scout\n\nFirst\n\n### [^\n]*, scout\n\nSecond\n$/,
     );
-    expect(body.match(/^## Comments$/gm)).toHaveLength(1);
     expect(flume(repo, ["task", "comment", t.id]).status).toBe(2);
     flume(repo, ["stop"]);
   });
@@ -363,17 +377,18 @@ describe("flume check as JSON", () => {
 
   it("s-2e9d check as JSON with a problem", () => {
     const repo = tempRepo();
-    mkdirSync(join(repo, "flume/tasks/open"), { recursive: true });
-    // The file name ends in aaaa but the id in its front matter is bbbb.
+    mkdirSync(join(repo, "flume/tasks/open/hello-aaaa"), { recursive: true });
+    // The folder name ends in aaaa but the id in its task.yaml is bbbb.
     writeFileSync(
-      join(repo, "flume/tasks/open/hello-aaaa.md"),
-      "---\nid: bbbb\ntitle: Hello\nkind: feature\ncreated: 2026-11-16\n---\n\nbody\n",
+      join(repo, "flume/tasks/open/hello-aaaa/task.yaml"),
+      "id: bbbb\ntitle: Hello\nkind: feature\nstatus: open\ncreated: 2026-11-16\n",
     );
+    writeFileSync(join(repo, "flume/tasks/open/hello-aaaa/body.md"), "body\n");
     const r = flume(repo, ["check", "--json"]);
     expect(r.status).toBe(1);
     const problems = JSON.parse(r.stdout) as { path: string; message: string }[];
     expect(problems).toHaveLength(1);
-    expect(problems[0]?.path).toContain("hello-aaaa.md");
+    expect(problems[0]?.path).toContain("hello-aaaa");
     expect(problems[0]?.message).not.toBe("");
   });
 });

@@ -7,13 +7,13 @@ const out = (s: string) => process.stdout.write(`${s}\n`);
 const HELP = `usage: flume task <command> [options]
 
 Commands:
-  new TITLE [-k KIND] [--parent ID] [--blocked-by IDS] [--related IDS]
-            [--body TEXT | --body-file PATH]    create a task; prints "ID PATH"
-  show ID                                       print the task file
+  new TITLE [-k KIND] [--project P] [--parent ID] [--blocked-by IDS] [--related IDS]
+            [--body TEXT | --body-file PATH]    create a task; prints "ID PATH" (the task folder)
+  show ID                                       print task.yaml, body.md and comments.md
   list [--closed | --all] [--kind K] [--parent ID]
                                                 one line per task (tab separated)
   update ID FIELD VALUE                         FIELD: title, kind, parent, blocked-by, related
-  comment ID [--text TEXT | --body-file PATH]   add a comment under ## Comments
+  comment ID [--text TEXT | --body-file PATH]   add a comment to comments.md
   close ID                                      resolve the task
   reopen ID                                     reopen a resolved task
 
@@ -23,11 +23,20 @@ Paths for --body-file: a dash means standard input. IDS is a comma separated lis
 
 const COMMANDS: Record<string, { opts: string[]; flags: string[]; pos: number; usage: string }> = {
   new: {
-    opts: ["-k", "--kind", "--parent", "--blocked-by", "--related", "--body", "--body-file"],
+    opts: [
+      "-k",
+      "--kind",
+      "--project",
+      "--parent",
+      "--blocked-by",
+      "--related",
+      "--body",
+      "--body-file",
+    ],
     flags: [],
     pos: 1,
     usage:
-      "flume task new TITLE [-k KIND] [--parent ID] [--blocked-by IDS] [--related IDS] [--body TEXT | --body-file PATH]",
+      "flume task new TITLE [-k KIND] [--project P] [--parent ID] [--blocked-by IDS] [--related IDS] [--body TEXT | --body-file PATH]",
   },
   show: { opts: [], flags: [], pos: 1, usage: "flume task show ID" },
   list: {
@@ -151,6 +160,7 @@ export async function task(cwd: string, args: string[]): Promise<number> {
         kind: opt["-k"] ?? opt["--kind"] ?? "feature",
       };
       if (opt["--parent"] !== undefined) payload.parent = opt["--parent"];
+      if (opt["--project"] !== undefined) payload.project = opt["--project"];
       if (body !== undefined) payload.body = body;
       if (opt["--blocked-by"] !== undefined) payload.blocked_by = ids(opt["--blocked-by"]);
       if (opt["--related"] !== undefined) payload.related = ids(opt["--related"]);
@@ -159,7 +169,11 @@ export async function task(cwd: string, args: string[]): Promise<number> {
     } else if (sub === "show") {
       const t = await call("GET", `/api/tasks/${enc(pos[0] as string)}`);
       if (json) out(JSON.stringify(t));
-      else process.stdout.write(t.file);
+      else {
+        process.stdout.write(t.fields);
+        process.stdout.write(`\n${t.body}`);
+        if (t.comments) process.stdout.write(`\n${t.comments}`);
+      }
     } else if (sub === "list") {
       const q = new URLSearchParams({
         state: flag.has("--all") ? "all" : flag.has("--closed") ? "resolved" : "open",

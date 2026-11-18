@@ -49,16 +49,15 @@ function workspace(): { ws: string; tasks: string } {
 const count = (repo: string) => git(repo, "rev-list", "--count", "HEAD");
 
 describe("flume init", () => {
-  it("s-1d03 init sets up the workspace and commits the base workflow", () => {
+  it("s-1d03 init sets up the workspace and commits flume.yaml", () => {
     const { ws, tasks } = workspace();
     const r = flume(ws, "init", "--root", "tasks");
     expect(r.status).toBe(0);
     expect(readFileSync(join(ws, ".flume/.gitignore"), "utf8")).toBe("*\n");
     expect(readFileSync(join(ws, ".flume/config.yaml"), "utf8")).toContain("root: tasks");
     expect(existsSync(join(ws, ".flume/workflow"))).toBe(false);
-    expect(readFileSync(join(tasks, "workflow/base/workflow.md"), "utf8")).toContain(
-      "base workflow",
-    );
+    expect(readFileSync(join(tasks, "flume.yaml"), "utf8")).toBe("dir: flume\n");
+    expect(existsSync(join(tasks, "workflow"))).toBe(false);
     expect(count(tasks)).toBe("2");
     expect(git(tasks, "status", "--porcelain")).toBe("");
     expect(existsSync(join(ws, ".git"))).toBe(false);
@@ -69,25 +68,16 @@ describe("flume init", () => {
     flume(ws, "init", "--root", "tasks");
     const r = flume(ws, "init", "--root", "tasks");
     expect(r.status).toBe(1);
-    expect(r.stderr).toContain("--force");
+    expect(r.stderr).toContain("already set up");
     expect(count(tasks)).toBe("2");
   });
 
-  it("s-1d05 force rewrites only the base workflow", () => {
-    const { ws, tasks } = workspace();
-    flume(ws, "init", "--root", "tasks");
-    writeFileSync(join(tasks, "workflow/base/workflow.md"), "edited\n");
-    writeFileSync(join(tasks, "workflow/mine.md"), "mine\n");
-    git(tasks, "add", "-A");
-    git(tasks, "commit", "-qm", "edit");
-    const r = flume(ws, "init", "--force");
-    expect(r.status).toBe(0);
-    expect(readFileSync(join(tasks, "workflow/base/workflow.md"), "utf8")).toContain(
-      "base workflow",
-    );
-    expect(readFileSync(join(tasks, "workflow/mine.md"), "utf8")).toBe("mine\n");
-    expect(count(tasks)).toBe("4");
-    expect(readFileSync(join(ws, ".flume/config.yaml"), "utf8")).toContain("root: tasks");
+  it("s-88ec init has no --force", () => {
+    const repo = folder();
+    git(repo, "init", "-q", "-b", "main");
+    const r = flume(repo, "init", "--force");
+    expect(r.status).toBe(2);
+    expect(existsSync(join(repo, ".flume"))).toBe(false);
   });
 
   it("s-1d06 init in a repository uses it as the task root", () => {
@@ -97,8 +87,21 @@ describe("flume init", () => {
     git(repo, "add", "-A");
     git(repo, "commit", "-qm", "first");
     expect(flume(repo, "init").status).toBe(0);
-    expect(existsSync(join(repo, "workflow/base/workflow.md"))).toBe(true);
+    expect(readFileSync(join(repo, "flume.yaml"), "utf8")).toBe("dir: flume\n");
+    expect(existsSync(join(repo, "workflow"))).toBe(false);
     expect(git(repo, "status", "--porcelain")).toBe("");
+  });
+
+  it("s-91f1 init with another folder name", () => {
+    const repo = folder();
+    git(repo, "init", "-q", "-b", "main");
+    writeFileSync(join(repo, "r"), "x");
+    git(repo, "add", "-A");
+    git(repo, "commit", "-qm", "first");
+    expect(flume(repo, "init", "--dir", "a/b").status).toBe(2);
+    expect(existsSync(join(repo, ".flume"))).toBe(false);
+    expect(flume(repo, "init", "--dir", ".").status).toBe(0);
+    expect(readFileSync(join(repo, "flume.yaml"), "utf8")).toBe("dir: .\n");
   });
 
   it("s-1d07 init with no task root fails", () => {
@@ -107,24 +110,5 @@ describe("flume init", () => {
     expect(r.status).toBe(1);
     expect(r.stderr).toContain("no task root");
     expect(existsSync(join(ws, ".flume"))).toBe(false);
-  });
-
-  it("s-1d08 prime names the workflow layers", () => {
-    const { ws, tasks } = workspace();
-    const before = spawnSync("node", [bin, "prime", "--name", "a"], {
-      cwd: ws,
-      encoding: "utf8",
-      env,
-    }).stdout;
-    expect(before).not.toContain("workflow");
-    flume(ws, "init", "--root", "tasks");
-    const out = spawnSync("node", [bin, "prime", "--name", "a"], {
-      cwd: ws,
-      encoding: "utf8",
-      env,
-    }).stdout;
-    expect(out).toContain(`${tasks}/workflow/base/`);
-    expect(out).toContain("CLAUDE.md");
-    expect(out).toContain("override");
   });
 });

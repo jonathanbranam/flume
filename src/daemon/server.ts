@@ -13,10 +13,13 @@ import {
   reopenTask,
   resolveRef,
   resolveTask,
+  roadmapPath,
   roadmapView,
+  SEGMENT_RE,
   type TaskEntry,
   taskObject,
   updateTask,
+  workflowText,
 } from "../core/index.ts";
 import { commitPaths, inRepo } from "./git.ts";
 
@@ -94,8 +97,14 @@ export function startDaemon(opts: {
     if (a === "roadmap" && parts.length === 2) {
       allow("GET");
       const text = readRoadmap(root);
-      if (text === undefined) throw new HttpError(404, "there is no flume/roadmap.md");
+      if (text === undefined) throw new HttpError(404, `there is no ${roadmapPath(root)}`);
       return [200, { sections: roadmapView(root, text) }];
+    }
+    if (a === "prime" && parts.length === 2) {
+      allow("GET");
+      const project = url.searchParams.get("project") ?? "";
+      const role = url.searchParams.get("role") ?? "";
+      return [200, { text: bad(() => workflowText(root, project, role)) }];
     }
     if (a === "stop" && parts.length === 2) {
       allow("POST");
@@ -105,7 +114,7 @@ export function startDaemon(opts: {
     if (parts.length === 2) {
       allow("GET", "POST");
       if (method === "POST") {
-        const { title, kind, parent, body: text, blocked_by, related, ...rest } = body;
+        const { title, kind, parent, project, body: text, blocked_by, related, ...rest } = body;
         const unknown = Object.keys(rest);
         if (unknown.length) throw new HttpError(400, `unknown field ${unknown[0]}`);
         if (typeof title !== "string" || title.trim() === "")
@@ -114,6 +123,8 @@ export function startDaemon(opts: {
           throw new HttpError(400, "kind must be a string");
         if (parent !== undefined && parent !== null && typeof parent !== "string")
           throw new HttpError(400, "parent must be a task ID");
+        if (project !== undefined && (typeof project !== "string" || !SEGMENT_RE.test(project)))
+          throw new HttpError(400, "project must be a plain name");
         if (text !== undefined && typeof text !== "string")
           throw new HttpError(400, "body must be a string");
         for (const [k, v] of [
@@ -127,6 +138,7 @@ export function startDaemon(opts: {
             title,
             kind: (kind as string | undefined) ?? "feature",
             parent: (parent as string | null | undefined) ?? undefined,
+            project: project as string | undefined,
             body: text as string | undefined,
             blockedBy: blocked_by as string[] | undefined,
             related: related as string[] | undefined,
@@ -146,7 +158,7 @@ export function startDaemon(opts: {
         .filter((e) => state === "all" || e.state === state)
         .flatMap((e) => {
           try {
-            const { body: _body, file: _file, ...t } = taskObject(e);
+            const { body: _body, comments: _comments, fields: _fields, ...t } = taskObject(e);
             return [t];
           } catch {
             return [];

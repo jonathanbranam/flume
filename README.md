@@ -32,7 +32,7 @@ through the Artifactory npm mirror.
 
    Check it: `flume --version` prints `<version> (<commit>)`.
 
-4. Set up your workspace folder once (a git repo with its tasks, or a folder of repos with `flume init --root <task-repo>`; this creates `.flume/` and commits flume's base workflow to `<task-repo>/workflow/base/`), then start the daemon and check it is up. Flume commands find it from any folder below. `flume init --force` refreshes the base workflow after an update; `flume serve` without `flume init` fails:
+4. Set up your workspace folder once (a git repo with its tasks, or a folder of repos with `flume init --root <task-repo>`; this creates `.flume/` and writes `flume.yaml` at the top of the task repo, naming the flume-root folder (`flume` by default, `--dir .` for the repo top), and commits it), then start the daemon and check it is up. Flume commands find it from any folder below. Workflow, roles and guides live in the task repo under `<flume-root>/base/` and `<flume-root>/projects/<project>/`; agents get them through `flume prime`, never by reading files. `flume serve` without `flume init` fails:
 
    ```sh
    flume init --root <task-repo>   # once; omit --root inside a git repo

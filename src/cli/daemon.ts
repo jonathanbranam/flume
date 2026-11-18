@@ -1,5 +1,6 @@
 import { existsSync } from "node:fs";
 import { join, resolve } from "node:path";
+import { readDir } from "../core/index.ts";
 import {
   daemonUrl,
   findProject,
@@ -59,6 +60,12 @@ export async function serve(cwd: string, args: string[]): Promise<number> {
   }
   if (!inRepo(taskRoot)) {
     err(`flume: the task root is not a git repository: ${taskRoot}`);
+    return 1;
+  }
+  try {
+    readDir(taskRoot);
+  } catch (e) {
+    err(`flume: ${(e as Error).message}`);
     return 1;
   }
   let stopped: () => void = () => {};

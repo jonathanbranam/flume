@@ -1,13 +1,13 @@
 # Roadmap
 
-The roadmap is one hand-edited Markdown file, flume/roadmap.md, that orders the project's work. Flume reads it and checks it; it never writes it. Ticket: fl-s52x.
+The roadmap is one hand-edited Markdown file, roadmap.md in the flume root, that orders the project's work. Flume reads it and checks it; it never writes it. Ticket: fl-s52x.
 
 Assumptions (recorded on fl-s52x): the brief leaves the file format open, so take the simplest reading. Each heading starts a section (Now, Next, Later and Done are the usual ones, but any heading works). A list item (bulleted or numbered) that holds a wiki link is an entry; the link names a task file by its file name without .md, as in [[slug-id]] or [[slug-id|label]]. The order of sections and items is the plan, and flume does not reorder. Any text on the item after the link is its note. A section headed Done (any letter case) holds finished work; every other section is upcoming. Only epics go on the roadmap in the brief, but this version does not require it (YAGNI). Editing the roadmap through the CLI is not covered.
 
 ## Requirements
 
 ### Requirement: The roadmap file  {#r-eb35}
-When the file flume/roadmap.md exists under the project root, flume SHALL read it as sections started by Markdown headings, each holding entries given by list items with a wiki link naming a task file, in the order written.
+When the file roadmap.md in the flume root exists under the project root, flume SHALL read it as sections started by Markdown headings, each holding entries given by list items with a wiki link naming a task file, in the order written.
 
 #### Scenario: Entries in order  {#s-d6a3}
 *Verification*: **executable**
@@ -55,7 +55,7 @@ When flume roadmap check is run, it SHALL print one line per problem, holding th
 *Verification*: **executable**
 - **GIVEN** a roadmap with an entry linking to no-such-task-zzzz
 - **WHEN** flume roadmap check is run
-- **THEN** one problem line names flume/roadmap.md, the line number and no-such-task-zzzz, and the exit code is 1
+- **THEN** one problem line names roadmap.md in the flume root, the line number and no-such-task-zzzz, and the exit code is 1
 
 #### Scenario: Resolved task listed as upcoming  {#s-4b70}
 *Verification*: **executable**
@@ -73,7 +73,7 @@ When flume roadmap check is run, it SHALL print one line per problem, holding th
 *Verification*: **executable**
 - **GIVEN** a roadmap with an entry linking to no-such-task-zzzz
 - **WHEN** flume roadmap check --json is run
-- **THEN** standard output is a JSON array of one object whose path is flume/roadmap.md, and the exit code is 1
+- **THEN** standard output is a JSON array of one object whose path is roadmap.md in the flume root, and the exit code is 1
 
 #### Scenario: Check without a roadmap  {#s-f2e5}
 *Verification*: **executable**
@@ -82,13 +82,13 @@ When flume roadmap check is run, it SHALL print one line per problem, holding th
 - **THEN** an error is printed and the exit code is 1
 
 ### Requirement: Flume check includes the roadmap  {#r-1c8f}
-When flume check is run and flume/roadmap.md exists, it SHALL also print the problems of the roadmap check, and a project with no roadmap file SHALL have no roadmap problems.
+When flume check is run and roadmap.md in the flume root exists, it SHALL also print the problems of the roadmap check, and a project with no roadmap file SHALL have no roadmap problems.
 
 #### Scenario: Check reports a roadmap problem  {#s-6a39}
 *Verification*: **executable**
 - **GIVEN** a roadmap with an entry linking to no task, and otherwise valid task files
 - **WHEN** flume check is run
-- **THEN** a problem line names flume/roadmap.md and the exit code is 1
+- **THEN** a problem line names roadmap.md in the flume root and the exit code is 1
 
 #### Scenario: Check without a roadmap file  {#s-b0c7}
 *Verification*: **executable**

@@ -69,8 +69,8 @@ human-readable record.
 
 ## Layout and words
 
-- The unit of work is a "task" (not "ticket"); task files under `flume/tasks/open/` and
-  `flume/tasks/resolved/`; slugs capped at 50 characters (the human: "either 40 or 50. 60 gets
+- The unit of work is a "task" (not "ticket"); task folders (`task.yaml`, `body.md`, `comments.md`) under `<flume-root>/tasks/open/` and
+  `<flume-root>/tasks/resolved/` (flume-root is named by `flume.yaml`, default `flume`); slugs capped at 50 characters (the human: "either 40 or 50. 60 gets
   pretty darn long"). Epic fl-danq.
 
 The brief these come from: `docs/brief/`.

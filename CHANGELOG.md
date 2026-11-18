@@ -4,11 +4,15 @@
 
 ### Added
 
+- `flume prime` and `flume agent` ask the daemon for the workflow text and print it: built-in text, `base/workflow.md`, `projects/<project>/workflow.md`, `base/roles/<role>.md`, then `projects/<project>/roles/<role>.md` of the flume-root (missing files skipped; with no daemon the built-in text plus a line saying the rest is missing). New `GET /api/prime`, `flume agent --role <role>` (saved on the agent entry like `project`), `flume task new --project`, and a `project` field in `task.yaml` (fl-3pfa).
+
 - Agent entries gain `last_seen` (UTC time): every flume command that calls the daemon sends `AGENT_NAME` in an `X-Flume-Agent` header, and the daemon sets that existing entry's `last_seen` on each request (never creates one). `flume agent list` has a LAST-SEEN column; `show` includes it (fl-t8xv).
 
 - `flume init [--root PATH] [--force]` sets up a workspace folder: `.flume/` (`.gitignore`, `config.toml` root) and flume's shipped base workflow (one placeholder `workflow.md`) copied to `<root>/workflow/base/` in the task repo and committed there (never pushed). A second init fails and points at `--force`, which rewrites only `workflow/base/`. `flume prime` gains one line naming the reading order (base, workspace, project workflow files, then CLAUDE.md; later overrides earlier) when `<root>/workflow/` exists (fl-7sme).
 
 ### Changed
+
+- New layout, no migration (fl-3pfa): the tasks repo holds a versioned `flume.yaml` (`dir: flume`, or `.`) naming the flume-root; a task is a folder `tasks/open/<slug>-<id>/` with `task.yaml` (flat fields, now including `status`), `body.md` (the ask, no front matter) and `comments.md`; other files in the folder are left alone and move with it on close. `flume init` writes `flume.yaml` (`--dir NAME`) and no longer copies a base workflow, `init --force` and the shipped `workflow/base/` folder are gone, and `roadmap.md` now sits in the flume-root. `flume task show` prints task.yaml, body.md and comments.md; the API task object has `body`, `comments` and `fields` instead of `file`.
 
 - `flume status`, `flume check`, `flume roadmap check` and `flume agent list` and `show` take `--json` (one JSON document on stdout: status an object with running, address and root; the checks an array of problems with path and message; list an array of entries; show an object). `flume agent show` prints YAML by default, JSON with `--json` (fl-cpcu).
 - `flume agent` writes each agent's registry entry to `~/.flume/agents/<name>.yaml` (flat YAML, same fields) instead of `<name>.json`; `list` and `show` read `.yaml` only, `.json` entries are ignored, no migration (fl-89z2).

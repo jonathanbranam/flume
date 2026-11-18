@@ -1,4 +1,4 @@
-import { checkRoadmap, ROADMAP_PATH, readRoadmap } from "../core/index.ts";
+import { checkRoadmap, readRoadmap, roadmapPath } from "../core/index.ts";
 import { daemonUrl, NOT_RUNNING, request } from "../daemon/index.ts";
 import { findRoot, printProblems } from "./check.ts";
 
@@ -11,7 +11,7 @@ Commands:
   show [--json]    print the roadmap with each task's state (needs the daemon)
   check [--json]   report links to no task and resolved tasks listed as upcoming
 
-The roadmap is ${ROADMAP_PATH}. Every command takes --help.
+The roadmap is roadmap.md in the flume-root folder (flume.yaml names it). Every command takes --help.
 `;
 
 /** `flume roadmap ...`; returns the exit code. */
@@ -40,7 +40,7 @@ export async function roadmap(cwd: string, args: string[]): Promise<number> {
   if (sub === "check") {
     const root = findRoot(cwd);
     if (readRoadmap(root) === undefined) {
-      err(`flume: there is no ${ROADMAP_PATH}`);
+      err(`flume: there is no ${roadmapPath(root)}`);
       return 1;
     }
     return printProblems(checkRoadmap(root), json);

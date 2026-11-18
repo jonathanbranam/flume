@@ -2,7 +2,7 @@ import { isValidId } from "./ids.ts";
 import { checkRoadmap } from "./roadmap.ts";
 import { SLUG_MAX, SLUG_PATTERN } from "./slug.ts";
 import { listTaskFiles, type TaskEntry } from "./store.ts";
-import { fields, KINDS, parseTaskFile, wikiLinks } from "./taskfile.ts";
+import { fields, KINDS, parseTaskYaml, wikiLinks } from "./taskfile.ts";
 
 export interface Problem {
   path: string;
@@ -38,33 +38,38 @@ export function checkProject(root: string): Problem[] {
   for (const e of entries) {
     const slug = e.stem.slice(0, -5);
     if (!isValidId(e.nameId) || e.stem.length < 6 || e.stem[e.stem.length - 5] !== "-") {
-      add(e, "file name is not <slug>-<id>.md with a well formed id");
+      add(e, "folder name is not <slug>-<id> with a well formed id");
     } else if (!SLUG_PATTERN.test(slug) || slug.length > SLUG_MAX) {
       add(
         e,
-        `file name slug is not lowercase letters, digits and hyphens of at most ${SLUG_MAX} characters`,
+        `folder name slug is not lowercase letters, digits and hyphens of at most ${SLUG_MAX} characters`,
       );
     }
     if ((byId.get(e.nameId) ?? []).length > 1 && e.nameId !== "") {
       const others = (byId.get(e.nameId) ?? []).filter((o) => o !== e).map((o) => o.path);
       add(e, `duplicate id ${e.nameId}, also in ${others.join(", ")}`);
     }
-    const r = parseTaskFile(e.text);
+    if (e.body === undefined) add(e, "body.md missing");
+    if (e.yaml === undefined) {
+      add(e, "task.yaml missing");
+      continue;
+    }
+    const r = parseTaskYaml(e.yaml);
     if (!r.ok) {
       add(e, r.error);
       continue;
     }
-    parsed.push({ entry: e, f: fields(r.file), body: r.file.body });
+    parsed.push({ entry: e, f: fields(r.file), body: `${e.body ?? ""}\n${e.comments}` });
   }
 
   for (const { entry: e, f, body } of parsed) {
-    for (const k of ["id", "title", "kind", "created"]) {
+    for (const k of ["id", "title", "kind", "status", "created"]) {
       if (typeof f[k] !== "string" || f[k] === "") add(e, `required field ${k} missing`);
     }
     if (typeof f.id === "string" && f.id !== "") {
       if (!isValidId(f.id)) add(e, `id ${f.id} is not well formed`);
       else if (f.id !== e.nameId)
-        add(e, `id ${f.id} differs from the id ${e.nameId} in the file name`);
+        add(e, `id ${f.id} differs from the id ${e.nameId} in the folder name`);
     }
     if (
       typeof f.kind === "string" &&
@@ -72,6 +77,9 @@ export function checkProject(root: string): Problem[] {
       !(KINDS as readonly string[]).includes(f.kind)
     ) {
       add(e, `kind ${f.kind} is not one of ${KINDS.join(", ")}`);
+    }
+    if (typeof f.status === "string" && f.status !== "" && f.status !== e.state) {
+      add(e, `status ${f.status} differs from the folder ${e.state}`);
     }
     if (
       typeof f.created === "string" &&

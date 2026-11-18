@@ -78,6 +78,11 @@ const files = (state: string) => {
   const p = join(root, "flume/tasks", state);
   return existsSync(p) ? readdirSync(p) : [];
 };
+/** task.yaml, body.md and comments.md of a task folder, joined. */
+const snap = (path: string) =>
+  ["task.yaml", "body.md", "comments.md"]
+    .map((f) => (existsSync(join(root, path, f)) ? readFileSync(join(root, path, f), "utf8") : "-"))
+    .join("\n==\n");
 const head = () => git(root, "rev-parse", "HEAD");
 const commitsSince = (sha: string) =>
   git(root, "rev-list", `${sha}..HEAD`).split("\n").filter(Boolean);
@@ -257,16 +262,16 @@ describe("daemon api", () => {
 
   it("s-90c8 all or none", async () => {
     const t = await create("Old");
-    const before = readFileSync(join(root, t.path), "utf8");
+    const before = snap(t.path);
     const r = await call("PATCH", `/api/tasks/${t.id}`, { title: "New", kind: "idea" });
     expect(r.status).toBe(400);
     expect((await call("GET", `/api/tasks/${t.id}`)).body.title).toBe("Old");
-    expect(readFileSync(join(root, t.path), "utf8")).toBe(before);
+    expect(snap(t.path)).toBe(before);
     // a rule broken only after applying (parent is not an epic) also leaves the file alone
     const other = await create("Other");
     const r2 = await call("PATCH", `/api/tasks/${t.id}`, { title: "New", parent: other.id });
     expect(r2.status).toBe(400);
-    expect(readFileSync(join(root, t.path), "utf8")).toBe(before);
+    expect(snap(t.path)).toBe(before);
     expect((await call("PATCH", `/api/tasks/${t.id}`, { color: "red" })).status).toBe(400);
     expect((await call("PATCH", "/api/tasks/abcd", { title: "x" })).status).toBe(404);
   });
@@ -278,9 +283,8 @@ describe("daemon api", () => {
       author: "scout",
     });
     expect(r.status).toBe(200);
-    expect(r.body.body).toMatch(
-      /^## The ask\n\n## Comments\n\n### [^\n]*, scout\n\nFound the cause\n$/,
-    );
+    expect(r.body.comments).toMatch(/^### [^\n]*, scout\n\nFound the cause\n$/);
+    expect(r.body.body).toBe("## The ask\n\n");
     expect((await call("POST", `/api/tasks/${t.id}/comments`, { text: " " })).status).toBe(400);
     expect((await call("POST", "/api/tasks/abcd/comments", { text: "x" })).status).toBe(404);
   });
@@ -297,12 +301,43 @@ describe("daemon api", () => {
 
   it("s-9f87 check finds a problem", async () => {
     const t = await create("Fine");
-    const p = join(root, t.path);
+    const p = join(root, t.path, "task.yaml");
     writeFileSync(p, readFileSync(p, "utf8").replace(new RegExp(`id: "?${t.id}"?`), "id: zzzz"));
     const r = await call("GET", "/api/check");
     expect(r.status).toBe(200);
     expect(r.body.ok).toBe(false);
     expect(r.body.problems.some((x: any) => x.path === t.path)).toBe(true);
+  });
+
+  const putFlume = (rel: string, text: string) => {
+    const f = join(root, "flume", rel);
+    mkdirSync(join(f, ".."), { recursive: true });
+    writeFileSync(f, text);
+  };
+
+  it("s-1581 prime layers in order", async () => {
+    putFlume("base/workflow.md", "BASE\n");
+    putFlume("projects/web/workflow.md", "WEB\n");
+    putFlume("base/roles/worker.md", "ROLE\n");
+    putFlume("projects/web/roles/worker.md", "WEBROLE\n");
+    const r = await call("GET", "/api/prime?project=web&role=worker");
+    expect(r.status).toBe(200);
+    expect(r.body.text).toBe("BASE\n\nWEB\n\nROLE\n\nWEBROLE\n");
+  });
+
+  it("s-3fa0 prime skips missing files", async () => {
+    putFlume("base/workflow.md", "BASE\n");
+    const r = await call("GET", "/api/prime?project=web&role=worker");
+    expect(r.status).toBe(200);
+    expect(r.body.text).toBe("BASE\n");
+    expect((await call("GET", "/api/prime")).body.text).toBe("BASE\n");
+  });
+
+  it("s-f8c8 a path-like name is refused", async () => {
+    const r = await call("GET", "/api/prime?role=../x");
+    expect(r.status).toBe(400);
+    expect(r.body.error).toBeTruthy();
+    expect((await call("GET", "/api/prime?project=a/b")).status).toBe(400);
   });
 
   it("s-0e75 stop", async () => {
@@ -351,7 +386,7 @@ describe("daemon api", () => {
     expect(shas).toHaveLength(1);
     expect(
       git(root, "show", "--name-only", "--format=%s", "HEAD").split("\n").filter(Boolean),
-    ).toEqual([expect.stringContaining(t.id), t.path]);
+    ).toEqual([expect.stringContaining(t.id), `${t.path}/body.md`, `${t.path}/task.yaml`]);
     expect(clean()).toBe("");
   });
 
@@ -361,7 +396,10 @@ describe("daemon api", () => {
     const before = head();
     const t = await create("Follow up", { blocked_by: [a.id], related: [b.id] });
     expect(commitsSince(before)).toHaveLength(1);
-    expect(git(root, "show", "--name-only", "--format=", "HEAD").trim()).toBe(t.path);
+    expect(git(root, "show", "--name-only", "--format=", "HEAD").trim().split("\n")).toEqual([
+      `${t.path}/body.md`,
+      `${t.path}/task.yaml`,
+    ]);
     expect(t.blocked_by).toEqual([a.id]);
     expect(t.related).toEqual([b.id]);
     expect(clean()).toBe("");
@@ -382,8 +420,8 @@ describe("daemon api", () => {
     await call("POST", `/api/tasks/${t.id}/close`);
     expect(commitsSince(before)).toHaveLength(1);
     const st = git(root, "show", "--no-renames", "--name-status", "--format=", "HEAD").split("\n");
-    expect(st).toContain(`D\t${t.path}`);
-    expect(st).toContain(`A\t${t.path.replace("/open/", "/resolved/")}`);
+    expect(st).toContain(`D\t${t.path}/task.yaml`);
+    expect(st).toContain(`A\t${t.path.replace("/open/", "/resolved/")}/task.yaml`);
     expect(clean()).toBe("");
   });
 
@@ -396,7 +434,7 @@ describe("daemon api", () => {
     for (const rev of ["HEAD", "HEAD~1"]) {
       const out = git(root, "show", "--name-only", "--format=%s", rev).split("\n").filter(Boolean);
       expect(out[0]).toContain(t.id);
-      expect(out.slice(1)).toEqual([t.path]);
+      expect(out.slice(1).every((f) => f.startsWith(`${t.path}/`))).toBe(true);
     }
     expect(clean()).toBe("");
   });
@@ -526,22 +564,13 @@ describe("flume serve, status and stop", () => {
     flume(ws, "stop");
   });
 
-  it("s-fe05 --root wins over config and is saved", async () => {
-    const ws = realpathSync(mkdtempSync(join(tmpdir(), "flume-ws-")));
-    dirs.push(ws);
-    for (const n of ["a", "b"]) {
-      mkdirSync(join(ws, n));
-      git(join(ws, n), "init", "-q", "-b", "main");
-      writeFileSync(join(ws, n, "r"), "x");
-      git(join(ws, n), "add", "-A");
-      git(join(ws, n), "commit", "-qm", "init");
-    }
-    flume(ws, "init", "--root", "a");
-    flume(ws, "init", "--force", "--root", "b");
-    await serve(ws);
-    expect(flume(ws, "status").stdout).toContain(`root ${join(ws, "b")}`);
-    expect(readFileSync(join(ws, ".flume/config.yaml"), "utf8")).toContain("root: b");
-    flume(ws, "stop");
+  it("s-bdb3 a bad flume.yaml stops serve", () => {
+    const repo = tempRepo();
+    expect(flume(repo, "init").status).toBe(0);
+    writeFileSync(join(repo, "flume.yaml"), "dir: a/b\n");
+    const r = flume(repo, "serve");
+    expect(r.status).toBe(1);
+    expect(r.stderr).toContain("dir must be . or one folder name");
   });
 
   it("s-fe06 no root and no repository", () => {

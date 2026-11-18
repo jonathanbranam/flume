@@ -12,7 +12,7 @@ const HELP = `flume - a workflow tool for agents
 Usage: flume <command>
 
 Commands:
-  init       set up this workspace folder [--root PATH] [--force]
+  init       set up this workspace folder [--root PATH] [--dir NAME]
   serve      run the daemon in the foreground [--port N] (the human runs this; agents never do)
   status     show whether the daemon runs, its address and root [--json]
   stop       ask the daemon to exit
@@ -20,7 +20,7 @@ Commands:
   roadmap    show, check (flume roadmap --help)
   check      validate the task files; one line per problem, exit 1 if any [--json]
   agent      launch Claude as a named agent; list, show (flume agent --help)
-  prime      print the prime text flume agent would send
+  prime      print the prime text flume agent would send [--role R]
   bug        print a bug-report template to paste into an email
 
 Options:
@@ -55,8 +55,8 @@ export async function main(args: string[]): Promise<number> {
   }
   if (command === "task") return task(process.cwd(), args.slice(1));
   if (command === "roadmap") return roadmap(process.cwd(), args.slice(1));
-  if (command === "agent") return agent(args.slice(1));
-  if (command === "prime") return prime(args.slice(1));
+  if (command === "agent") return await agent(args.slice(1));
+  if (command === "prime") return await prime(args.slice(1));
   if (command === "check") return check(process.cwd(), args.slice(1));
   process.stderr.write(`flume: unknown command '${command}'\n\n${HELP}`);
   return 2;

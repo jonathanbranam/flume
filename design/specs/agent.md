@@ -30,7 +30,7 @@ When the user runs "flume agent --name <name>", flume SHALL record the agent in 
 
 ### Requirement: Argument parsing  {#r-a2c0}
 
-Before "--", flume SHALL accept only the options --name <n>, --name=<n>, --project <p>, --force, -h and --help and one bare argument, the prompt, in any order, and SHALL treat a bare argument as the prompt and never as the agent name; flume SHALL pass every argument after "--" to claude unchanged and in order.
+Before "--", flume SHALL accept only the options --name <n>, --name=<n>, --project <p>, --role <r>, --force, -h and --help and one bare argument, the prompt, in any order, and SHALL treat a bare argument as the prompt and never as the agent name; flume SHALL pass every argument after "--" to claude unchanged and in order.
 
 #### Scenario: Options before the prompt  {#s-a2c1}
 
@@ -107,7 +107,7 @@ flume SHALL parse the arguments for claude by claude's own option rules: an opti
 
 ### Requirement: Registry entry  {#r-a3c0}
 
-flume SHALL store one YAML file per agent name at .flume/agents/<name>.yaml in the home folder, a flat mapping of string values holding name, project (empty when none), pane, created and last_launch (and last_seen once the daemon has set it), and when "--project" is not given SHALL use the project saved on the entry. flume SHALL NOT read a .json file in that folder, and SHALL ignore it in list and show. flume SHALL accept only a name of lowercase letters, digits and dashes that starts with a letter or digit, and SHALL refuse any other name with exit code 2, naming the name and the allowed pattern on standard error, before it reads or writes the registry or runs claude.
+flume SHALL store one YAML file per agent name at .flume/agents/<name>.yaml in the home folder, a flat mapping of string values holding name, project (empty when none), role (empty when none), pane, created and last_launch (and last_seen once the daemon has set it), and when "--project" is not given SHALL use the project saved on the entry, and likewise when "--role" is not given SHALL use the role saved on the entry. flume SHALL NOT read a .json file in that folder, and SHALL ignore it in list and show. flume SHALL accept only a name of lowercase letters, digits and dashes that starts with a letter or digit, and SHALL refuse any other name with exit code 2, naming the name and the allowed pattern on standard error, before it reads or writes the registry or runs claude.
 
 #### Scenario: Project is saved and reused  {#s-a3c1}
 
@@ -116,6 +116,14 @@ flume SHALL store one YAML file per agent name at .flume/agents/<name>.yaml in t
 - **GIVEN** an agent alpha launched once with --project web
 - **WHEN** the user runs flume agent alpha again without --project
 - **THEN** AGENT_PROJECT is web and the entry still holds the project web
+
+#### Scenario: Role is saved and reused  {#s-a615}
+
+*Verification*: **executable**
+
+- **GIVEN** an agent alpha launched once with --role worker
+- **WHEN** the user runs flume agent alpha again without --role
+- **THEN** the entry still holds the role worker, and flume agent show alpha prints role: worker
 
 #### Scenario: Name outside the pattern is refused  {#s-a3c2}
 
@@ -179,7 +187,7 @@ When the entry records a pane other than the current one, flume SHALL refuse to 
 
 ### Requirement: Prime in the system prompt  {#r-a6c0}
 
-flume SHALL pass claude the prime text (the built-in base text, then the built-in project text when there is a project) with --append-system-prompt, SHALL pass claude --name <agent>, and SHALL NOT put the prime text in the prompt.
+flume SHALL pass claude the prime text (as flume prime prints it for the same name, project and role) with --append-system-prompt, SHALL pass claude --name <agent>, and SHALL NOT put the prime text in the prompt.
 
 #### Scenario: Prime contents  {#s-a6c1}
 
@@ -206,18 +214,36 @@ flume SHALL always give claude a first prompt as the last argument, after a clos
 - **THEN** the last argument of claude is not empty and does not contain "You are agent alpha"
 - **AND** the argument before it is --
 
-### Requirement: Prime names the workflow layers  {#r-1d13}
-When the current folder is inside a workspace set up with flume init and the task root has a workflow folder, the prime text SHALL end with one line telling the agent to read the .md files in workflow/base/ of the task root, then in workflow/ of the task root, then in the project's workflow/ folder, then the project's CLAUDE.md, each in name order, with later ones overriding earlier ones. Otherwise the prime text SHALL NOT mention the workflow. flume SHALL merge nothing.
+### Requirement: Prime prints the workflow from the daemon  {#r-1d13}
+When flume prime or flume agent builds the prime text, flume SHALL ask the daemon (the prime endpoint of the api spec) with the agent's project and role, and print after the built-in text, separated by a blank line, the text the daemon returns, so that the order is: the built-in text, base/workflow.md, the project's workflow.md, base/roles/ROLE.md, then the project's roles/ROLE.md, of the flume root, later ones overriding earlier ones; a missing file is skipped without an error; with no role flume SHALL print no role part, which is not an error. flume SHALL NOT tell the agent to read workflow files, SHALL NOT read them itself, and SHALL NOT start the daemon. When no daemon answers (or it refuses), flume SHALL print the built-in text followed by one line saying the workflow text is missing, and exit with code 0.
 
 #### Scenario: Prime with a workflow  {#s-1d08}
 *Verification*: **executable**
-- **GIVEN** a workspace that has not been set up with flume init
-- **WHEN** the user runs flume prime --name a, then flume init --root tasks, then flume prime --name a again
-- **THEN** the first output does not mention the workflow and the second names tasks/workflow/base/, CLAUDE.md and override
+- **GIVEN** a running daemon whose flume root has base/workflow.md holding BASE, projects/web/workflow.md holding WEB, base/roles/worker.md holding ROLE and projects/web/roles/worker.md holding WEBROLE
+- **WHEN** the user runs flume prime --name a --project web --role worker
+- **THEN** the output holds "You are agent a", then BASE, WEB, ROLE and WEBROLE in that order, and does not contain "read the .md files"
+
+#### Scenario: Prime with no role  {#s-141b}
+*Verification*: **executable**
+- **GIVEN** a running daemon whose flume root has base/workflow.md holding BASE and base/roles/worker.md holding ROLE
+- **WHEN** the user runs flume prime --name a
+- **THEN** the exit code is 0 and the output holds BASE and does not hold ROLE
+
+#### Scenario: Prime with no daemon  {#s-3cd4}
+*Verification*: **executable**
+- **GIVEN** no daemon running
+- **WHEN** the user runs flume prime --name a
+- **THEN** the exit code is 0, the output holds "You are agent a" and a line saying the workflow text is missing, and no daemon has been started
+
+#### Scenario: Launch passes the role to prime  {#s-afe2}
+*Verification*: **executable**
+- **GIVEN** a running daemon whose flume root has base/roles/worker.md holding ROLE
+- **WHEN** the user runs flume agent --name a --role worker
+- **THEN** claude receives --append-system-prompt followed by text holding ROLE
 
 ### Requirement: Built-in prime text  {#r-a8c0}
 
-flume SHALL build the prime text only from its built-in base text and built-in project text, SHALL replace {name} and {project} in them, and SHALL NOT read any file in the home folder's templates folder.
+flume SHALL build its own part of the prime text only from its built-in base text and built-in project text (the workflow part comes from the daemon), SHALL replace {name} and {project} in them, and SHALL NOT read any file in the home folder's templates folder.
 
 #### Scenario: Templates folder ignored  {#s-a8c1}
 
@@ -230,7 +256,7 @@ flume SHALL build the prime text only from its built-in base text and built-in p
 
 ### Requirement: prime  {#r-a9c0}
 
-When the user runs "flume prime [--name <name>] [--project <p>]", flume SHALL print the prime text a launch would send, base template then project template, and exit with code 0.
+When the user runs "flume prime [--name <name>] [--project <p>] [--role <r>]", flume SHALL print the prime text a launch would send, built-in text then the workflow text, and exit with code 0; with no --project or --role it SHALL use those saved on the entry.
 
 #### Scenario: Prime with a project  {#s-a9c1}
 

@@ -180,6 +180,16 @@ describe("flume agent specs", () => {
     expect(a.at(-1)).toBe("pick up xyz");
   });
 
+  it("s-a615 role is saved and reused", () => {
+    flume(["agent", "--name", "alpha", "--role", "worker"]);
+    expect(entry("alpha").role).toBe("worker");
+    flume(["agent", "--name", "alpha"]);
+    expect(entry("alpha").role).toBe("worker");
+    expect(flume(["agent", "show", "alpha"]).out).toContain("role: worker");
+    flume(["agent", "--name", "beta"]);
+    expect(entry("beta").role).toBe("");
+  });
+
   it("s-a7c1 default first prompt", () => {
     flume(["agent", "--name", "alpha", "--", "--add-dir", "x"]);
     const a = args(claudeRuns()[0] as string[]);
