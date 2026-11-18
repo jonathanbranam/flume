@@ -139,7 +139,8 @@ The human: "'other task related files' should be indented to indicate they are i
         `-- tasks/
             |-- open/
             |   `-- <slug>-<id>/
-            |       |-- body.md
+            |       |-- task.toml      fields: id, title, status, ...
+            |       |-- body.md        the ask (root file of the task)
             |       |-- comments.md
             |       `-- ...    other task files
             `-- resolved/
@@ -166,3 +167,20 @@ The human: "'other task related files' should be indented to indicate they are i
 > This will be the same structure once we add rules, they will be inside of base/ or project/<project>/
 
 Advisor's reading: the folder stays named `base/` (no rename to `workspace/`). It is the workspace-wide layer in the tasks repo; `projects/<project>/` is the project layer. Rules, when they come, go in the same two places (e.g. `base/rules/`, `projects/<project>/rules/`), and prime prints them the same way. Flume's built-in text (step 1) stays inside flume and is printed first.
+
+### Decision: task fields in task.toml (2026-11-17)
+
+The human, verbatim:
+
+> I was imagining body.md as the "root" file of the task. It could even be "task.md" but that felt odd to repeat the name. I was thinking the frontmatter went inside body.md, but with a folder that isn't necessary, we can have <slug-id>/something.yaml with the frontmatter. not sure the best name? definition.yml? task.yml? suggest some options
+
+Advisor offered task.toml / meta.toml / fields.toml / keep front matter in body.md, recommending task.toml. On TOML vs YAML the human said: "I'm honestly on the fence between the two ... Most config just doesn't need too much structure which is why toml feels easier. OTOH I generally like the convenience of yaml everywhere, one solution". Advisor: flume's config is already TOML (one format, no new package through the work mirror), task fields are flat, and YAML's implicit typing (unquoted `no` -> false, an id like `12e4` -> a number) is guessing.
+
+> sure, we can always migrate easily later. toml it is
+
+Result:
+
+- Each task folder holds `task.toml` (the fields that were front matter: id, title, status, dates, ...), `body.md` (the ask; no front matter) and `comments.md`.
+- Flume writes `task.toml` (status changes, resolve) without touching `body.md`, so body edits and status flips never conflict.
+- Tradeoff accepted: Obsidian no longer shows the fields as properties.
+- Settles open point 3's front-matter question; what the other task files are stays open.
