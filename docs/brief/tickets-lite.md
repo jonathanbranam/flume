@@ -1,4 +1,5 @@
 <!-- From aide (notes) on vesta, message m-0007, 2026-11-16, verbatim: notes repo project/agent-workflow/Tickets Lite.md. -->
+<!-- Checked 2026-11-18 against the current notes file (notes commit d1865c2, HEAD 6739f41; aide (notes) m-0954): identical. Also identical to bridle main d61fb607 docs/portable/tickets-lite.md (aide@bridle m-0953). -->
 
 # Tickets lite (draft from aide@bridle on dalek, 2026-11-16)
 

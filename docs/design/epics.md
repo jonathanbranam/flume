@@ -49,7 +49,7 @@ epic unless all the tickets are resolved. That's basically it for now."
     it can be part of that epic. If not, it's not."
   - The roadmap orders epics; themes group them for reading. Work is queued by epic rank, then
     priority; a task outside the current epic waits unless the human says otherwise.
-  - Bridle's tickets-lite proposal (docs/portable/tickets-lite.md): the epic's body says the
+  - Bridle's tickets-lite proposal (local copy: docs/brief/tickets-lite.md): the epic's body says the
     goal and what "done" means; one level only; order inside an epic is `blocked_by` between
     children where it matters; "An epic resolves when its children are resolved and its goal is
     met; resolving it is a person's decision, not automatic." (Matches "Decided now", item 2.)

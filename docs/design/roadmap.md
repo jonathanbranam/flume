@@ -44,7 +44,7 @@ bridle's aide, 2026-11-18). It lives only on the main bridle project.
   the machine.
 - The roadmap was a notes file kept by hand by the product manager, "treated as a database".
 
-### Bridle's tickets-lite proposal (docs/portable/tickets-lite.md, bridle main d61fb607)
+### Bridle's tickets-lite proposal (local copy: docs/brief/tickets-lite.md; bridle main d61fb607 docs/portable/tickets-lite.md)
 
 A proposal for other tools, not how bridle works; flume's roadmap today follows it, minus the
 epic rules. Its roadmap section:
