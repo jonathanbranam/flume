@@ -19,6 +19,13 @@
 - Agent entries gain `last_seen` (UTC time): every flume command that calls the daemon sends `AGENT_NAME` in an `X-Flume-Agent` header, and the daemon sets that existing entry's `last_seen` on each request (never creates one). `flume agent list` has a LAST-SEEN column; `show` includes it (fl-t8xv).
 
 - `flume init [--root PATH] [--force]` sets up a workspace folder: `.flume/` (`.gitignore`, `config.toml` root) and flume's shipped base workflow (one placeholder `workflow.md`) copied to `<root>/workflow/base/` in the task repo and committed there (never pushed). A second init fails and points at `--force`, which rewrites only `workflow/base/`. `flume prime` gains one line naming the reading order (base, workspace, project workflow files, then CLAUDE.md; later overrides earlier) when `<root>/workflow/` exists (fl-7sme).
+- README `## Install`: prerequisites, clone (optional tag), `npm ci --omit=dev`, a symlink onto PATH, starting and checking the daemon (`flume serve`, `status`, `stop`), and update steps; verified in a fresh clone (fl-dtyj).
+- `flume agent [<name>]` launches Claude Code as a named agent (registry in ~/.flume/agents, one pane per agent, `--project`, `--force`, `--system`, templates in ~/.flume/templates), plus `flume agent list|show` and `flume prime`; specs in design/specs/agent.md (fl-macf).
+- `flume roadmap show|check` on `flume/roadmap.md` (Markdown headings plus lists of task wiki links; a Done section holds finished work), `GET /api/roadmap`, and `flume check` runs the roadmap check too; specs in design/specs/roadmap.md (fl-s52x).
+- `flume task new|show|list|update|note|close|reopen`: the task CLI, a thin client of the daemon; human output by default, `--json` for agents, bare IDs, `--help` per command, and a clear error naming `flume serve` when no daemon answers. The API task object gains `file` (the stored text) for `show` (fl-yt5q).
+- Daemon (src/daemon/): localhost HTTP API for tasks (create, show, list, update, note, close, reopen, check, stop), one git commit per change in the task root, and `flume serve`, `flume status`, `flume stop`; the address is recorded in the repo's shared git folder so any worktree finds it, FLUME_URL overrides (fl-brmx).
+- Task-file core library (src/core/: IDs, slugs, front matter round-trip, links, folders) and `flume check`, which prints one line per problem and exits 1 (fl-w89j).
+- `flume bug` prints a paste-ready bug-report template with the version line; release and update steps in docs/release.md; specs in design/specs/releases.md (fl-jc84).
 
 ### Changed
 
@@ -63,18 +70,9 @@
 - `flume task new` with `--blocked-by` or `--related` is one commit, not two: `POST /api/tasks` accepts `blocked_by` and `related` (unknown IDs refused with 400, nothing written); spec in design/specs/api.md (fl-8vw7).
 - Daemon refuses (403) requests with a foreign Host header (DNS rebinding) and POST/PATCH/DELETE with a foreign Origin header (CSRF); the CLI is unaffected; specs in design/specs/api.md (fl-gnef).
 
-### Added
-
-- README `## Install`: prerequisites, clone (optional tag), `npm ci --omit=dev`, a symlink onto PATH, starting and checking the daemon (`flume serve`, `status`, `stop`), and update steps; verified in a fresh clone (fl-dtyj).
-- `flume agent [<name>]` launches Claude Code as a named agent (registry in ~/.flume/agents, one pane per agent, `--project`, `--force`, `--system`, templates in ~/.flume/templates), plus `flume agent list|show` and `flume prime`; specs in design/specs/agent.md (fl-macf).
-- `flume roadmap show|check` on `flume/roadmap.md` (Markdown headings plus lists of task wiki links; a Done section holds finished work), `GET /api/roadmap`, and `flume check` runs the roadmap check too; specs in design/specs/roadmap.md (fl-s52x).
-- `flume task new|show|list|update|note|close|reopen`: the task CLI, a thin client of the daemon; human output by default, `--json` for agents, bare IDs, `--help` per command, and a clear error naming `flume serve` when no daemon answers. The API task object gains `file` (the stored text) for `show` (fl-yt5q).
-- Daemon (src/daemon/): localhost HTTP API for tasks (create, show, list, update, note, close, reopen, check, stop), one git commit per change in the task root, and `flume serve`, `flume status`, `flume stop`; the address is recorded in the repo's shared git folder so any worktree finds it, FLUME_URL overrides (fl-brmx).
-- Task-file core library (src/core/: IDs, slugs, front matter round-trip, links, folders) and `flume check`, which prints one line per problem and exits 1 (fl-w89j).
-- `flume bug` prints a paste-ready bug-report template with the version line; release and update steps in docs/release.md; specs in design/specs/releases.md (fl-jc84).
-
 ### Internal
 
+- Duplicate spec id fixed (fl-7tyx): the cli.md requirement "Project clone clones projects" had r-c1a0, also on api.md's "Add a comment"; it now has r-7e4b (api.md keeps r-c1a0), and design/specs/.ids records the 34 ids that were hand-assigned without a ledger entry. `bridle spec id` runs clean again.
 - `docs/design/daemon.md` records what the daemon is for: agents and the UI; setup commands need no daemon; only the human starts it (fl-35bq).
 - Test binds scenario s-129b (version offline: one line, exit 0, no daemon) in test/cli.test.ts (fl-fruc).
 - Behaviour spec for the web UI: board, task detail, roadmap (design/specs/ui.md, fl-8g3q).

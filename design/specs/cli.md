@@ -174,7 +174,7 @@ When flume init is run, flume SHALL NOT read or check the projects in flume.yaml
 - **WHEN** flume init is run again
 - **THEN** the exit code is 0 and the task repository has no new commit
 
-### Requirement: Project clone clones projects  {#r-c1a0}
+### Requirement: Project clone clones projects  {#r-7e4b}
 When flume project clone [<name>...] [--json] is run in a workspace, flume SHALL clone each named project, or every project in flume.yaml when no name is given, into <workspace>/<name>/ (on the project's branch when flume.yaml gives one, else the repository's own default branch). It SHALL skip, with a line saying so, a project whose folder already exists (leaving it unchanged) and a project with no URL; report a failed clone on standard error with the project's name and URL and carry on with the rest; and be safe to run again. It SHALL exit with code 0 when no clone failed, 1 when any failed, and 2 for a name not in flume.yaml or an unknown option. With --json it SHALL print one JSON array on standard output with one object per project holding name and status (cloned, skipped or failed) and, for skipped and failed, reason. It SHALL work without a running daemon.
 
 #### Scenario: Project clone on a branch  {#s-5c01}
