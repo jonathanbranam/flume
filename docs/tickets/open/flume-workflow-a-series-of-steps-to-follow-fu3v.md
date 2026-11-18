@@ -30,7 +30,7 @@ For whoever edits this ticket (the human, 2026-11-17): "the design at the top is
 
 - `flume task assign ID [NAME|human] [--force]`: sets `assignee` to NAME, or to `$AGENT_NAME` when NAME is left out (an agent taking the task). When the assignee is an agent, sets `agent` too. Assigning a task to whoever already holds it succeeds and changes nothing.
 - When an agent (`$AGENT_NAME` set) assigns a task that someone else holds, without `--force` flume changes nothing, exits 1, and says who holds it and that `--force` takes it over. The human (no `$AGENT_NAME`) never needs `--force`: they re-assign at any point.
-- There is no separate claim command.
+- `flume task claim ID [--force]` is shorthand for `flume task assign ID [--force]` (to yourself) and works exactly the same: same checks, messages, exit codes and history.
 - `flume task phase ID PHASE`: sets `phase`. Any phase may follow any other (forwards, backwards, skipping).
 - `flume task list` shows `phase` and `assignee`, and takes `--assignee NAME|human` and `--phase PHASE`. `--json` as rule cli-json-output.
 - `flume task show` shows the three fields.
@@ -110,6 +110,12 @@ Asked the difference between assign and claim (claim = assign to yourself, with 
 > one command
 
 Advisor: one `flume task assign ID [NAME]`, no NAME = yourself; the --force check applies only when an agent takes a task someone else holds, so the human's re-assigning ("at any point") never needs it.
+
+Then the human:
+
+> then update the workflow to say "assign the task to yourself"
+
+> I guess, if CLAIM is shorthand for "assign my-id" that's totally fine, but they should work exactly the same
 
 Context: asked what flume's built-in workflow text is, advisor showed today's prime text (identity, flume --help, never start flume serve; no workflow steps). Advisor: Open questions 1-7 below (from before the v1 flow) are superseded for v1 by the Design; they stay for the later OpenSpec-like model. The audit trail went to its own ticket, fl-eg2q.
 
