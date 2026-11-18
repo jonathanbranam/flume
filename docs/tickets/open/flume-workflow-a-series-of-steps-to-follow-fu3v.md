@@ -28,7 +28,8 @@ For whoever edits this ticket (the human, 2026-11-17): "the design at the top is
 
 ### Commands
 
-- `flume task claim ID`: sets `assignee` and `agent` to `$AGENT_NAME`. Refused (exit 1) when the task is assigned to someone else; claiming a task you already hold succeeds and changes nothing. Needs `$AGENT_NAME`.
+- `flume task claim ID [--force]`: sets `assignee` and `agent` to `$AGENT_NAME`. Needs `$AGENT_NAME`. Claiming a task you already hold succeeds and changes nothing.
+- When the task is assigned to someone else, `claim` without `--force` changes nothing, exits 1, and says who holds it and that `--force` takes it over. With `--force` it claims it.
 - `flume task assign ID NAME|human`: sets `assignee`. When NAME is an agent, sets `agent` too. Anyone may run it (the human re-assigns at any point).
 - `flume task phase ID PHASE`: sets `phase`. Any phase may follow any other (forwards, backwards, skipping).
 - `flume task list` shows `phase` and `assignee`, and takes `--assignee NAME|human` and `--phase PHASE`. `--json` as rule cli-json-output.
@@ -97,6 +98,12 @@ Working a task:
 > also add: when writing code, enter a worktree to make changes. when done, merge in main, then exit worktree and merge it into main
 
 > an agent can claim a task also. that's fine
+
+Advisor asked: a claim is refused when the task is already assigned to someone else; only assign takes it over. The human:
+
+> it should be prompted and require a flag though
+
+Advisor's reading: the refusal message is the prompt (agents run without a terminal, so no interactive question), and `--force` takes the task over.
 
 Context: asked what flume's built-in workflow text is, advisor showed today's prime text (identity, flume --help, never start flume serve; no workflow steps). Advisor: Open questions 1-7 below (from before the v1 flow) are superseded for v1 by the Design; they stay for the later OpenSpec-like model. The audit trail went to its own ticket, fl-eg2q.
 
