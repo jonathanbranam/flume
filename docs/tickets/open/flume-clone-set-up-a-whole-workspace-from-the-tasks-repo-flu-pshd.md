@@ -61,6 +61,7 @@ projects:
 ### flume project
 
 - `flume init`, `flume clone`, `flume project list` and `flume project add` are plain commands: they work on the files and git directly, not through the daemon, and need no `flume serve` running.
+- The daemon (`flume serve`) is for two things only: agents and the UI. Setup commands the human runs do not use it.
 
 - `flume project list`: one line per project in `flume.yaml`: name, url, branch (blank when not set), and whether its folder is in the workspace (present or missing).
 - `flume project add <git-url> [--name NAME] [--branch BRANCH]` sets the project up:
@@ -137,3 +138,5 @@ Settled: no `branch` means the repo's own default branch. This replaces "default
 The human, 2026-11-17: "I think `init` `clone` `project add` are just normal commands, not through the daemon. we don't need `flume serve` running to do these things"
 
 Settled: no daemon for these commands. This replaces the advisor's assumption that `project add` goes through the daemon.
+
+The human, 2026-11-17: "`flume serve` is for two things: agents and the UI."
