@@ -15,8 +15,6 @@ related: [fl-3pfa]
 
 Replace TOML with YAML in flume and remove the TOML library (`smol-toml`).
 
-The human, 2026-11-17 (verbatim): "I really like yaml frontmatter; so, we're going to have yaml parsing; I think we bite the bullet and just make everything yaml now and it's totally fine. The config.yaml, flume.yaml, and task.yaml should be flat yaml as possible. avoid nestings" and "no migration or backwards compatibility needed; just replace toml with yaml; remove the toml library. No projects have onboarded."
-
 For whoever edits this ticket (the human, 2026-11-17): "the design at the top is the currently agreed-upon design; keep it current and DO NOT include narration or restatements in the design. The discussion section can include the discussion narrative with restatements as a reference."
 
 ## Design
@@ -30,3 +28,5 @@ For whoever edits this ticket (the human, 2026-11-17): "the design at the top is
 ## Discussion (for reference, not authoritative)
 
 Split out of fl-3pfa so the TOML removal lands now; fl-3pfa stays on hold.
+
+The human, 2026-11-17 (verbatim): "I really like yaml frontmatter; so, we're going to have yaml parsing; I think we bite the bullet and just make everything yaml now and it's totally fine. The config.yaml, flume.yaml, and task.yaml should be flat yaml as possible. avoid nestings" and "no migration or backwards compatibility needed; just replace toml with yaml; remove the toml library. No projects have onboarded."

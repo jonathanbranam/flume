@@ -57,6 +57,7 @@ For whoever edits this ticket (the human, 2026-11-17): "the design at the top is
 ### Config
 
 - Every flume file with fields is YAML, as flat as possible: no nesting. Flume no longer uses TOML.
+- No migration or backwards compatibility: no project has onboarded, so old layouts and files are not read.
 - `flume.yaml` sits at the top of the tasks repo and is versioned, so every clone finds the same layout. Its one key is `dir`: the flume-root folder's name, `flume` or `.` (the repo top itself).
 - `.flume/config.yaml` in the workspace folder is machine-local and holds only `root`, the tasks repo.
 - Nothing flume-related goes in a project repo. A project's own CLAUDE.md stays the project's.
@@ -97,7 +98,6 @@ For whoever edits this ticket (the human, 2026-11-17): "the design at the top is
 - How the role gets to prime: `flume agent --role <role>` passes it; with no role, prime prints no role part.
 - How init picks the folder: `flume init --root <repo> [--dir <name>]`, default `flume`; init writes `flume.yaml` if missing and creates `<flume-root>/tasks/open/` and `resolved/`.
 - Tasks of several projects share the one `tasks/` folder, with a `project` field in `task.yaml` (advisor's pick, not yet confirmed by the human).
-- Existing workspaces move by hand once, including renaming `.flume/config.toml` to `config.yaml`; no migration command (flume is days old).
 - `.flume/daemon.json` stays JSON: it is the daemon's state, not config.
 
 ### Not in this ticket
@@ -348,3 +348,7 @@ Settled: `flume guide <name>` prints a guide (project's over the workspace's); p
 The human, verbatim: "See, and here's the rub: I really like yaml frontmatter; so, we're going to have yaml parsing; I think we bite the bullet and just make everything yaml now and it's totally fine. The config.yaml, flume.yaml, and task.yaml should be flat yaml as possible. avoid nestings"
 
 This overrules the task.toml decision above. Advisor notes: flume already depends on the `yaml` package (task front matter today), so dropping `smol-toml` leaves one parser. Guides and workflow split out to fl-x6xn and fl-fu3v.
+
+The human, 2026-11-17: "and, no migration or backwards compatibility needed; just replace toml with yaml; remove the toml library. No projects have onboarded."
+
+The TOML-to-YAML switch for today's `.flume/config.toml` is split out as its own chore (so it lands now, not with this held ticket).
