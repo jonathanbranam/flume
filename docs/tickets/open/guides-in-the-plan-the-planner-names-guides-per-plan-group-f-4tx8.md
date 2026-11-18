@@ -27,7 +27,15 @@ For whoever edits this ticket (the human, 2026-11-17): "the design at the top is
 ### Push to a phase
 
 - `flume task guide ID NAME --phase PHASE` records that guide NAME applies to PHASE of the task; `--remove` drops it. Refused (exit 1) when the guide does not exist for the task's project (project guide, else base).
-- Recorded in task.yaml as a flat list, `guides`, of `<phase>:<name>` entries (e.g. `design:db-schema`).
+- Recorded in task.yaml as `guides`, nested by phase for readability (an exception to flat YAML), phases in workflow order, a phase with none left out:
+
+  ```
+  guides:
+    design:
+      - db-schema
+    implement:
+      - testing
+  ```
 - `flume task show ID` lists the pushed guides.
 
 ### Push to a plan group
@@ -61,7 +69,6 @@ For whoever edits this ticket (the human, 2026-11-17): "the design at the top is
 ### Assumed (advisor; change if wrong)
 
 - Guides are pushed per phase or per plan group, not per plan item: `flume task next` hands out one group at a time.
-- `<phase>:<name>` strings keep task.yaml flat (no nested map per phase).
 - A guide's own `stage` (fl-x6xn) stays a hint shown in lists; pushing is what ties a guide to a task's step.
 
 ### Open (for the human)
@@ -85,3 +92,7 @@ Advisor drafted guides named per plan group, printed by flume task next, and ask
 > So guides have a push and pull mechanic. At an earlier step, the agent can determine that ABC guide is relevant and then record that somehow so when the next agent works on that step, the guide is output. This is a PUSH.
 >
 > Alternatively an agent can PULL a guide by noticing "I'm writing specs about the CLI and I saw a CLI guide in the list, I'll read it now"
+
+Advisor had `guides` as a flat list of `<phase>:<name>` strings. The human (voice; "tank" read as task):
+
+> Guides should be nested in the tank for readability
