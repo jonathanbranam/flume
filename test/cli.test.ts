@@ -9,17 +9,15 @@ const run = (...args: string[]) => execFileSync("node", [bin, ...args], { encodi
 
 describe("flume cli", () => {
   it("prints help", () => {
-    expect(run("--help")).toContain("Usage: flume");
+    expect(run("--help")).toContain("Usage: flume <command>");
   });
   it("s-7eb6 top-level help says agents never run serve", () => {
-    expect(run("--help")).toContain(
-      "  serve      run the daemon in the foreground [--port N] (the human runs this; agents never do)\n",
-    );
+    expect(run("--help").replace(/\s+/g, " ")).toContain("the human runs this; agents never do");
   });
   it("s-0396 serve --help prints the serve usage and the human-only line, exit 0", () => {
     const r = spawnSync("node", [bin, "serve", "--help"], { encoding: "utf8" });
     expect(r.status).toBe(0);
-    expect(r.stdout).toContain("usage: flume serve [--port N]");
+    expect(r.stdout).toContain("Usage: flume serve [options]");
     expect(r.stdout).toContain(
       "Only the human runs flume serve, in its own pane. Agents never start it.",
     );
@@ -98,4 +96,49 @@ describe("flume releases specs", () => {
     expect(at.every((i) => i >= 0)).toBe(true);
     expect(at).toEqual([...at].sort((a, b) => a - b));
   });
+});
+
+describe("flume help everywhere", () => {
+  const go = (...args: string[]) => spawnSync("node", [bin, ...args], { encoding: "utf8" });
+
+  /** The command names a help text lists under "Commands:" (the help command itself excluded). */
+  function listed(help: string): string[] {
+    const lines = help.split("\n");
+    const at = lines.indexOf("Commands:");
+    if (at < 0) return [];
+    const names: string[] = [];
+    for (const l of lines.slice(at + 1)) {
+      const m = /^ {2}(\S+)/.exec(l);
+      if (l === "") break;
+      if (m && m[1] !== "help") names.push(m[1] as string);
+    }
+    return names;
+  }
+
+  /** Every command path reachable from the top-level help and each group's help. */
+  function walk(path: string[] = []): string[][] {
+    const out: string[][] = [];
+    for (const name of listed(go(...path, "--help").stdout)) {
+      out.push([...path, name], ...walk([...path, name]));
+    }
+    return out;
+  }
+
+  it("s-1df5 --help and help work on every listed command and subcommand", () => {
+    const paths = walk();
+    expect(paths.length).toBeGreaterThan(30);
+    expect(paths).toContainEqual(["task", "show"]);
+    expect(paths).toContainEqual(["roadmap", "check"]);
+    for (const path of [[], ...paths]) {
+      const h = go(...path, "--help");
+      expect(h.status, path.join(" ")).toBe(0);
+      expect(h.stdout, path.join(" ")).toMatch(/^Usage: flume/);
+      expect(h.stderr, path.join(" ")).toBe("");
+      if (path.length > 0) {
+        const viaHelp = go("help", ...path);
+        expect(viaHelp.status, path.join(" ")).toBe(0);
+        expect(viaHelp.stdout, path.join(" ")).toBe(h.stdout);
+      }
+    }
+  }, 120_000);
 });

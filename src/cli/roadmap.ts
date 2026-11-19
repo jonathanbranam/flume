@@ -1,42 +1,14 @@
+import { Command } from "@commander-js/extra-typings";
 import { checkRoadmap, readRoadmap, roadmapPath } from "../core/index.ts";
 import { daemonUrl, NOT_RUNNING, request } from "../daemon/index.ts";
 import { findRoot, printProblems } from "./check.ts";
+import { act } from "./program.ts";
 
 const err = (s: string) => process.stderr.write(`${s}\n`);
 const out = (s: string) => process.stdout.write(`${s}\n`);
 
-const HELP = `usage: flume roadmap <command> [options]
-
-Commands:
-  show [--json]    print the roadmap with each task's state (needs the daemon)
-  check [--json]   report links to no task and resolved tasks listed as upcoming
-
-The roadmap is roadmap.md in the flume-root folder (flume.yaml names it). Every command takes --help.
-`;
-
-/** `flume roadmap ...`; returns the exit code. */
-export async function roadmap(cwd: string, args: string[]): Promise<number> {
-  const [sub, ...rest] = args;
-  if (sub === undefined || sub === "--help" || sub === "-h" || sub === "help") {
-    (sub === undefined ? process.stderr : process.stdout).write(HELP);
-    return sub === undefined ? 2 : 0;
-  }
-  if (sub !== "show" && sub !== "check") {
-    err(`flume: unknown roadmap command '${sub}'\n\n${HELP.trimEnd()}`);
-    return 2;
-  }
-  const usage = `flume roadmap ${sub} [--json]`;
-  if (rest.includes("--help") || rest.includes("-h")) {
-    out(`usage: ${usage}`);
-    return 0;
-  }
-  const json = rest.includes("--json");
-  const extra = rest.filter((a) => a !== "--json");
-  if (extra.length > 0) {
-    err(`flume: unexpected argument '${extra[0]}'\nusage: ${usage}`);
-    return 2;
-  }
-
+/** `flume roadmap show|check [--json]`; returns the exit code. */
+async function roadmapRun(cwd: string, sub: "show" | "check", json: boolean): Promise<number> {
   if (sub === "check") {
     const root = findRoot(cwd);
     if (readRoadmap(root) === undefined) {
@@ -70,4 +42,29 @@ export async function roadmap(cwd: string, args: string[]): Promise<number> {
     }
   }
   return 0;
+}
+
+/** The `flume roadmap` group. */
+export function roadmapCommand(): Command {
+  const group = new Command("roadmap")
+    .description("show, check")
+    .addHelpText(
+      "after",
+      "\nThe roadmap is roadmap.md in the flume-root folder (flume.yaml names it).",
+    );
+  group
+    .command("show")
+    .description("print the roadmap with each task's state (needs the daemon)")
+    .option("--json", "print JSON")
+    .action(function (o) {
+      return act(this, () => roadmapRun(process.cwd(), "show", o.json === true));
+    });
+  group
+    .command("check")
+    .description("report links to no task and resolved tasks listed as upcoming")
+    .option("--json", "print JSON")
+    .action(function (o) {
+      return act(this, () => roadmapRun(process.cwd(), "check", o.json === true));
+    });
+  return group;
 }

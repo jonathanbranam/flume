@@ -1,5 +1,6 @@
 import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
+import { Command, type CommandUnknownOpts } from "@commander-js/extra-typings";
 import { isMap, parseDocument } from "yaml";
 import { FLUME_YAML, isGitUrl, readProjects, repoName, validProjectName } from "../core/index.ts";
 import {
@@ -12,20 +13,10 @@ import {
   readConfigRoot,
 } from "../daemon/index.ts";
 import { init } from "./init.ts";
+import { act, Usage } from "./program.ts";
 
 const err = (s: string) => process.stderr.write(`${s}\n`);
 const out = (s: string) => process.stdout.write(`${s}\n`);
-
-const HELP = `usage: flume project <command> [options]
-
-Commands:
-  list [--json]                                 projects in flume.yaml: name, url, branch
-  clone [<name>...] [--json]                    clone the named projects (default all) into the workspace
-  add <git-url | name> [--name N] [--branch B]  add a project to flume.yaml and commit it; a URL is cloned,
-                                                a bare name is added with no url (warns)
-
-These work on files and git directly; they do not use the daemon.
-`;
 
 /** The workspace folder and the task root for the folder `cwd`, or an error message. */
 function locate(cwd: string): { ws: string; taskRoot: string } | string {
@@ -36,13 +27,7 @@ function locate(cwd: string): { ws: string; taskRoot: string } | string {
   return { ws, taskRoot };
 }
 
-function list(cwd: string, args: string[]): number {
-  const json = args.includes("--json");
-  const extra = args.filter((a) => a !== "--json");
-  if (extra.length > 0) {
-    err(`flume: unexpected argument '${extra[0]}'\nusage: flume project list [--json]`);
-    return 2;
-  }
+function list(cwd: string, json: boolean): number {
   const loc = locate(cwd);
   if (typeof loc === "string") {
     err(`flume: ${loc}`);
@@ -64,39 +49,15 @@ function list(cwd: string, args: string[]): number {
   return 0;
 }
 
-function add(cwd: string, args: string[]): number {
-  const usage = "usage: flume project add <git-url | name> [--name NAME] [--branch BRANCH]";
-  let arg: string | undefined;
-  let name: string | undefined;
-  let branch: string | undefined;
-  for (let i = 0; i < args.length; i++) {
-    const a = args[i] as string;
-    if (a === "--name" || a === "--branch") {
-      const v = args[++i];
-      if (v === undefined) {
-        err(`flume: ${a} needs a value\n${usage}`);
-        return 2;
-      }
-      if (a === "--name") name = v;
-      else branch = v;
-    } else if (a.startsWith("--") || arg !== undefined) {
-      err(`flume: unexpected argument '${a}'\n${usage}`);
-      return 2;
-    } else arg = a;
-  }
-  if (arg === undefined) {
-    err(`flume: project add needs a git url or a project name\n${usage}`);
-    return 2;
-  }
+function add(cwd: string, arg: string, o: { name?: string; branch?: string }): number {
+  const { name, branch } = o;
   // A URL is cloned; a bare name is added with no url (no clone, and a warning).
   const url = isGitUrl(arg) ? arg : undefined;
   if (url === undefined && name !== undefined) {
-    err(`flume: ${arg} is a name, so --name is not needed\n${usage}`);
-    return 2;
+    throw new Usage(`${arg} is a name, so --name is not needed`);
   }
   if (url === undefined && branch !== undefined) {
-    err(`flume: a project with no url has no branch to check out; drop --branch\n${usage}`);
-    return 2;
+    throw new Usage("a project with no url has no branch to check out; drop --branch");
   }
   const use = url === undefined ? arg : (name ?? repoName(url));
   if (!validProjectName(use)) {
@@ -160,15 +121,7 @@ function add(cwd: string, args: string[]): number {
 type Result = { name: string; status: "cloned" | "skipped" | "failed"; reason?: string };
 
 /** `flume project clone [<name>...] [--json]`: clone projects of flume.yaml into <workspace>/<name>. */
-function cloneProjects(cwd: string, args: string[]): number {
-  const usage = "usage: flume project clone [<name>...] [--json]";
-  const json = args.includes("--json");
-  const names = args.filter((a) => a !== "--json");
-  const bad = names.find((a) => a.startsWith("-"));
-  if (bad) {
-    err(`flume: unknown option '${bad}'\n${usage}`);
-    return 2;
-  }
+function cloneProjects(cwd: string, names: string[], json: boolean): number {
   const loc = locate(cwd);
   if (typeof loc === "string") {
     err(`flume: ${loc}`);
@@ -183,8 +136,7 @@ function cloneProjects(cwd: string, args: string[]): number {
   }
   const unknown = names.find((n) => !all.some((p) => p.name === n));
   if (unknown !== undefined) {
-    err(`flume: no project ${unknown} in ${FLUME_YAML}\n${usage}`);
-    return 2;
+    throw new Usage(`no project ${unknown} in ${FLUME_YAML}`);
   }
   const chosen = names.length > 0 ? all.filter((p) => names.includes(p.name)) : all;
   const results: Result[] = [];
@@ -214,38 +166,43 @@ function cloneProjects(cwd: string, args: string[]): number {
   return results.some((r) => r.status === "failed") ? 1 : 0;
 }
 
-/** `flume project ...`; returns the exit code. */
-export function project(cwd: string, args: string[]): number {
-  const [sub, ...rest] = args;
-  if (sub === undefined || sub === "--help" || sub === "-h" || sub === "help") {
-    (sub === undefined ? process.stderr : process.stdout).write(HELP);
-    return sub === undefined ? 2 : 0;
-  }
-  if (rest.includes("--help") || rest.includes("-h")) {
-    process.stdout.write(HELP);
-    return 0;
-  }
-  if (sub === "list") return list(cwd, rest);
-  if (sub === "add") return add(cwd, rest);
-  if (sub === "clone") return cloneProjects(cwd, rest);
-  err(`flume: unknown project command '${sub}'\n\n${HELP.trimEnd()}`);
-  return 2;
+/** The `flume project` group. */
+export function projectCommand(): Command {
+  const group = new Command("project")
+    .description("list, add, clone")
+    .addHelpText("after", "\nThese work on files and git directly; they do not use the daemon.");
+  group
+    .command("list")
+    .description("projects in flume.yaml: name, url, branch")
+    .option("--json", "print JSON")
+    .action(function (o) {
+      return act(this, () => list(process.cwd(), o.json === true));
+    });
+  group
+    .command("clone")
+    .description("clone the named projects (default all) into the workspace")
+    .argument("[names...]", "project names")
+    .option("--json", "print JSON")
+    .action(function (names, o) {
+      return act(this, () => cloneProjects(process.cwd(), names, o.json === true));
+    });
+  group
+    .command("add")
+    .description(
+      "add a project to flume.yaml and commit it; a URL is cloned, a bare name is added with no url (warns)",
+    )
+    .argument("<git-url-or-name>")
+    .option("--name <name>", "the project name")
+    .option("--branch <branch>", "the branch to check out")
+    .action(function (arg, o) {
+      return act(this, () => add(process.cwd(), arg, o));
+    });
+  return group;
 }
 
 /** `flume clone <git-url> [<workspace>]`: clone the tasks repo into the workspace, then project clone. */
-export function cloneCmd(cwd: string, args: string[]): number {
-  const usage = "usage: flume clone <git-url> [<workspace>]";
-  if (args.includes("--help") || args.includes("-h")) {
-    out(usage);
-    return 0;
-  }
-  const bad = args.find((a) => a.startsWith("-"));
-  if (bad || args.length < 1 || args.length > 2) {
-    err(bad ? `flume: unknown option '${bad}'\n${usage}` : `flume: ${usage}`);
-    return 2;
-  }
-  const url = args[0] as string;
-  const ws = resolve(cwd, args[1] ?? ".");
+export function cloneCmd(cwd: string, url: string, workspace: string | undefined): number {
+  const ws = resolve(cwd, workspace ?? ".");
   const name = repoName(url);
   if (!validProjectName(name)) {
     err(`flume: cannot name a folder from the url ${url}`);
@@ -267,9 +224,20 @@ export function cloneCmd(cwd: string, args: string[]): number {
     return 1;
   }
   out(`cloned the tasks repository into ${dest}`);
-  const code = init(ws, ["--root", dest]);
+  const code = init(ws, { root: dest });
   if (code !== 0) return code;
-  const c2 = cloneProjects(ws, []);
+  const c2 = cloneProjects(ws, [], false);
   out("next: run flume serve in this folder");
   return c2;
+}
+
+/** The `flume clone` command. */
+export function cloneCommand(): CommandUnknownOpts {
+  return new Command("clone")
+    .description("clone a tasks repo and set up its workspace")
+    .argument("<git-url>")
+    .argument("[workspace]")
+    .action(function (url, workspace) {
+      return act(this, () => cloneCmd(process.cwd(), url, workspace));
+    });
 }

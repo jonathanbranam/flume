@@ -29,6 +29,8 @@
 
 ### Changed
 
+- The CLI runs on Commander with `@commander-js/extra-typings` (fl-xg67): every command declares its arguments and options there, and the hand-rolled argument loops, usage strings and per-command `--help` branches are gone. Every command and subcommand takes `--help` and `-h` (usage generated from the declarations, exit 0), `flume help <command> [<subcommand>]` prints the same, and a usage error prints the message, then the usage, to standard error and exits 2 (some usage-error messages changed to the generated form). `flume agent` is routed and documented by Commander but its own parser still reads its words (r-a2c0). New runtime dependencies: `commander` and `@commander-js/extra-typings` (no dependencies of their own; at work they are installed through Artifactory). Specs: `design/specs/cli.md`.
+
 - An agent can no longer move a task to a later phase until it has run `flume task instructions` (or claimed the task) for the task's current phase since the task entered it; the human and moves backwards are never refused (fl-4tx8). The built-in prime text now says to claim, follow the printed instructions and push guides; the per-phase steps moved into `flume task instructions`.
 
 - `flume prime` with no daemon (fl-ud4g): in a workspace (a `.flume/` folder here or above) it prints a `server_not_running` element naming the workspace and asking the human to run `flume serve`; with no workspace it prints a `flume_not_set_up` element explaining flume and the setup steps (init, project add or clone, serve). `flume_base` is kept in both; a daemon refusal still gives `workflow_missing`.

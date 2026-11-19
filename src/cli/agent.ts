@@ -1,25 +1,21 @@
 import { spawnSync } from "node:child_process";
 import { readdirSync } from "node:fs";
+import { Command, type CommandUnknownOpts } from "@commander-js/extra-typings";
 import { stringify } from "yaml";
 import { agentsDir, type Entry, flumeHome, readEntry, writeEntry } from "../core/agents.ts";
 import { xmlBlock, xmlOpen, xmlText } from "../core/prime.ts";
 import { daemonUrl, findFlumeFolder, request } from "../daemon/index.ts";
+import { act, outcome, Usage } from "./program.ts";
 
-const USAGE = `Usage:
-  flume agent [--name <name>] [--project <p>] [--role <r>] [--force] [<prompt>] [-- <claude-arg>...]
-  flume agent list [--json]
-  flume agent show <name> [--json]
-  flume prime [--name <name>] [--project <p>] [--role <r>]
-
-Launch Claude Code as a named agent. The name comes only from --name, else from the tmux
+const NOTE = `Launch Claude Code as a named agent. The name comes only from --name, else from the tmux
 pane option @flume_agent. One bare argument is the prompt sent to the agent (quote it); with
-none, flume sends a short default. Before "--" flume accepts only --name, --project, --role, --force, -h/--help and the prompt;
-any other option is an error (exit 2). Claude's options go after "--", which flume passes
-to claude and checks only for conflicts (a second prompt, -n/--name, --append-system-prompt[-file], a repeated single-value
-option, an option missing its value) and exits 2 on one. The prime text always goes to claude
-with --append-system-prompt, and flume always passes --name <name>.
+none, flume sends a short default. Before "--" flume accepts only --name, --project, --role,
+--force, -h/--help and the prompt; any other option is an error (exit 2). Claude's options go
+after "--", which flume passes to claude in order and checks only for conflicts (a second
+prompt, -n/--name, --append-system-prompt[-file], a repeated single-value option, an option
+missing its value) and exits 2 on one. The prime text always goes to claude with
+--append-system-prompt, and flume always passes --name <name>.
 `;
-
 const DEFAULT_BASE = `You are agent {name}, stored in $AGENT_NAME.
 Use the flume CLI to work with tasks; run flume --help to learn it.
 Never start flume serve yourself; only the human does. If flume says the server is not running, ask the human to start it.
@@ -272,12 +268,7 @@ function paneName(): string | undefined {
 }
 
 /** `flume agent list [--json]`: one line per entry, or with --json a JSON array of entries plus live. */
-function list(args: string[]): number {
-  const extra = args.filter((a) => a !== "--json");
-  if (extra.length > 0) {
-    process.stderr.write(`flume: unexpected argument '${extra[0]}'\n\n${USAGE}`);
-    return 2;
-  }
+function list(json: boolean): number {
   const dir = agentsDir();
   let files: string[] = [];
   try {
@@ -292,7 +283,7 @@ function list(args: string[]): number {
     const live = cmd === undefined ? "-" : cmd === "claude" ? "yes" : "pane";
     entries.push({ ...e, live });
   }
-  if (args.includes("--json")) {
+  if (json) {
     process.stdout.write(`${JSON.stringify(entries)}\n`);
     return 0;
   }
@@ -312,54 +303,26 @@ function list(args: string[]): number {
 }
 
 /** `flume agent show <name> [--json]`: the entry as YAML, or as a JSON object with --json. */
-function show(args: string[]): number {
-  const rest = args.filter((a) => a !== "--json");
-  const name = rest[0];
-  if (!name || rest.length > 1) {
-    process.stderr.write(`flume: agent show needs one name\n\n${USAGE}`);
-    return 2;
-  }
+function show(name: string, json: boolean): number {
   const e = readEntry(name);
   if (!e) {
     process.stderr.write(`flume: no agent '${name}'\n`);
     return 1;
   }
-  process.stdout.write(args.includes("--json") ? `${JSON.stringify(e, null, 2)}\n` : stringify(e));
+  process.stdout.write(json ? `${JSON.stringify(e, null, 2)}\n` : stringify(e));
   return 0;
 }
 
 /** `flume guide <name> [--name N] [--project P]`: print a guide's text, via the daemon like prime. */
-export async function guide(args: string[]): Promise<number> {
-  if (args.includes("--help") || args.includes("-h")) {
-    process.stdout.write(
-      "usage: flume guide [<guide-name>] [--name <agent>] [--project <p>] [--json]\n  with no name, lists the guides (--json for JSON)\n",
-    );
-    return 0;
-  }
-  const opts: Record<string, string> = {};
-  const bare: string[] = [];
-  let json = false;
-  for (let i = 0; i < args.length; i++) {
-    const a = args[i] as string;
-    if (a === "--json") json = true;
-    else if (a === "--name" || a === "--project") {
-      const v = args[++i];
-      if (v === undefined) {
-        process.stderr.write(`flume: ${a} needs a value\n`);
-        return 2;
-      }
-      opts[a.slice(2)] = v;
-    } else if (a.startsWith("-")) {
-      process.stderr.write(`flume: unknown option ${a}\nusage: flume guide <guide-name>\n`);
-      return 2;
-    } else bare.push(a);
-  }
-  if (bare.length > 1 || (json && bare.length === 1)) {
-    process.stderr.write(
-      "flume: guide takes at most one guide name, and --json only with no name\nusage: flume guide [<guide-name>] [--json]\n",
-    );
-    return 2;
-  }
+export async function guide(
+  name: string | undefined,
+  o: { name?: string; project?: string; json?: boolean },
+): Promise<number> {
+  const json = o.json === true;
+  const bare = name === undefined ? [] : [name];
+  if (json && bare.length === 1)
+    throw new Usage("--json only with no guide name (a guide's text is not JSON)");
+  const opts = o;
   const agentName = opts.name ?? paneName() ?? process.env.AGENT_NAME;
   const project = opts.project ?? (agentName ? readEntry(agentName)?.project : undefined) ?? "";
   const url = daemonUrl(process.cwd());
@@ -409,28 +372,15 @@ export async function guide(args: string[]): Promise<number> {
 }
 
 /** `flume prime`: print the text the launcher would send. */
-export async function prime(args: string[]): Promise<number> {
-  if (args.includes("--help") || args.includes("-h")) {
-    process.stdout.write(USAGE);
-    return 0;
-  }
-  const p = parse(args);
-  if (typeof p === "string") {
-    process.stderr.write(`flume: ${p}\n`);
-    return 2;
-  }
+export async function prime(p: {
+  name?: string;
+  project?: string;
+  role?: string;
+}): Promise<number> {
   const name = p.name ?? paneName();
-  if (!name) {
-    process.stderr.write(
-      `flume: no agent name given (use --name <name>) and none in the tmux pane\n\n${USAGE}`,
-    );
-    return 2;
-  }
+  if (!name) throw new Usage("no agent name given (use --name <name>) and none in the tmux pane");
   const bad = badName(name);
-  if (bad) {
-    process.stderr.write(`flume: ${bad}\n`);
-    return 2;
-  }
+  if (bad) throw new Usage(bad);
   const old = readEntry(name);
   process.stdout.write(
     await primeText(name, p.project ?? old?.project ?? "", p.role ?? old?.role ?? ""),
@@ -440,13 +390,6 @@ export async function prime(args: string[]): Promise<number> {
 
 /** `flume agent ...`; returns the exit code (claude's, for a launch). */
 export async function agent(args: string[]): Promise<number> {
-  const [first] = args;
-  if (first === "--help" || first === "-h") {
-    process.stdout.write(USAGE);
-    return 0;
-  }
-  if (first === "list") return list(args.slice(1));
-  if (first === "show") return show(args.slice(1));
   const p = parse(args);
   if (typeof p === "string") {
     process.stderr.write(`flume: ${p}\n`);
@@ -504,4 +447,68 @@ export async function agent(args: string[]): Promise<number> {
     return 1;
   }
   return r.status ?? 1;
+}
+
+/** The `flume agent` group: Commander routes and prints the help; the launch reads its own words. */
+export function agentCommand(): CommandUnknownOpts {
+  const group = new Command("agent")
+    .description("launch Claude as a named agent; list, show")
+    .usage("[--name <name>] [--project <p>] [--role <r>] [--force] [<prompt>] [-- <claude-arg>...]")
+    .addHelpText("after", `\n${NOTE}`)
+    .helpOption(false)
+    .allowUnknownOption()
+    .allowExcessArguments()
+    .argument("[words...]")
+    .action(function () {
+      // Raw words after "agent", as typed: Commander would lose where -- was.
+      const words = outcome.argv.slice(outcome.argv.indexOf("agent") + 1);
+      if (words[0] === "--help" || words[0] === "-h") {
+        this.outputHelp();
+        return;
+      }
+      return act(this, async () => agent(words));
+    });
+  group
+    .command("list")
+    .helpOption("-h, --help")
+    .description("one line per agent entry; with --json an array of entries plus live")
+    .option("--json", "print JSON")
+    .action(function (o) {
+      return act(this, () => list(o.json === true));
+    });
+  group
+    .command("show")
+    .helpOption("-h, --help")
+    .description("one agent's entry as YAML, or as a JSON object with --json")
+    .argument("<name>")
+    .option("--json", "print JSON")
+    .action(function (name, o) {
+      return act(this, () => show(name, o.json === true));
+    });
+  return group;
+}
+
+/** The `flume prime` command. */
+export function primeCommand(): Command {
+  return new Command("prime")
+    .description("print the prime text flume agent would send")
+    .option("--name <name>", "the agent name (else the tmux pane's)")
+    .option("--project <p>", "project")
+    .option("--role <r>", "role")
+    .action(function (o) {
+      return act(this, () => prime(o));
+    });
+}
+
+/** The `flume guide` command. */
+export function guideCommand(): CommandUnknownOpts {
+  return new Command("guide")
+    .description("list the guides, or print one")
+    .argument("[guide-name]")
+    .option("--name <agent>", "the agent name")
+    .option("--project <p>", "project")
+    .option("--json", "with no guide name, print the list as JSON")
+    .action(function (name, o) {
+      return act(this, () => guide(name, o));
+    });
 }

@@ -1,117 +1,13 @@
 import { readFileSync } from "node:fs";
+import { Command } from "@commander-js/extra-typings";
 import { formatHistory } from "../core/history.ts";
 import { guideBlocks } from "../core/instructions.ts";
 import { actorName, isAgent } from "../daemon/actor.ts";
 import { daemonUrl, NOT_RUNNING, request } from "../daemon/index.ts";
+import { act, Usage } from "./program.ts";
 
 const err = (s: string) => process.stderr.write(`${s}\n`);
 const out = (s: string) => process.stdout.write(`${s}\n`);
-
-const HELP = `usage: flume task <command> [options]
-
-Commands:
-  new TITLE [-k KIND] [--project P] [--parent ID] [--blocked-by IDS] [--related IDS]
-            [--body TEXT | --body-file PATH]    create a task; prints its ID
-  show ID [PART]                                the task's fields and parts; or one part's text
-                                                (PART: body, design, spec, plan, comments)
-  write ID PART [--file PATH|-] [--remove]      replace a part's text (standard input by default),
-                                                or remove the part (PART: body, design, spec, plan)
-  instructions ID                               what to do now: the current phase's steps, template and
-                                                pushed guides (agent text; no --json)
-  next ID                                       print the current plan group (heading and items)
-  done ID ITEM...                               mark plan items done, as in: done ID 1.1 1.2
-  skip ID ITEM... --reason TEXT                 mark plan items skipped, with the reason
-  guide ID NAME --phase PHASE [--remove]        push a guide to a later (or the current) phase of the
-                                                task, so its instructions include it; --remove drops it
-  template PART [--project P]                   print the template to start a part from
-  history ID                                    print the task's change history, oldest first
-  list [--closed | --all] [--kind K] [--parent ID] [--assignee NAME|human] [--phase PHASE]
-                                                one line per task (tab separated)
-  update ID FIELD VALUE                         FIELD: title, kind, parent, blocked-by, related
-  comment ID [--text TEXT | --body-file PATH]   add a comment to comments.md
-  phase ID PHASE                                set the phase: proposal, design, specs, plan, implement
-  assign ID [NAME|human] [--force]              hold the task: NAME, or yourself ($AGENT_NAME)
-  claim ID [--force]                            same as: assign ID (to yourself)
-  close ID                                      resolve the task
-  reopen ID                                     reopen a resolved task
-
-Every command takes --json (print the daemon's JSON) and --help.
-Paths for --body-file: a dash means standard input. IDS is a comma separated list.
-`;
-
-const COMMANDS: Record<string, { opts: string[]; flags: string[]; pos: number; usage: string }> = {
-  new: {
-    opts: [
-      "-k",
-      "--kind",
-      "--project",
-      "--parent",
-      "--blocked-by",
-      "--related",
-      "--body",
-      "--body-file",
-    ],
-    flags: [],
-    pos: 1,
-    usage:
-      "flume task new TITLE [-k KIND] [--project P] [--parent ID] [--blocked-by IDS] [--related IDS] [--body TEXT | --body-file PATH]",
-  },
-  show: { opts: [], flags: [], pos: -2, usage: "flume task show ID [PART]" },
-  write: {
-    opts: ["--file"],
-    flags: ["--remove"],
-    pos: 2,
-    usage: "flume task write ID PART [--file PATH|-] [--remove]",
-  },
-  phase: { opts: [], flags: [], pos: 2, usage: "flume task phase ID PHASE" },
-  instructions: { opts: [], flags: [], pos: 1, usage: "flume task instructions ID" },
-  next: { opts: [], flags: [], pos: 1, usage: "flume task next ID" },
-  done: { opts: [], flags: [], pos: -99, usage: "flume task done ID ITEM..." },
-  skip: {
-    opts: ["--reason"],
-    flags: [],
-    pos: -99,
-    usage: "flume task skip ID ITEM... --reason TEXT",
-  },
-  guide: {
-    opts: ["--phase"],
-    flags: ["--remove"],
-    pos: 2,
-    usage: "flume task guide ID NAME --phase PHASE [--remove]",
-  },
-  template: {
-    opts: ["--project"],
-    flags: [],
-    pos: 1,
-    usage: "flume task template PART [--project P]",
-  },
-  list: {
-    opts: ["--kind", "--parent", "--assignee", "--phase"],
-    flags: ["--closed", "--all"],
-    pos: 0,
-    usage:
-      "flume task list [--closed | --all] [--kind K] [--parent ID] [--assignee NAME|human] [--phase PHASE]",
-  },
-  history: { opts: [], flags: [], pos: 1, usage: "flume task history ID" },
-  update: { opts: [], flags: [], pos: 3, usage: "flume task update ID FIELD VALUE" },
-  comment: {
-    opts: ["--text", "--body-file"],
-    flags: [],
-    pos: 1,
-    usage: "flume task comment ID [--text TEXT | --body-file PATH]",
-  },
-  assign: {
-    opts: [],
-    flags: ["--force"],
-    pos: -2,
-    usage: "flume task assign ID [NAME|human] [--force]",
-  },
-  claim: { opts: [], flags: ["--force"], pos: 1, usage: "flume task claim ID [--force]" },
-  close: { opts: [], flags: [], pos: 1, usage: "flume task close ID" },
-  reopen: { opts: [], flags: [], pos: 1, usage: "flume task reopen ID" },
-};
-
-class Usage extends Error {}
 
 function readText(path: string): string {
   try {
@@ -145,67 +41,48 @@ function human(r: Task): string {
   return `${r.id}\t${r.kind}\t${r.state}\t${r.phase}\t${r.assignee}\t${r.title}`;
 }
 
-/** `flume task ...`; returns the exit code. */
-export async function task(cwd: string, args: string[]): Promise<number> {
-  const [sub, ...rest] = args;
-  if (sub === undefined || sub === "--help" || sub === "-h" || sub === "help") {
-    (sub === undefined ? process.stderr : process.stdout).write(HELP);
-    return sub === undefined ? 2 : 0;
-  }
-  const spec = COMMANDS[sub];
-  if (!spec) {
-    err(`flume: unknown task command '${sub}'\n\n${HELP.trimEnd()}`);
-    return 2;
-  }
-  if (rest.includes("--help") || rest.includes("-h")) {
-    out(`usage: ${spec.usage} [--json]`);
-    return 0;
-  }
-  let json = false;
-  const pos: string[] = [];
-  const opt: Record<string, string> = {};
-  const flag = new Set<string>();
+interface Opts {
+  kind?: string;
+  project?: string;
+  parent?: string;
+  blockedBy?: string;
+  related?: string;
+  body?: string;
+  bodyFile?: string;
+  file?: string;
+  remove?: boolean;
+  reason?: string;
+  phase?: string;
+  closed?: boolean;
+  all?: boolean;
+  assignee?: string;
+  text?: string;
+  force?: boolean;
+  json?: boolean;
+}
+
+/** One `flume task <sub>`: `pos` are the declared arguments, `o` the declared options. */
+export async function task(cwd: string, sub: string, pos: string[], o: Opts): Promise<number> {
+  const json = o.json === true;
   try {
-    for (let i = 0; i < rest.length; i++) {
-      const a = rest[i] as string;
-      if (a === "--json") json = true;
-      else if (spec.flags.includes(a)) flag.add(a);
-      else if (spec.opts.includes(a)) {
-        const v = rest[++i];
-        if (v === undefined) throw new Usage(`${a} needs a value`);
-        opt[a] = v;
-      } else if (a.startsWith("-") && a !== "-" && !(sub === "update" && pos.length >= 2))
-        throw new Usage(`unknown option '${a}'`);
-      else pos.push(a);
-    }
-    const max = spec.pos < 0 ? -spec.pos : spec.pos;
-    const min = spec.pos === -99 ? 2 : spec.pos < 0 ? max - 1 : spec.pos;
-    if (pos.length < min) throw new Usage(`missing argument\n`);
-    if (pos.length > max) throw new Usage(`unexpected argument '${pos[max]}'`);
-    if (opt["--body"] !== undefined && opt["--body-file"] !== undefined)
+    if (o.body !== undefined && o.bodyFile !== undefined)
       throw new Usage("use --body or --body-file, not both");
-    if (opt["--text"] !== undefined && opt["--body-file"] !== undefined)
+    if (o.text !== undefined && o.bodyFile !== undefined)
       throw new Usage("use --text or --body-file, not both");
-    if (flag.has("--closed") && flag.has("--all"))
-      throw new Usage("use --closed or --all, not both");
-    if (sub === "skip" && (opt["--reason"] ?? "").trim() === "")
+    if (o.closed && o.all) throw new Usage("use --closed or --all, not both");
+    if (sub === "skip" && (o.reason ?? "").trim() === "")
       throw new Usage("skip needs --reason TEXT");
-    if (sub === "instructions" && json)
-      throw new Usage("instructions is agent text and takes no --json");
-    if (sub === "guide" && opt["--phase"] === undefined)
-      throw new Usage("guide needs --phase PHASE");
-    if (sub === "write" && flag.has("--remove") && opt["--file"] !== undefined)
+    if (sub === "write" && o.remove && o.file !== undefined)
       throw new Usage("use --file or --remove, not both");
-    if (sub === "comment" && opt["--text"] === undefined && opt["--body-file"] === undefined)
+    if (sub === "comment" && o.text === undefined && o.bodyFile === undefined)
       throw new Usage("comment needs --text or --body-file");
     if (sub === "new" && (pos[0] as string).trim() === "") throw new Usage("the title is empty");
 
     // Read any input before talking to the daemon.
-    let body: string | undefined = opt["--body"];
-    if (sub === "new" && opt["--body-file"] !== undefined) body = readText(opt["--body-file"]);
+    let body: string | undefined = o.body;
+    if (sub === "new" && o.bodyFile !== undefined) body = readText(o.bodyFile);
 
-    const text =
-      sub === "write" && !flag.has("--remove") ? readText(opt["--file"] ?? "-") : undefined;
+    const text = sub === "write" && !o.remove ? readText(o.file ?? "-") : undefined;
     if (sub === "update" && !((pos[1] as string) in FIELDS))
       throw new Failure(
         `flume: unknown field '${pos[1]}'; fields: ${Object.keys(FIELDS).join(", ")}`,
@@ -224,13 +101,13 @@ export async function task(cwd: string, args: string[]): Promise<number> {
     if (sub === "new") {
       const payload: Record<string, unknown> = {
         title: pos[0],
-        kind: opt["-k"] ?? opt["--kind"] ?? "feature",
+        kind: o.kind ?? "feature",
       };
-      if (opt["--parent"] !== undefined) payload.parent = opt["--parent"];
-      if (opt["--project"] !== undefined) payload.project = opt["--project"];
+      if (o.parent !== undefined) payload.parent = o.parent;
+      if (o.project !== undefined) payload.project = o.project;
       if (body !== undefined) payload.body = body;
-      if (opt["--blocked-by"] !== undefined) payload.blocked_by = ids(opt["--blocked-by"]);
-      if (opt["--related"] !== undefined) payload.related = ids(opt["--related"]);
+      if (o.blockedBy !== undefined) payload.blocked_by = ids(o.blockedBy);
+      if (o.related !== undefined) payload.related = ids(o.related);
       const t = await call("POST", "/api/tasks", payload);
       show(t, t.id);
     } else if (sub === "show" && pos[1] !== undefined) {
@@ -246,9 +123,7 @@ export async function task(cwd: string, args: string[]): Promise<number> {
         );
     } else if (sub === "write") {
       const base = `/api/tasks/${enc(pos[0] as string)}/parts/${enc(pos[1] as string)}`;
-      const t = flag.has("--remove")
-        ? await call("DELETE", base)
-        : await call("PUT", base, { text });
+      const t = o.remove ? await call("DELETE", base) : await call("PUT", base, { text });
       if (json) out(JSON.stringify(t));
     } else if (sub === "phase") {
       const t = await call("POST", `/api/tasks/${enc(pos[0] as string)}/phase`, {
@@ -259,8 +134,8 @@ export async function task(cwd: string, args: string[]): Promise<number> {
     } else if (sub === "guide") {
       const t = await call("POST", `/api/tasks/${enc(pos[0] as string)}/guides`, {
         guide: pos[1],
-        phase: opt["--phase"],
-        remove: flag.has("--remove"),
+        phase: o.phase,
+        remove: o.remove,
       });
       if (json) out(JSON.stringify(t));
     } else if (sub === "next") {
@@ -277,22 +152,22 @@ export async function task(cwd: string, args: string[]): Promise<number> {
     } else if (sub === "done" || sub === "skip") {
       const t = await call("POST", `/api/tasks/${enc(pos[0] as string)}/plan/${sub}`, {
         items: pos.slice(1),
-        ...(sub === "skip" ? { reason: opt["--reason"] } : {}),
+        ...(sub === "skip" ? { reason: o.reason } : {}),
       });
       if (json) out(JSON.stringify(t));
     } else if (sub === "template") {
-      const q = opt["--project"] === undefined ? "" : `?project=${enc(opt["--project"])}`;
+      const q = o.project === undefined ? "" : `?project=${enc(o.project)}`;
       const r = await call("GET", `/api/templates/${enc(pos[0] as string)}${q}`);
       if (json) out(JSON.stringify(r));
       else process.stdout.write(r.text);
     } else if (sub === "list") {
       const q = new URLSearchParams({
-        state: flag.has("--all") ? "all" : flag.has("--closed") ? "resolved" : "open",
+        state: o.all ? "all" : o.closed ? "resolved" : "open",
       });
-      if (opt["--kind"] !== undefined) q.set("kind", opt["--kind"]);
-      if (opt["--parent"] !== undefined) q.set("parent", opt["--parent"]);
-      if (opt["--assignee"] !== undefined) q.set("assignee", opt["--assignee"]);
-      if (opt["--phase"] !== undefined) q.set("phase", opt["--phase"]);
+      if (o.kind !== undefined) q.set("kind", o.kind);
+      if (o.parent !== undefined) q.set("parent", o.parent);
+      if (o.assignee !== undefined) q.set("assignee", o.assignee);
+      if (o.phase !== undefined) q.set("phase", o.phase);
       const list: Task[] = await call("GET", `/api/tasks?${q}`);
       if (json) out(JSON.stringify(list));
       else for (const t of list) out(human(t));
@@ -308,7 +183,7 @@ export async function task(cwd: string, args: string[]): Promise<number> {
         );
       const t = await call("POST", `/api/tasks/${enc(pos[0] as string)}/assign`, {
         assignee: who,
-        force: flag.has("--force"),
+        force: o.force,
         ...(isAgent() ? { actor: actorName() } : {}),
       });
       if (json) out(JSON.stringify(t));
@@ -325,7 +200,7 @@ export async function task(cwd: string, args: string[]): Promise<number> {
       });
       if (json) out(JSON.stringify(t));
     } else if (sub === "comment") {
-      const text = opt["--text"] ?? readText(opt["--body-file"] as string);
+      const text = o.text ?? readText(o.bodyFile as string);
       const t = await call("POST", `/api/tasks/${enc(pos[0] as string)}/comments`, {
         text,
         ...(isAgent() ? { author: actorName() } : {}),
@@ -338,8 +213,7 @@ export async function task(cwd: string, args: string[]): Promise<number> {
     return 0;
   } catch (e) {
     if (e instanceof Usage) {
-      err(`flume: ${e.message}\nusage: ${spec.usage}`);
-      return 2;
+      throw e;
     }
     if (e instanceof Failure) {
       err(e.message);
@@ -350,3 +224,162 @@ export async function task(cwd: string, args: string[]): Promise<number> {
 }
 
 class Failure extends Error {}
+
+/** The `flume task` group: every subcommand declares its arguments and options here. */
+export function taskCommand(): Command {
+  const group = new Command("task").description(
+    "new, show, list, update, comment, assign, claim, phase, write, ...",
+  );
+  group.addHelpText("after", "\nPaths for --body-file and --file: a dash means standard input.");
+  // Each subcommand's action hands its parsed values to task(); a refused combination is a usage error.
+  const sub = (name: string, description: string) => {
+    const c = new Command(name).description(description);
+    group.addCommand(c);
+    return c;
+  };
+  const run = (c: Pick<Command, "error">, name: string, pos: string[], o: Opts) =>
+    act(c, () => task(process.cwd(), name, pos, o));
+  const J = "--json";
+  const JD = "print the daemon's JSON";
+
+  sub("new", "create a task; prints its ID")
+    .argument("<title>")
+    .option("-k, --kind <kind>", "task kind (default feature)")
+    .option("--project <p>", "project")
+    .option("--parent <id>", "parent task")
+    .option("--blocked-by <ids>", "comma separated task IDs")
+    .option("--related <ids>", "comma separated task IDs")
+    .option("--body <text>", "the body text")
+    .option("--body-file <path>", "the body from a file; a dash means standard input")
+    .option(J, JD)
+    .action(function (title, o) {
+      return run(this, "new", [title], o);
+    });
+  sub("show", "the task's fields and parts; or one part's text")
+    .argument("<id>")
+    .argument("[part]", "body, design, spec, plan or comments")
+    .option(J, JD)
+    .action(function (id, part, o) {
+      return run(this, "show", part === undefined ? [id] : [id, part], o);
+    });
+  sub("write", "replace a part's text (standard input by default), or remove the part")
+    .argument("<id>")
+    .argument("<part>", "body, design, spec or plan")
+    .option("--file <path>", "read the text from a file; a dash means standard input")
+    .option("--remove", "remove the part")
+    .option(J, JD)
+    .action(function (id, part, o) {
+      return run(this, "write", [id, part], o);
+    });
+  sub("instructions", "what to do now: the current phase's steps, template and pushed guides")
+    .argument("<id>")
+    .addHelpText("after", "\nAgent text; takes no --json.")
+    .action(function (id) {
+      return run(this, "instructions", [id], {});
+    });
+  sub("next", "print the current plan group (heading and items)")
+    .argument("<id>")
+    .option(J, JD)
+    .action(function (id, o) {
+      return run(this, "next", [id], o);
+    });
+  sub("done", "mark plan items done, as in: done ID 1.1 1.2")
+    .argument("<id>")
+    .argument("<items...>")
+    .option(J, JD)
+    .action(function (id, items, o) {
+      return run(this, "done", [id, ...items], o);
+    });
+  sub("skip", "mark plan items skipped, with the reason")
+    .argument("<id>")
+    .argument("<items...>")
+    .option("--reason <text>", "why the items are skipped")
+    .option(J, JD)
+    .action(function (id, items, o) {
+      return run(this, "skip", [id, ...items], o);
+    });
+  sub("guide", "push a guide to a later (or the current) phase of the task")
+    .argument("<id>")
+    .argument("<name>")
+    .requiredOption("--phase <phase>", "the phase to push the guide to")
+    .option("--remove", "drop the guide")
+    .option(J, JD)
+    .action(function (id, name, o) {
+      return run(this, "guide", [id, name], o);
+    });
+  sub("template", "print the template to start a part from")
+    .argument("<part>")
+    .option("--project <p>", "project")
+    .option(J, JD)
+    .action(function (part, o) {
+      return run(this, "template", [part], o);
+    });
+  sub("history", "print the task's change history, oldest first")
+    .argument("<id>")
+    .option(J, JD)
+    .action(function (id, o) {
+      return run(this, "history", [id], o);
+    });
+  sub("list", "one line per task (tab separated)")
+    .option("--closed", "resolved tasks only")
+    .option("--all", "open and resolved tasks")
+    .option("--kind <k>", "only this kind")
+    .option("--parent <id>", "only children of this task")
+    .option("--assignee <name>", "only this assignee (a name, or human)")
+    .option("--phase <phase>", "only this phase")
+    .option(J, JD)
+    .action(function (o) {
+      return run(this, "list", [], o);
+    });
+  sub("update", "set a field: title, kind, parent, blocked-by or related")
+    .argument("<id>")
+    .argument("<field>")
+    .argument("<value>")
+    .option(J, JD)
+    .action(function (id, field, value, o) {
+      return run(this, "update", [id, field, value], o);
+    });
+  sub("comment", "add a comment to comments.md")
+    .argument("<id>")
+    .option("--text <text>", "the comment")
+    .option("--body-file <path>", "the comment from a file; a dash means standard input")
+    .option(J, JD)
+    .action(function (id, o) {
+      return run(this, "comment", [id], o);
+    });
+  sub("phase", "set the phase: proposal, design, specs, plan, implement")
+    .argument("<id>")
+    .argument("<phase>")
+    .option(J, JD)
+    .action(function (id, phase, o) {
+      return run(this, "phase", [id, phase], o);
+    });
+  sub("assign", "hold the task: NAME, or yourself ($AGENT_NAME)")
+    .argument("<id>")
+    .argument("[name]", "a name, or human")
+    .option("--force", "take it even when someone holds it")
+    .option(J, JD)
+    .action(function (id, name, o) {
+      return run(this, "assign", name === undefined ? [id] : [id, name], o);
+    });
+  sub("claim", "same as: assign ID (to yourself)")
+    .argument("<id>")
+    .option("--force", "take it even when someone holds it")
+    .option(J, JD)
+    .action(function (id, o) {
+      return run(this, "claim", [id], o);
+    });
+  sub("close", "resolve the task")
+    .argument("<id>")
+    .option(J, JD)
+    .action(function (id, o) {
+      return run(this, "close", [id], o);
+    });
+  sub("reopen", "reopen a resolved task")
+    .argument("<id>")
+    .option(J, JD)
+    .action(function (id, o) {
+      return run(this, "reopen", [id], o);
+    });
+  return group;
+}

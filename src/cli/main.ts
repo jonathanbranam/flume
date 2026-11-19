@@ -1,74 +1,59 @@
-import { agent, guide, prime } from "./agent.ts";
-import { bugTemplate } from "./bug.ts";
-import { check } from "./check.ts";
-import { serve, status, stop } from "./daemon.ts";
-import { init } from "./init.ts";
-import { cloneCmd, project } from "./project.ts";
-import { roadmap } from "./roadmap.ts";
-import { task } from "./task.ts";
+import { Command, CommanderError, type CommandUnknownOpts } from "@commander-js/extra-typings";
+import { agentCommand, guideCommand, primeCommand } from "./agent.ts";
+import { bugCommand } from "./bug.ts";
+import { checkCommand } from "./check.ts";
+import { daemonCommands } from "./daemon.ts";
+import { initCommand } from "./init.ts";
+import { outcome } from "./program.ts";
+import { cloneCommand, projectCommand } from "./project.ts";
+import { roadmapCommand } from "./roadmap.ts";
+import { taskCommand } from "./task.ts";
 import { version } from "./version.ts";
-import { workflow } from "./workflow.ts";
+import { workflowCommand } from "./workflow.ts";
 
-const HELP = `flume - a workflow tool for agents
-
-Usage: flume <command>
-
-Commands:
-  init       set up this workspace folder [--root PATH] [--dir NAME]
-  clone      clone a tasks repo and set up its workspace: <git-url> [<workspace>]
-  project    list, add, clone (flume project --help)
-  serve      run the daemon in the foreground [--port N] (the human runs this; agents never do)
-  status     show whether the daemon runs, its address and root [--json]
-  stop       ask the daemon to exit
-  task       new, show, list, update, comment, assign, claim, phase, write, template, next, done,
-             skip, close, reopen (flume task --help)
-  workflow   print the phases: what each writes and requires [--json]
-  roadmap    show, check (flume roadmap --help)
-  check      validate the task files; one line per problem, exit 1 if any [--json]
-  agent      launch Claude as a named agent; list, show (flume agent --help)
-  prime      print the prime text flume agent would send [--role R]
-  guide      list the guides, or print one: flume guide [<name>] [--project P] [--json]
-  bug        print a bug-report template to paste into an email
-
-Options:
-  --version  print the version and git commit
-  --help     show this help
-`;
+/** The same settings on every command: usage after an error, errors thrown not exited. */
+function configure(cmd: CommandUnknownOpts): void {
+  cmd.enablePositionalOptions().showHelpAfterError(true).exitOverride();
+  for (const c of cmd.commands) configure(c);
+}
 
 /** Run the CLI with the given arguments; returns the exit code. */
 export async function main(args: string[]): Promise<number> {
-  const [command] = args;
-  if (command === undefined || command === "--help" || command === "-h" || command === "help") {
-    process.stdout.write(HELP);
-    return 0;
-  }
-  if (command === "--version") {
-    process.stdout.write(`${version()}\n`);
-    return 0;
-  }
-  if (command === "bug") {
-    process.stdout.write(bugTemplate());
-    return 0;
-  }
-  if (command === "init") return init(process.cwd(), args.slice(1));
-  if (command === "clone") return cloneCmd(process.cwd(), args.slice(1));
-  if (command === "project") return project(process.cwd(), args.slice(1));
-  if (command === "serve") return serve(process.cwd(), args.slice(1));
-  if (command === "status") return status(process.cwd(), args.slice(1));
-  if (command === "stop") {
-    if (args.length > 1) {
-      process.stderr.write("flume: stop takes no arguments\n");
-      return 2;
+  outcome.code = 0;
+  // flume help [<command> [<subcommand>]] prints what --help prints.
+  if (args[0] === "help") args = args.length === 1 ? ["--help"] : [...args.slice(1), "--help"];
+  outcome.argv = args;
+  const [serve, status, stop] = daemonCommands();
+  const program = new Command("flume")
+    .description("a workflow tool for agents")
+    .usage("<command>")
+    .version(
+      args.includes("--version") ? version() : "",
+      "--version",
+      "print the version and git commit",
+    )
+    .addCommand(initCommand())
+    .addCommand(cloneCommand())
+    .addCommand(projectCommand())
+    .addCommand(serve as Command)
+    .addCommand(status as Command)
+    .addCommand(stop as Command)
+    .addCommand(taskCommand())
+    .addCommand(workflowCommand())
+    .addCommand(roadmapCommand())
+    .addCommand(checkCommand())
+    .addCommand(agentCommand())
+    .addCommand(primeCommand())
+    .addCommand(guideCommand())
+    .addCommand(bugCommand());
+  configure(program);
+  try {
+    await program.parseAsync(args.length === 0 ? ["--help"] : args, { from: "user" });
+  } catch (e) {
+    if (e instanceof CommanderError) {
+      return e.code === "commander.helpDisplayed" || e.code === "commander.version" ? 0 : 2;
     }
-    return stop(process.cwd());
+    throw e;
   }
-  if (command === "task") return task(process.cwd(), args.slice(1));
-  if (command === "workflow") return workflow(process.cwd(), args.slice(1));
-  if (command === "roadmap") return roadmap(process.cwd(), args.slice(1));
-  if (command === "agent") return await agent(args.slice(1));
-  if (command === "prime") return await prime(args.slice(1));
-  if (command === "guide") return await guide(args.slice(1));
-  if (command === "check") return check(process.cwd(), args.slice(1));
-  process.stderr.write(`flume: unknown command '${command}'\n\n${HELP}`);
-  return 2;
+  return outcome.code;
 }

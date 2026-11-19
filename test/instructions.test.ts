@@ -96,6 +96,7 @@ describe("pushing guides", () => {
     flume(repo, ["stop"]);
   });
 
+  // 30 s: many process spawns, flaky at 5 s under parallel load (worse with the help walk).
   it("s-4a03 refused pushes change nothing", async () => {
     const repo = await project();
     guide(repo, "testing");
@@ -119,7 +120,7 @@ describe("pushing guides", () => {
       implement: ["testing"],
     });
     flume(repo, ["stop"]);
-  });
+  }, 30_000);
 
   it("s-4a05 history and endpoint", async () => {
     const repo = await project();

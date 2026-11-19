@@ -1,5 +1,6 @@
 import { existsSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
+import { Command } from "@commander-js/extra-typings";
 import { DEFAULT_DIR, FLUME_YAML, readDir, validDir } from "../core/index.ts";
 import {
   commitPaths,
@@ -10,31 +11,16 @@ import {
   readConfigRoot,
   saveConfigRoot,
 } from "../daemon/index.ts";
+import { act, Usage } from "./program.ts";
 
 const err = (s: string) => process.stderr.write(`${s}\n`);
 
-function usage(msg: string): number {
-  err(`flume: ${msg}\nusage: flume init [--root PATH] [--dir NAME]`);
-  return 2;
-}
-
 /** `flume init`: set up the workspace folder and write flume.yaml in the tasks repo when missing. */
-export function init(cwd: string, args: string[]): number {
-  let root: string | undefined;
-  let dir: string | undefined;
-  for (let i = 0; i < args.length; i++) {
-    const a = args[i];
-    if (a === "--root") {
-      const v = args[++i];
-      if (v === undefined) return usage("--root needs a path");
-      root = resolve(cwd, v);
-    } else if (a === "--dir") {
-      const v = args[++i];
-      if (v === undefined) return usage("--dir needs a folder name");
-      if (!validDir(v)) return usage(`--dir must be . or one plain folder name, not '${v}'`);
-      dir = v;
-    } else return usage(`unknown option '${a}'`);
-  }
+export function init(cwd: string, o: { root?: string; dir?: string }): number {
+  const root = o.root === undefined ? undefined : resolve(cwd, o.root);
+  const dir = o.dir;
+  if (dir !== undefined && !validDir(dir))
+    throw new Usage(`--dir must be . or one plain folder name, not '${dir}'`);
   const ws = resolve(cwd);
   const taskRoot = root ?? readConfigRoot(ws) ?? findProject(ws)?.mainCheckout;
   if (!taskRoot) {
@@ -74,4 +60,15 @@ export function init(cwd: string, args: string[]): number {
     "next: flume project clone clones the projects in flume.yaml; run flume serve in this folder",
   );
   return 0;
+}
+
+/** The `flume init` command. */
+export function initCommand(): Command {
+  return new Command("init")
+    .description("set up this workspace folder")
+    .option("--root <path>", "the task root (a git repository)")
+    .option("--dir <name>", "the folder for flume's files in the task root")
+    .action(function (o) {
+      return act(this, () => init(process.cwd(), o));
+    });
 }

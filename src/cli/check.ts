@@ -1,7 +1,9 @@
 import { existsSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
+import { Command } from "@commander-js/extra-typings";
 import { checkProject, formatProblem, type Problem } from "../core/check.ts";
 import { FLUME_YAML } from "../core/layout.ts";
+import { act } from "./program.ts";
 
 /** The nearest folder at or above `from` that holds flume.yaml or flume/tasks, else `from`. */
 export function findRoot(from: string): string {
@@ -22,20 +24,21 @@ export function printProblems(problems: Problem[], json: boolean): number {
 }
 
 /** `flume check [--json]`: one line per problem on stdout (or a JSON array); exit 1 when there are any. */
-export function check(cwd: string, args: string[] = []): number {
-  if (args.includes("--help") || args.includes("-h")) {
-    process.stdout.write("usage: flume check [--json]\n");
-    return 0;
-  }
-  const extra = args.filter((a) => a !== "--json");
-  if (extra.length > 0) {
-    process.stderr.write(`flume: unexpected argument '${extra[0]}'\nusage: flume check [--json]\n`);
-    return 2;
-  }
+export function check(cwd: string, json: boolean): number {
   try {
-    return printProblems(checkProject(findRoot(cwd)), args.includes("--json"));
+    return printProblems(checkProject(findRoot(cwd)), json);
   } catch (e) {
     process.stderr.write(`flume: ${(e as Error).message}\n`);
     return 1;
   }
+}
+
+/** The `flume check` command. */
+export function checkCommand(): Command {
+  return new Command("check")
+    .description("validate the task files; one line per problem, exit 1 if any")
+    .option("--json", "print JSON")
+    .action(function (o) {
+      return act(this, () => check(process.cwd(), o.json === true));
+    });
 }

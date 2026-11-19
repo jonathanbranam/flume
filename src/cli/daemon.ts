@@ -1,5 +1,6 @@
 import { existsSync } from "node:fs";
 import { join, resolve } from "node:path";
+import { Command } from "@commander-js/extra-typings";
 import { readDir } from "../core/index.ts";
 import {
   daemonUrl,
@@ -13,33 +14,15 @@ import {
   startDaemon,
   writeRecord,
 } from "../daemon/index.ts";
+import { act, Usage } from "./program.ts";
 
 const err = (s: string) => process.stderr.write(`${s}\n`);
 
-/** The line every serve usage text carries: agents must not start the server. */
+/** The line every serve help carries: agents must not start the server. */
 const HUMAN_ONLY = "Only the human runs flume serve, in its own pane. Agents never start it.";
 
-function usage(msg: string): number {
-  err(`flume: ${msg}\nusage: flume serve [--port N] | flume status | flume stop\n${HUMAN_ONLY}`);
-  return 2;
-}
-
 /** `flume serve`: run the daemon in the foreground until stopped. */
-export async function serve(cwd: string, args: string[]): Promise<number> {
-  let port = 0;
-  for (let i = 0; i < args.length; i++) {
-    const a = args[i];
-    if (a === "--help") {
-      process.stdout.write(`usage: flume serve [--port N]\n${HUMAN_ONLY}\n`);
-      return 0;
-    }
-    if (a === "--port") {
-      const v = args[++i];
-      if (v === undefined || !/^\d+$/.test(v) || Number(v) > 65535)
-        return usage("--port needs a port number");
-      port = Number(v);
-    } else return usage(`unknown option '${a}'`);
-  }
+export async function serve(cwd: string, port: number): Promise<number> {
   // The workspace is the folder serve runs in; its .flume/ holds daemon.json and config.yaml.
   const ws = resolve(cwd);
   if (!existsSync(join(ws, ".flume"))) {
@@ -85,18 +68,9 @@ export async function serve(cwd: string, args: string[]): Promise<number> {
 }
 
 /** `flume status [--json]`: running or not, the address and the root; exit 1 when not running. */
-export async function status(cwd: string, args: string[] = []): Promise<number> {
-  if (args.includes("--help") || args.includes("-h")) {
-    process.stdout.write("usage: flume status [--json]\n");
-    return 0;
-  }
-  const extra = args.filter((a) => a !== "--json");
-  if (extra.length > 0) {
-    err(`flume: unexpected argument '${extra[0]}'\nusage: flume status [--json]`);
-    return 2;
-  }
+export async function status(cwd: string, json: boolean): Promise<number> {
   const d = await liveDaemon(cwd);
-  if (args.includes("--json")) {
+  if (json) {
     const j = d
       ? { running: true, address: d.url, root: d.root }
       : { running: false, address: null, root: null };
@@ -120,4 +94,29 @@ export async function stop(cwd: string): Promise<number> {
   }
   err("flume: the daemon did not exit");
   return 1;
+}
+
+/** The `flume serve`, `flume status` and `flume stop` commands. */
+export function daemonCommands(): Command[] {
+  const serveCmd = new Command("serve")
+    .description("run the daemon in the foreground (the human runs this; agents never do)")
+    .option("--port <n>", "the port to listen on (default: any free port)")
+    .addHelpText("after", `\n${HUMAN_ONLY}`)
+    .action(function (o) {
+      return act(this, () => {
+        if (o.port !== undefined && (!/^\d+$/.test(o.port) || Number(o.port) > 65535))
+          throw new Usage("--port needs a port number");
+        return serve(process.cwd(), o.port === undefined ? 0 : Number(o.port));
+      });
+    });
+  const statusCmd = new Command("status")
+    .description("show whether the daemon runs, its address and root")
+    .option("--json", "print JSON")
+    .action(function (o) {
+      return act(this, () => status(process.cwd(), o.json === true));
+    });
+  const stopCmd = new Command("stop").description("ask the daemon to exit").action(function () {
+    return act(this, () => stop(process.cwd()));
+  });
+  return [serveCmd, statusCmd, stopCmd];
 }

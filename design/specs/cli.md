@@ -15,6 +15,15 @@ When flume is run with an unknown command, a missing required argument or an unk
 - **WHEN** flume frobnicate is run
 - **THEN** standard error holds a usage message and the exit code is 2
 
+### Requirement: Every command prints its usage with --help  {#r-7fd1}
+When --help (or -h) is given to flume, to any command or to any subcommand, flume SHALL print that command's usage to standard output, do nothing else and exit with code 0; flume help followed by a command, and a subcommand if it has one, SHALL print exactly what --help prints for it. Every command and subcommand listed in the top-level help or in a group's help is covered.
+
+#### Scenario: Help on every listed command  {#s-1df5}
+*Verification*: **executable**
+- **GIVEN** any folder with no daemon running
+- **WHEN** flume --help is run, and then --help and help are run on every command listed in the top-level help and on every subcommand listed in each group's help
+- **THEN** each prints a usage line to standard output, nothing to standard error, exits with code 0, and flume help prints the same text as --help for the same command
+
 ### Requirement: The CLI finds the daemon by walking up  {#r-656f}
 When a command needs the daemon, flume SHALL use the address in the FLUME_URL environment variable if set, and otherwise the address in the nearest file .flume/daemon.json found in the current folder or any folder above it (the workspace of that daemon).
 
@@ -91,13 +100,13 @@ flume SHALL say, in its top-level help, that the serve command is for the human 
 *Verification*: **executable**
 - **GIVEN** any folder
 - **WHEN** flume --help is run
-- **THEN** standard output holds the line "  serve      run the daemon in the foreground [--port N] (the human runs this; agents never do)" and the exit code is 0
+- **THEN** standard output lists the serve command with a description saying the human runs it and agents never do, and the exit code is 0
 
 #### Scenario: Serve help  {#s-0396}
 *Verification*: **executable**
 - **GIVEN** any folder
 - **WHEN** flume serve --help is run
-- **THEN** standard output holds "usage: flume serve [--port N]" and the line "Only the human runs flume serve, in its own pane. Agents never start it.", and the exit code is 0
+- **THEN** standard output holds the usage line "Usage: flume serve [options]" and the line "Only the human runs flume serve, in its own pane. Agents never start it.", and the exit code is 0
 
 #### Scenario: Serve usage error  {#s-f885}
 *Verification*: **executable**
