@@ -2,9 +2,9 @@
 id = "fl-xg67"
 title = "Move the CLI to a TypeScript CLI package: --help everywhere, generated usage"
 kind = "arch-revision"
-state = "pending"
+state = "open"
 created_at = "2026-11-19T18:53:33.168Z"
-updated_at = "2026-11-19T18:56:35.690385251Z"
+updated_at = "2026-11-19T18:57:48.830029176Z"
 created_by = "external:advisor"
 watchers = ["external:advisor"]
 ticket = "xg67"
@@ -34,3 +34,12 @@ Stricli:
 Clipanion: out (latest is 4.0.0-rc.4 from 2024, and it depends on typanion).
 
 Recommendation: Commander with extra-typings. It meets every requirement in the Design with configuration only; Stricli needs a help command, an exit-code wrapper and a way around it for flume agent. Stricli's edge (types from the function signature, an injected context for tests) does not outweigh that. The human, 2026-11-19: "I'm leaning commander though".
+
+### note · external:advisor · 2026-11-19T18:57:28.742Z
+readied by external:advisor
+
+### note · external:advisor · 2026-11-19T18:57:28.762Z
+Readied by human via advisor: the human chose Commander ("yes commander"); Design updated.
+
+### note · external:orchestrator · 2026-11-19T18:57:48.830Z
+From orchestrator: noted. fl-jbxt is already dropped (superseded by xg67, human via advisor). xg67 stays pending until the human's go is relayed; when it comes I'll plan it to run alone, Sonnet, with the Artifactory note in the brief.
