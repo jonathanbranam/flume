@@ -21,13 +21,17 @@ command remembering to add them. Takes over fl-jbxt (every command takes --help)
 
 ### Package
 
-Not chosen yet; the human picks (see Discussion). Requirements:
+Commander with `@commander-js/extra-typings` (commander 15, Node 22.12 or later; flume needs
+22.18). Both are runtime dependencies with no dependencies of their own.
 
-- TypeScript-first: flag and argument types checked by the compiler.
-- `--help` on every command and subcommand, generated from the command definitions.
-- No runtime dependencies of its own (installs through `npm ci` from the Artifactory mirror; rule
-  built-for-the-work-sandbox).
-- Usage errors keep exit code 2 and go to standard error, as the specs say today.
+- `exitOverride`: help and version exit 0; every usage error exits 2, with the message and the
+  usage after it on standard error (`showHelpAfterError`).
+- Commander's help command gives `flume help <command> [<subcommand>]`, printing exactly what
+  `--help` prints, with exit 0.
+- `flume agent`: commander routes it and prints its help (usage line and a note that unknown
+  options and everything after `--` go to claude), and its action passes the raw arguments after
+  `agent` to flume's own agent parser, unchanged (agent spec, r-a2c0). Commander's
+  `passThroughOptions` is not used: it loses where `--` was.
 
 ### Scope
 
@@ -56,6 +60,11 @@ this??"
 Hand-rolled: each file in `src/cli/` (about 1,600 lines) walks its own args array and prints its
 own usage string, so `--help` exists only where a worker added it. The only runtime dependency is
 `yaml`. No decision was ever recorded on a CLI library (docs/design/stack.md chose Node only).
+
+### Decision
+
+The human, 2026-11-19: "yes commander", after the advisor's trial of both (comment on the
+thread).
 
 ### Candidates (advisor, 2026-11-19, from a web search)
 
