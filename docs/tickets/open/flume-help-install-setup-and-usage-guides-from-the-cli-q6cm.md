@@ -58,6 +58,11 @@ works." correctly.
   `flume help`.
 - The guide files ship with a `git pull`; no build step (rule built-for-the-work-sandbox).
 
+### Review
+
+The worker writes the guides and the top-level text directly and ships them with the command; the
+human reviews what ships. No draft review first.
+
 ### Specs
 
 A cli.md requirement for `flume help` (the topic list, each topic prints, unknown topic exits 1),
@@ -104,7 +109,8 @@ I suppose?"
   guide`; advisor recommends against (different audience and purpose).
 - `flume help <command>` as a synonym for `flume <command> --help` (as git does): not included
   (YAGNI); easy to add.
-- Show the drafts first: per the human's preference, a worker drafts the three guides into this
-  ticket (or a branch) for the human's review before the command is built around them.
+- Show the drafts first: superseded. The human, 2026-11-19: "I'm busy today, so, just have the
+  worker directly write the guides and I'll review what gets shipped."
+
 
 Related: every command takes --help (fl-jbxt).
