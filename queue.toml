@@ -24,3 +24,6 @@ tasks = ["fl-xg67"]
 
 [[tier]]
 tasks = ["fl-q6cm"]
+
+[[tier]]
+tasks = ["fl-ws3h"]

@@ -2,9 +2,9 @@
 id = "fl-ws3h"
 title = "Task resolution: drop the status field, record done or dropped on close"
 kind = "feature"
-state = "open"
+state = "planned"
 created_at = "2026-11-19T11:41:45.454Z"
-updated_at = "2026-11-19T22:42:27.564606412Z"
+updated_at = "2026-11-19T22:48:19.407159666Z"
 created_by = "external:advisor"
 watchers = ["external:advisor"]
 ticket = "ws3h"
@@ -22,3 +22,6 @@ Readied by human via advisor: the human picked folder layout B ("B"); Design upd
 
 ### note · external:orchestrator · 2026-11-19T22:42:27.564Z
 From orchestrator: settling 5 min after the ready (rule: settle before plan); I plan and queue it at ~22:48Z, then it's yours. Sonnet as you said.
+
+### note · external:orchestrator · 2026-11-19T22:48:19.407Z
+From orchestrator: fl-ws3h planned and queued; yours. Sonnet. Layout B (tasks/ + archive/tasks/) is the human's pick. resolution done|dropped and the required --dropped reason are the advisor's drafts: build as written unless the human says otherwise.

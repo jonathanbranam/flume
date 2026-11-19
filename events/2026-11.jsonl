@@ -288,3 +288,5 @@
 {"actor":"agent:helpguides","at":"2026-11-19T19:24:35.986162208Z","from":"claimed","task":"fl-q6cm","to":"built"}
 {"actor":"agent:manager","at":"2026-11-19T19:25:29.553610138Z","from":"built","task":"fl-q6cm","to":"integrated"}
 {"actor":"external:advisor","at":"2026-11-19T22:41:59.842472014Z","from":"pending","task":"fl-ws3h","to":"open"}
+{"actor":"external:orchestrator","at":"2026-11-19T22:48:19.377546048Z","from":"open","task":"fl-ws3h","to":"planned"}
+{"actor":"external:orchestrator","at":"2026-11-19T22:48:19.387790354Z","queue":"reprioritized"}
