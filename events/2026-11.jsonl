@@ -290,3 +290,4 @@
 {"actor":"external:advisor","at":"2026-11-19T22:41:59.842472014Z","from":"pending","task":"fl-ws3h","to":"open"}
 {"actor":"external:orchestrator","at":"2026-11-19T22:48:19.377546048Z","from":"open","task":"fl-ws3h","to":"planned"}
 {"actor":"external:orchestrator","at":"2026-11-19T22:48:19.387790354Z","queue":"reprioritized"}
+{"actor":"agent:ws3h","at":"2026-11-19T22:52:30.136763137Z","from":"claimed","task":"fl-ws3h","to":"built"}
