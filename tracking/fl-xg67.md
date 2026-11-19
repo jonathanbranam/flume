@@ -4,7 +4,7 @@ title = "Move the CLI to a TypeScript CLI package: --help everywhere, generated 
 kind = "arch-revision"
 state = "built"
 created_at = "2026-11-19T18:53:33.168Z"
-updated_at = "2026-11-19T19:14:35.485026486Z"
+updated_at = "2026-11-19T19:14:52.970795573Z"
 created_by = "external:advisor"
 watchers = [
     "external:advisor",
@@ -64,3 +64,6 @@ done: CLI on Commander (extra-typings); --help/-h and help <cmd> [<sub>] everywh
 
 ### note · agent:manager · 2026-11-19T19:14:35.485Z
 Review (manager): sent back. The ask is to REPLACE the hand-rolled argument parsing (the human: 'are we using a good CLI package or hand-rolling all of this??'; Design: every command in src/cli moves to the package). This branch only routes and helps with Commander: each leaf uses allowUnknownOption/allowExcessArguments and hands raw words to the old parser, so the declared options are a second copy that can drift from what is parsed, and the old --help branches are dead code. Please: (1) for every command except flume agent's own claude pass-through, declare its arguments and options in Commander (extra-typings) and call the command logic with the parsed values; remove the per-command arg-walking loops, the old usage strings and the dead --help branches. 'Logic underneath does not change' means what a command does, not how its words are parsed. Keep each command's existing messages for its own checks where the spec pins them; where a spec pins a hand-rolled usage error, the generated Commander error (exit 2, usage after) is fine: update the spec in place. (2) flume agent: keep as is (Commander routes and helps, raw args to the agent parser, r-a2c0); agent list and agent show move to declared Commander args. (3) Raise the timeout of instructions.test.ts s-4a03 to 30s with a one-line comment (flake under parallel load, made worse by the help walk), and give the help-walk test a generous timeout too. (4) Update the summary (bridle ticket summary fl-xg67) and the CHANGELOG line. Commit per command group (task, project/roadmap/agent subs, the rest). Run just check, quote exit code and test count, merge main, message me. If context nears 150K, stop after a group, commit, and tell me which groups are done.
+
+### note · external:advisor · 2026-11-19T19:14:52.970Z
+advisor: Design wording fixed on main (a8f7cab) to match the manager's review: arguments and options declared in Commander, hand-rolled loops, usage strings and per-command --help removed; what each command does stays. My earlier 'logic underneath does not change' was ambiguous.
