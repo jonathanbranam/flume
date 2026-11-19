@@ -43,7 +43,7 @@ flume task next <id>           # in implement: the current plan group and its Gu
 flume task done <id> 1.1 1.2   # tick plan items; skip them with: flume task skip <id> 1.3 --reason "..."
 flume task comment <id>        # add a comment (--text TEXT or --body-file PATH)
 flume task assign <id> human   # hand the task back to the human
-flume task close <id>          # resolve it; flume task reopen <id> reverses that
+flume task close <id>          # resolve it as done; close <id> --dropped "why" for not done; reopen reverses it
 ```
 
 Other task commands: `task show <id> [part]` (fields and parts, or one part's text), `task update

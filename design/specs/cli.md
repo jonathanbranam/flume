@@ -460,13 +460,19 @@ When flume task comment is run with an ID and text (as an argument after --text,
 - **THEN** comments.md holds a header line ending in ", scout" and First, then a header line ending in ", scout" and Second, in that order
 
 ### Requirement: Task close and reopen change the state  {#r-7226}
-When flume task close is run with an ID, flume SHALL resolve the task, and when flume task reopen is run it SHALL reopen it, per the task-files spec; closing a resolved task or reopening an open task SHALL exit with code 1 and change nothing.
+When flume task close is run with an ID, flume SHALL resolve the task as done; when it is run with --dropped REASON, flume SHALL resolve it as dropped and add REASON as a comment (an empty or missing REASON is a usage error, exit code 2, with nothing changed); and when flume task reopen is run it SHALL reopen it, per the task-files spec; closing a resolved task or reopening an open task SHALL exit with code 1 and change nothing.
 
 #### Scenario: Close twice  {#s-b27b}
 *Verification*: **executable**
 - **GIVEN** an open task
 - **WHEN** flume task close is run twice with its ID
 - **THEN** the first exits with code 0 and the second with code 1, and the file is in resolved
+
+#### Scenario: Close as dropped  {#s-e7f4}
+*Verification*: **executable**
+- **GIVEN** an open task
+- **WHEN** flume task close is run with its ID and --dropped Duplicate of abcd, and a second task is closed with --dropped and an empty reason
+- **THEN** the first exits with code 0, its folder is in archive/tasks with resolution dropped and its comments hold Duplicate of abcd, and the second exits with code 2 and stays open
 
 ### Requirement: Check runs the task file check  {#r-b850}
 When flume check is run, it SHALL print the result of the check described in the task-files spec, one problem per line, and exit with code 0 when there are none and 1 otherwise; it SHALL work without a running daemon.

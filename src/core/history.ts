@@ -19,6 +19,7 @@ export interface HistoryEntry {
   phase?: string;
   title?: string;
   kind?: string;
+  resolution?: string;
 }
 
 /** The action's data: everything in an entry except time, by and action. */

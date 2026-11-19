@@ -1,9 +1,12 @@
+import { existsSync, readdirSync, statSync } from "node:fs";
+import { join } from "node:path";
 import { checkGuides } from "./guides.ts";
 import { isValidId } from "./ids.ts";
+import { rel } from "./layout.ts";
 import { checkProjects } from "./projects.ts";
 import { checkRoadmap } from "./roadmap.ts";
 import { SLUG_MAX, SLUG_PATTERN } from "./slug.ts";
-import { listTaskFiles, type TaskEntry } from "./store.ts";
+import { listTaskFiles, OLD_LAYOUT, RESOLUTIONS, type TaskEntry } from "./store.ts";
 import { fields, KINDS, parseTaskYaml, wikiLinks } from "./taskfile.ts";
 
 export interface Problem {
@@ -65,7 +68,7 @@ export function checkProject(root: string): Problem[] {
   }
 
   for (const { entry: e, f, body } of parsed) {
-    for (const k of ["id", "title", "kind", "status", "created"]) {
+    for (const k of ["id", "title", "kind", "created"]) {
       if (typeof f[k] !== "string" || f[k] === "") add(e, `required field ${k} missing`);
     }
     if (typeof f.id === "string" && f.id !== "") {
@@ -80,8 +83,12 @@ export function checkProject(root: string): Problem[] {
     ) {
       add(e, `kind ${f.kind} is not one of ${KINDS.join(", ")}`);
     }
-    if (typeof f.status === "string" && f.status !== "" && f.status !== e.state) {
-      add(e, `status ${f.status} differs from the folder ${e.state}`);
+    if (f.resolution !== undefined) {
+      if (e.state === "open") add(e, "has a resolution field but is in tasks (open)");
+      else if (!(RESOLUTIONS as readonly string[]).includes(String(f.resolution)))
+        add(e, `resolution ${String(f.resolution)} is not one of ${RESOLUTIONS.join(", ")}`);
+    } else if (e.state === "resolved") {
+      add(e, "is resolved but has no resolution field");
     }
     if (
       typeof f.created === "string" &&
@@ -94,9 +101,9 @@ export function checkProject(root: string): Problem[] {
       if (typeof f.resolved !== "string" || !(STAMP.test(f.resolved) && realDate(f.resolved))) {
         add(e, "resolved is not a timestamp YYYY-MM-DDTHH:MM:SSZ");
       }
-      if (e.state === "open") add(e, "has a resolved field but is in open");
+      if (e.state === "open") add(e, "has a resolved field but is in tasks (open)");
     } else if (e.state === "resolved") {
-      add(e, "is in resolved but has no resolved field");
+      add(e, "is in archive/tasks but has no resolved field");
     }
 
     const refs: [string, string][] = [];
@@ -139,6 +146,20 @@ export function checkProject(root: string): Problem[] {
       if (seen.has(n)) continue;
       seen.add(n);
       stack.push(...(edges.get(n) ?? []));
+    }
+  }
+  // The old layout: flume never reads these, and never moves them.
+  for (const old of OLD_LAYOUT) {
+    const base = rel(root, "tasks", old);
+    const dir = join(root, base);
+    if (!existsSync(dir)) continue;
+    const to = old === "open" ? rel(root, "tasks") : rel(root, "archive", "tasks");
+    for (const name of readdirSync(dir).sort()) {
+      if (!statSync(join(dir, name)).isDirectory()) continue;
+      problems.push({
+        path: `${base}/${name}`,
+        message: `old layout: move this folder to ${to}/ (flume does not read tasks in ${base}/)`,
+      });
     }
   }
   problems.push(...checkProjects(root));

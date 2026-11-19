@@ -49,12 +49,17 @@ export interface TaskEntry {
   parts: string[];
 }
 
-const dirOf = (root: string, state: State) => rel(root, "tasks", state);
+/** Open tasks sit in tasks/, resolved ones in archive/tasks/ (both in the flume root). */
+const dirOf = (root: string, state: State) =>
+  state === "open" ? rel(root, "tasks") : rel(root, "archive", "tasks");
+
+/** Old-layout subfolders of tasks/: never read as tasks (flume check reports them). */
+export const OLD_LAYOUT = ["open", "resolved"] as const;
 
 const readOr = <T>(file: string, fallback: T): string | T =>
   existsSync(file) ? readFileSync(file, "utf8") : fallback;
 
-/** Every task folder in open and resolved, sorted by path. Missing folders count as empty. */
+/** Every task folder in tasks/ and archive/tasks/, sorted by path. Missing folders count as empty. */
 export function listTaskFiles(root: string): TaskEntry[] {
   const out: TaskEntry[] = [];
   for (const state of ["open", "resolved"] as const) {
@@ -62,6 +67,7 @@ export function listTaskFiles(root: string): TaskEntry[] {
     const dir = join(root, base);
     if (!existsSync(dir)) continue;
     for (const name of readdirSync(dir).sort()) {
+      if (state === "open" && (OLD_LAYOUT as readonly string[]).includes(name)) continue;
       const folder = join(dir, name);
       if (!statSync(folder).isDirectory()) continue;
       out.push({
@@ -123,7 +129,6 @@ export function createTask(root: string, t: NewTask): TaskEntry {
   setField(file, "id", id);
   setField(file, "title", t.title);
   setField(file, "kind", t.kind);
-  setField(file, "status", "open");
   setField(file, "phase", "proposal");
   setField(file, "created", (t.now ?? new Date()).toISOString().slice(0, 10));
   if (t.project) setField(file, "project", t.project);
@@ -184,22 +189,30 @@ export function retitleTask(root: string, ref: string, title: string): TaskEntry
   return mustFind(root, ref);
 }
 
-/** Move to resolved, set status and stamp `resolved` (task.yaml only; other files are untouched). */
-export function resolveTask(root: string, ref: string, now: Date = new Date()): TaskEntry {
+export const RESOLUTIONS = ["done", "dropped"] as const;
+export type Resolution = (typeof RESOLUTIONS)[number];
+
+/** Move to resolved, set `resolution` and stamp `resolved` (task.yaml only; other files are untouched). */
+export function resolveTask(
+  root: string,
+  ref: string,
+  now: Date = new Date(),
+  resolution: Resolution = "done",
+): TaskEntry {
   const e = mustFind(root, ref);
   if (e.state === "resolved") throw new Error(`task '${ref}' is already resolved`);
   const file = parseOrThrow(e);
-  setField(file, "status", "resolved");
+  setField(file, "resolution", resolution);
   setField(file, "resolved", `${now.toISOString().slice(0, 19)}Z`);
   return move(root, e, file, "resolved");
 }
 
-/** Move back to open, set status and remove `resolved`. */
+/** Move back to open and remove `resolved` and `resolution`. */
 export function reopenTask(root: string, ref: string): TaskEntry {
   const e = mustFind(root, ref);
   if (e.state === "open") throw new Error(`task '${ref}' is already open`);
   const file = parseOrThrow(e);
-  setField(file, "status", "open");
+  deleteField(file, "resolution");
   deleteField(file, "resolved");
   return move(root, e, file, "open");
 }

@@ -52,6 +52,7 @@ interface Opts {
   file?: string;
   remove?: boolean;
   reason?: string;
+  dropped?: string;
   phase?: string;
   closed?: boolean;
   all?: boolean;
@@ -72,6 +73,8 @@ export async function task(cwd: string, sub: string, pos: string[], o: Opts): Pr
     if (o.closed && o.all) throw new Usage("use --closed or --all, not both");
     if (sub === "skip" && (o.reason ?? "").trim() === "")
       throw new Usage("skip needs --reason TEXT");
+    if (sub === "close" && o.dropped !== undefined && o.dropped.trim() === "")
+      throw new Usage("--dropped needs a REASON");
     if (sub === "write" && o.remove && o.file !== undefined)
       throw new Usage("use --file or --remove, not both");
     if (sub === "comment" && o.text === undefined && o.bodyFile === undefined)
@@ -207,7 +210,13 @@ export async function task(cwd: string, sub: string, pos: string[], o: Opts): Pr
       });
       if (json) out(JSON.stringify(t));
     } else {
-      const t = await call("POST", `/api/tasks/${enc(pos[0] as string)}/${sub}`);
+      const t = await call(
+        "POST",
+        `/api/tasks/${enc(pos[0] as string)}/${sub}`,
+        sub === "close" && o.dropped !== undefined
+          ? { dropped: o.dropped, ...(isAgent() ? { author: actorName() } : {}) }
+          : undefined,
+      );
       if (json) out(JSON.stringify(t));
     }
     return 0;
@@ -369,8 +378,9 @@ export function taskCommand(): Command {
     .action(function (id, o) {
       return run(this, "claim", [id], o);
     });
-  sub("close", "resolve the task")
+  sub("close", "resolve the task as done, or as dropped with --dropped REASON")
     .argument("<id>")
+    .option("--dropped <reason>", "resolve as dropped (not done); REASON is added as a comment")
     .option(J, JD)
     .action(function (id, o) {
       return run(this, "close", [id], o);

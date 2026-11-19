@@ -78,7 +78,7 @@ const create = async (title: string, extra: object = {}) => {
   return r.body;
 };
 const files = (state: string) => {
-  const p = join(root, "flume/tasks", state);
+  const p = join(root, state === "open" ? "flume/tasks" : "flume/archive/tasks");
   return existsSync(p) ? readdirSync(p) : [];
 };
 /** task.yaml, body.md and comments.md of a task folder, joined. */
@@ -252,6 +252,19 @@ describe("daemon api", () => {
     expect(r.status).toBe(200);
     expect(r.body.state).toBe("resolved");
     expect(r.body.resolved).toMatch(/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ$/);
+    expect(r.body.resolution).toBe("done");
+  });
+
+  it("s-510a close as dropped", async () => {
+    const t = await create("Dropped thing");
+    const bad = await call("POST", `/api/tasks/${t.id}/close`, { dropped: "  " });
+    expect(bad.status).toBe(400);
+    expect(files("open")).toHaveLength(1);
+    const r = await call("POST", `/api/tasks/${t.id}/close`, { dropped: "Duplicate of abcd" });
+    expect(r.status).toBe(200);
+    expect(r.body.state).toBe("resolved");
+    expect(r.body.resolution).toBe("dropped");
+    expect(r.body.comments).toContain("Duplicate of abcd");
   });
 
   it("s-063c unknown id", async () => {
@@ -491,7 +504,7 @@ describe("daemon api", () => {
     expect(commitsSince(before)).toHaveLength(1);
     const st = git(root, "show", "--no-renames", "--name-status", "--format=", "HEAD").split("\n");
     expect(st).toContain(`D\t${t.path}/task.yaml`);
-    expect(st).toContain(`A\t${t.path.replace("/open/", "/resolved/")}/task.yaml`);
+    expect(st).toContain(`A\t${t.path.replace("flume/tasks/", "flume/archive/tasks/")}/task.yaml`);
     expect(clean()).toBe("");
   });
 
@@ -781,7 +794,7 @@ describe("task history", () => {
     expect(h[1]).toMatchObject({ field: "title", from: "H", to: "H2" });
     expect(h[5]).toMatchObject({ part: "plan" });
     expect(JSON.stringify(h[5])).not.toContain("1.1 a");
-    expect(re.body.path).toContain("/open/");
+    expect(re.body.path).toContain("flume/tasks/");
     expect(git(root, "status", "--porcelain")).toBe("");
   });
 

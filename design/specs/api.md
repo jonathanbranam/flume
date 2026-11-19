@@ -2,7 +2,7 @@
 
 The daemon is the only writer of task files. It serves JSON over HTTP on the local machine. Ticket: fl-47b8.
 
-Assumptions (recorded on fl-47b8): paths start with /api; requests with a body and all responses are JSON (UTF-8); an error response has the status code and a body {"error": "<message>"}; there is no login because the daemon listens on 127.0.0.1 only (a work-sandbox rule: localhost works); one daemon serves one task root, the tasks repository whose flume.yaml names the flume root (a git repository in the workspace or a separate task repository); the daemon commits each change there (advisor note on fl-47b8) and never pushes. A task object has the fields id, title, kind, state (open or resolved), project (null when none), created, resolved (null when open), parent (null when none), blocked_by, related, assignee (empty when none), agent (empty when none), phase, parts (the names of the parts the task has), path (the task folder, relative to the project root), body (body.md as stored), comments (comments.md as stored, empty when none) and fields (task.yaml as stored). A list omits body, comments and fields.
+Assumptions (recorded on fl-47b8): paths start with /api; requests with a body and all responses are JSON (UTF-8); an error response has the status code and a body {"error": "<message>"}; there is no login because the daemon listens on 127.0.0.1 only (a work-sandbox rule: localhost works); one daemon serves one task root, the tasks repository whose flume.yaml names the flume root (a git repository in the workspace or a separate task repository); the daemon commits each change there (advisor note on fl-47b8) and never pushes. A task object has the fields id, title, kind, state (open or resolved), project (null when none), created, resolved (null when open), resolution (done or dropped; null when open), parent (null when none), blocked_by, related, assignee (empty when none), agent (empty when none), phase, parts (the names of the parts the task has), path (the task folder, relative to the project root), body (body.md as stored), comments (comments.md as stored, empty when none) and fields (task.yaml as stored). A list omits body, comments and fields.
 
 ## Requirements
 
@@ -67,13 +67,13 @@ When POST /api/tasks is requested with title (required), kind (default feature),
 - **THEN** the status is 400 and no task folder is written
 
 ### Requirement: Read a task  {#r-0645}
-When GET /api/tasks/{id} is requested, the daemon SHALL answer 200 with the task object, finding it in open or resolved, and 404 when no task has that ID.
+When GET /api/tasks/{id} is requested, the daemon SHALL answer 200 with the task object, finding it in tasks or archive/tasks, and 404 when no task has that ID.
 
 #### Scenario: Read a resolved task  {#s-34d3}
 *Verification*: **executable**
 - **GIVEN** a resolved task with ID k7tm
 - **WHEN** GET /api/tasks/k7tm is requested
-- **THEN** the status is 200 and state is resolved and resolved is a timestamp
+- **THEN** the status is 200 and state is resolved, resolved is a timestamp and resolution is done
 
 #### Scenario: Unknown ID  {#s-063c}
 *Verification*: **executable**
@@ -121,13 +121,19 @@ When POST /api/tasks/{id}/comments is requested with text and an optional author
 - **THEN** the status is 200 and comments holds a header line ending in ", scout", a blank line and Found the cause
 
 ### Requirement: Close and reopen  {#r-17ac}
-When POST /api/tasks/{id}/close or POST /api/tasks/{id}/reopen is requested, the daemon SHALL change the state per the task-files spec and answer 200 with the task object; closing a resolved task or reopening an open one SHALL answer 409 with nothing changed, and an unknown task 404.
+When POST /api/tasks/{id}/close or POST /api/tasks/{id}/reopen is requested, the daemon SHALL change the state per the task-files spec and answer 200 with the task object; close with a body holding dropped (a non-empty reason, and optionally author) SHALL resolve the task as dropped and add the reason as a comment, and an empty reason SHALL answer 400 with nothing changed; closing a resolved task or reopening an open one SHALL answer 409 with nothing changed, and an unknown task 404.
 
 #### Scenario: Close twice  {#s-3131}
 *Verification*: **executable**
 - **GIVEN** an open task
 - **WHEN** POST /api/tasks/{id}/close is requested twice
 - **THEN** the first status is 200 with state resolved and the second is 409
+
+#### Scenario: Close as dropped  {#s-510a}
+*Verification*: **executable**
+- **GIVEN** an open task
+- **WHEN** POST /api/tasks/{id}/close is requested with dropped Duplicate of abcd
+- **THEN** the status is 200, state is resolved, resolution is dropped and comments holds Duplicate of abcd; and a close with an empty dropped answers 400 and leaves the task open
 
 ### Requirement: Check  {#r-024a}
 When GET /api/check is requested, the daemon SHALL answer 200 with ok (true when there are no problems) and problems (a list of objects with path and message), per the check in the task-files spec.

@@ -402,8 +402,26 @@ export function startDaemon(opts: {
           throw new HttpError(409, `task ${ref} is already resolved`);
         if (c === "reopen" && e.state === "open")
           throw new HttpError(409, `task ${ref} is already open`);
-        const u = c === "close" ? resolveTask(root, ref) : reopenTask(root, ref);
-        log(u, c);
+        let dropped: string | undefined;
+        if (c === "close" && body.dropped !== undefined) {
+          if (typeof body.dropped !== "string" || body.dropped.trim() === "")
+            throw new HttpError(400, "dropped needs a reason");
+          dropped = body.dropped.trim();
+        }
+        if (dropped !== undefined) {
+          const author =
+            typeof body.author === "string" && body.author.trim() !== ""
+              ? body.author.trim()
+              : userInfo().username;
+          bad(() => addComment(root, ref, dropped as string, author));
+        }
+        const u =
+          c === "close"
+            ? bad(() =>
+                resolveTask(root, ref, new Date(), dropped === undefined ? "done" : "dropped"),
+              )
+            : reopenTask(root, ref);
+        log(u, c, c === "close" ? { resolution: dropped === undefined ? "done" : "dropped" } : {});
         commit(e.nameId, c === "close" ? "close" : "reopen", [e.path, u.path]);
         return [200, taskObject(u)];
       }

@@ -29,8 +29,8 @@ const flume = (cwd: string, args: string[]) =>
 
 const FIX = "fix-redirect-aaaa";
 const SETUP = "setup-bbbb";
-function put(state: string, stem: string, title: string, resolved = ""): string {
-  return `id: ${stem.slice(-4)}\ntitle: ${title}\nkind: feature\nstatus: ${state}\ncreated: 2026-11-16\n${resolved}`;
+function put(stem: string, title: string, resolved = ""): string {
+  return `id: ${stem.slice(-4)}\ntitle: ${title}\nkind: feature\ncreated: 2026-11-16\n${resolved}`;
 }
 
 /** A git repo with two tasks (open Fix redirect, resolved Setup) and the given roadmap. */
@@ -38,15 +38,14 @@ function project(roadmap?: string): string {
   const d = realpathSync(mkdtempSync(join(tmpdir(), "flume-roadmap-")));
   dirs.push(d);
   execFileSync("git", ["init", "-q", "-b", "main"], { cwd: d, env });
-  mkdirSync(join(d, "flume/tasks/open"), { recursive: true });
-  mkdirSync(join(d, "flume/tasks/resolved"), { recursive: true });
   for (const [state, stem, title, extra] of [
     ["open", FIX, "Fix redirect", ""],
-    ["resolved", SETUP, "Setup", "resolved: 2026-11-16T10:00:00Z\n"],
+    ["resolved", SETUP, "Setup", "resolved: 2026-11-16T10:00:00Z\nresolution: done\n"],
   ] as const) {
-    mkdirSync(join(d, "flume/tasks", state, stem));
-    writeFileSync(join(d, "flume/tasks", state, stem, "task.yaml"), put(state, stem, title, extra));
-    writeFileSync(join(d, "flume/tasks", state, stem, "body.md"), "body\n");
+    const dir = join(d, state === "open" ? "flume/tasks" : "flume/archive/tasks", stem);
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(join(dir, "task.yaml"), put(stem, title, extra));
+    writeFileSync(join(dir, "body.md"), "body\n");
   }
   if (roadmap !== undefined) writeFileSync(join(d, "flume/roadmap.md"), roadmap);
   return d;

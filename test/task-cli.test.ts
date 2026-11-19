@@ -71,7 +71,7 @@ async function project(): Promise<string> {
 }
 
 const ls = (repo: string, state: string) => {
-  const p = join(repo, "flume/tasks", state);
+  const p = join(repo, state === "open" ? "flume/tasks" : "flume/archive/tasks");
   return existsSync(p) ? readdirSync(p).sort() : [];
 };
 const readFile = (repo: string, folder: string, f: string) =>
@@ -211,7 +211,7 @@ describe("flume task commands", () => {
     flume(repo, ["task", "close", t.id]);
     const r = flume(repo, ["task", "show", t.id]);
     expect(r.stdout).toBe(
-      `${readFile(repo, t.path.replace("/open/", "/resolved/"), "task.yaml")}\nparts: body\nFor what to do now: flume task instructions ${t.id}\n`,
+      `${readFile(repo, t.path.replace("flume/tasks/", "flume/archive/tasks/"), "task.yaml")}\nparts: body\nFor what to do now: flume task instructions ${t.id}\n`,
     );
     flume(repo, ["stop"]);
   });
@@ -336,6 +336,21 @@ describe("flume task commands", () => {
     flume(repo, ["stop"]);
   });
 
+  it("s-e7f4 close as dropped", async () => {
+    const repo = await project();
+    const t = mk(repo, "A");
+    const u = mk(repo, "B");
+    expect(flume(repo, ["task", "close", t.id, "--dropped", "Duplicate of abcd"]).status).toBe(0);
+    const [stem] = ls(repo, "resolved");
+    const dir = join(repo, "flume/archive/tasks", stem as string);
+    expect(readFileSync(join(dir, "task.yaml"), "utf8")).toContain("resolution: dropped");
+    expect(readFileSync(join(dir, "comments.md"), "utf8")).toContain("Duplicate of abcd");
+    expect(flume(repo, ["task", "close", u.id, "--dropped", ""]).status).toBe(2);
+    expect(flume(repo, ["task", "close", u.id, "--dropped"]).status).toBe(2);
+    expect(ls(repo, "open")).toHaveLength(1);
+    flume(repo, ["stop"]);
+  });
+
   it("s-b27b close twice, and reopen", async () => {
     const repo = await project();
     const t = mk(repo, "A");
@@ -386,7 +401,7 @@ describe("flume task commands", () => {
 describe("flume check as JSON", () => {
   it("s-938a check as JSON with no problems", () => {
     const repo = tempRepo();
-    mkdirSync(join(repo, "flume/tasks/open"), { recursive: true });
+    mkdirSync(join(repo, "flume/tasks"), { recursive: true });
     const r = flume(repo, ["check", "--json"]);
     expect(r.status).toBe(0);
     expect(JSON.parse(r.stdout)).toEqual([]);
@@ -395,13 +410,13 @@ describe("flume check as JSON", () => {
 
   it("s-2e9d check as JSON with a problem", () => {
     const repo = tempRepo();
-    mkdirSync(join(repo, "flume/tasks/open/hello-aaaa"), { recursive: true });
+    mkdirSync(join(repo, "flume/tasks/hello-aaaa"), { recursive: true });
     // The folder name ends in aaaa but the id in its task.yaml is bbbb.
     writeFileSync(
-      join(repo, "flume/tasks/open/hello-aaaa/task.yaml"),
-      "id: bbbb\ntitle: Hello\nkind: feature\nstatus: open\ncreated: 2026-11-16\n",
+      join(repo, "flume/tasks/hello-aaaa/task.yaml"),
+      "id: bbbb\ntitle: Hello\nkind: feature\ncreated: 2026-11-16\n",
     );
-    writeFileSync(join(repo, "flume/tasks/open/hello-aaaa/body.md"), "body\n");
+    writeFileSync(join(repo, "flume/tasks/hello-aaaa/body.md"), "body\n");
     const r = flume(repo, ["check", "--json"]);
     expect(r.status).toBe(1);
     const problems = JSON.parse(r.stdout) as { path: string; message: string }[];

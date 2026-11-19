@@ -4,24 +4,24 @@ A task is a folder holding task.yaml (its fields), body.md (the ask), comments.m
 
 In this spec the flume root is the folder named by the dir key of flume.yaml at the top of the tasks repository (flume, or . for the repository top itself); flume uses flume when there is no flume.yaml. The tasks repository root is called the project root below.
 
-Assumptions (recorded on fl-47b8 and fl-3pfa): the unit is a task; task folders are tasks/open and tasks/resolved in the flume root; tasks of all projects share them; every file with fields is flat YAML; there is no migration, and the old layout (one Markdown file per task with front matter) is not read; slugs are cut to 50 characters; IDs have no project prefix (YAGNI); kinds are feature, bug, chore, docs, research and epic; the task format has no steps or workflow fields yet.
+Assumptions (recorded on fl-47b8 and fl-3pfa): the unit is a task; task folders are tasks (open) and archive/tasks (resolved) in the flume root; tasks of all projects share them; every file with fields is flat YAML; there is no migration, and the old layout (one Markdown file per task with front matter) is not read; slugs are cut to 50 characters; IDs have no project prefix (YAGNI); kinds are feature, bug, chore, docs, research and epic; the task format has no steps or workflow fields yet.
 
 ## Requirements
 
 ### Requirement: A task is a folder in a state folder  {#r-94ad}
-Each task SHALL be one folder named slug-id, in tasks/open of the flume root for an open task or tasks/resolved of the flume root for a resolved task, holding the files task.yaml and body.md, and comments.md once a comment exists.
+Each task SHALL be one folder named slug-id, in tasks of the flume root for an open task or archive/tasks of the flume root for a resolved task, holding the files task.yaml and body.md, and comments.md once a comment exists.
 
 #### Scenario: A new task lands in open  {#s-75e6}
 *Verification*: **executable**
 - **GIVEN** a project with no tasks
 - **WHEN** a task titled Fix the login redirect is created
-- **THEN** exactly one folder exists in flume/tasks/open, it holds task.yaml and body.md, and none exists in flume/tasks/resolved
+- **THEN** exactly one folder exists in flume/tasks, it holds task.yaml and body.md, and none exists in flume/archive/tasks
 
 #### Scenario: Tasks at the top of the repository  {#s-daad}
 *Verification*: **executable**
 - **GIVEN** a tasks repository whose flume.yaml says dir: .
 - **WHEN** a task is created
-- **THEN** its folder is in tasks/open at the top of the repository, and not in a folder named flume
+- **THEN** its folder is in tasks at the top of the repository, and not in a folder named flume
 
 ### Requirement: The slug comes from the title  {#r-d046}
 When a task is created, flume SHALL build the slug from its title: lowercase ASCII letters and digits, every run of other characters replaced by one hyphen, no leading or trailing hyphen, cut to at most 50 characters with no trailing hyphen left by the cut.
@@ -66,13 +66,13 @@ When a task's title changes or the task is resolved or reopened, flume SHALL kee
 - **THEN** the folder name is the same as before and the title line in task.yaml reads Brand new title
 
 ### Requirement: task.yaml holds the task's fields  {#r-770c}
-A task folder's task.yaml SHALL be a flat YAML mapping with these fields: id, title, kind, status (open or resolved, the same as the state folder), phase (proposal for a new task; see the workflow spec), created (a date, YYYY-MM-DD, UTC), and optionally assignee, agent (see the workflow spec), project (the name of the project the task belongs to), parent, blocked_by (a list of IDs), related (a list of IDs) and resolved (a UTC timestamp, YYYY-MM-DDTHH:MM:SSZ).
+A task folder's task.yaml SHALL be a flat YAML mapping with these fields: id, title, kind, phase (proposal for a new task; see the workflow spec), created (a date, YYYY-MM-DD, UTC), and optionally assignee, agent (see the workflow spec), project (the name of the project the task belongs to), parent, blocked_by (a list of IDs), related (a list of IDs) resolved (a UTC timestamp, YYYY-MM-DDTHH:MM:SSZ) and resolution (done or dropped), where resolved and resolution are present only on a resolved task; the state of a task is the folder it sits in and is not a field.
 
 #### Scenario: A new task has the minimal fields  {#s-ee5a}
 *Verification*: **executable**
 - **GIVEN** a project with no tasks
 - **WHEN** a task titled Add a roadmap with kind feature is created on 2026-11-20 UTC
-- **THEN** its task.yaml has id equal to the ID in the folder name, title Add a roadmap, kind feature, status open, phase proposal and created 2026-11-20
+- **THEN** its task.yaml has id equal to the ID in the folder name, title Add a roadmap, kind feature, phase proposal and no resolution and created 2026-11-20
 - **THEN** its task.yaml has no resolved field
 
 #### Scenario: IDs in front matter are bare  {#s-9e99}
@@ -97,13 +97,13 @@ A task's kind SHALL be one of feature, bug, chore, docs, research or epic.
 - **THEN** the task is refused naming the allowed kinds and no file is written
 
 ### Requirement: Resolving moves the folder and stamps the time  {#r-c30e}
-When a task is resolved, flume SHALL move its folder from open to resolved, set status to resolved and set resolved to the current UTC time in task.yaml; when a task is reopened, flume SHALL move it back, set status to open and remove the resolved field; flume SHALL write only task.yaml (never body.md or comments.md) and SHALL move every other file in the folder along with it unchanged.
+When a task is resolved, flume SHALL move its folder from tasks to archive/tasks, set resolution to done (or dropped when it is resolved as dropped) and set resolved to the current UTC time in task.yaml; when a task is reopened, flume SHALL move it back and remove the resolved and resolution fields; flume SHALL write only task.yaml (never body.md or comments.md) and SHALL move every other file in the folder along with it unchanged.
 
 #### Scenario: Resolve then reopen  {#s-8719}
 *Verification*: **executable**
 - **GIVEN** an open task
 - **WHEN** it is resolved, and then reopened
-- **THEN** after the first step the folder is in resolved with status resolved and a resolved timestamp, and after the second it is in open with status open and no resolved field
+- **THEN** after the first step the folder is in archive/tasks with resolution done and a resolved timestamp, and after the second it is in tasks with no resolved and no resolution field
 
 ### Requirement: A parent is an epic and an epic has no parent  {#r-d671}
 A task's parent, when present, SHALL be the ID of an epic, and a task of kind epic SHALL have no parent.
@@ -149,7 +149,7 @@ When a task body links to another task, the link SHALL be a wiki link by the tas
 - **THEN** flume check still passes
 
 ### Requirement: Check reports every problem in the task files  {#r-9fcb}
-When flume check runs, it SHALL examine every task folder in open and resolved and report each problem as a line holding the folder path and a message, covering: task.yaml or body.md missing or task.yaml not parsable; a required field (id, title, kind, status, created) missing; an ID not well formed; an ID in task.yaml that differs from the ID in the folder name; a status that differs from the state folder; two folders with the same ID; a kind not in the list; a resolved field in open or no resolved field in resolved; a parent, blocked_by or related ID that names no task; a parent that is not an epic; and a wiki link, in body.md or comments.md, that names no task file.
+When flume check runs, it SHALL examine every task folder in tasks and archive/tasks and report each problem as a line holding the folder path and a message, covering: task.yaml or body.md missing or task.yaml not parsable; a required field (id, title, kind, created) missing; an ID not well formed; an ID in task.yaml that differs from the ID in the folder name; two folders with the same ID; a kind not in the list; a resolved or resolution field on an open task; a resolved task with no resolved field or no resolution field; a resolution other than done or dropped; any folder in the old locations tasks/open or tasks/resolved (the message says to move it to tasks or archive/tasks; flume never reads or moves it); a parent, blocked_by or related ID that names no task; a parent that is not an epic; and a wiki link, in body.md or comments.md, that names no task file.
 
 #### Scenario: A clean project  {#s-5496}
 *Verification*: **executable**
@@ -177,15 +177,21 @@ When flume check runs, it SHALL examine every task folder in open and resolved a
 
 #### Scenario: Wrong folder  {#s-a4c6}
 *Verification*: **executable**
-- **GIVEN** a folder in open whose task.yaml has a resolved field
+- **GIVEN** a folder in tasks whose task.yaml has a resolved field
 - **WHEN** flume check runs
 - **THEN** it exits with code 1 and prints a problem for that folder
 
-#### Scenario: Status disagrees with the folder  {#s-da82}
+#### Scenario: Resolution disagrees with the folder  {#s-da82}
 *Verification*: **executable**
-- **GIVEN** an open task whose task.yaml status is changed by hand to resolved
+- **GIVEN** an open task whose task.yaml has resolution done added by hand, a resolved task with no resolution, and a resolved task with resolution maybe
 - **WHEN** flume check runs
-- **THEN** it exits with code 1 and prints a problem for that folder saying the status differs from the folder
+- **THEN** it exits with code 1 and prints one problem for each of the three folders naming the resolution
+
+#### Scenario: Old layout folder  {#s-7035}
+*Verification*: **executable**
+- **GIVEN** a task folder in flume/tasks/open and one in flume/tasks/resolved
+- **WHEN** flume check runs
+- **THEN** it exits with code 1 and prints a problem for each saying to move it, and flume task list does not list them
 
 ### Requirement: Check also reports file names and dependency cycles  {#r-43e7}
 When flume check runs, it SHALL report a folder name that is not a slug of lowercase letters, digits and hyphens (at most 50 characters) followed by a hyphen and a well formed 4 character ID, and each task that is blocked, directly or through other tasks, by itself.

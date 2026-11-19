@@ -38,20 +38,20 @@ afterEach(() => rmSync(root, { recursive: true, force: true }));
 
 const ls = (state: string) => {
   try {
-    return readdirSync(join(root, "flume/tasks", state));
+    return readdirSync(join(root, state === "open" ? "flume/tasks" : "flume/archive/tasks"));
   } catch {
     return [];
   }
 };
 /** Write a task folder by hand: task.yaml from `yaml`, body.md from `body`. */
 const put = (state: string, name: string, yaml: string, body = "## The ask\n\n") => {
-  const d = join(root, "flume/tasks", state, name);
+  const d = join(root, state === "open" ? "flume/tasks" : "flume/archive/tasks", name);
   mkdirSync(d, { recursive: true });
   writeFileSync(join(d, "task.yaml"), yaml);
   writeFileSync(join(d, "body.md"), body);
 };
-const fm = (id: string, extra = "", kind = "feature", status = "open") =>
-  `id: ${id}\ntitle: T ${id}\nkind: ${kind}\nstatus: ${status}\ncreated: 2026-11-20\n${extra}`;
+const fm = (id: string, extra = "", kind = "feature") =>
+  `id: ${id}\ntitle: T ${id}\nkind: ${kind}\ncreated: 2026-11-20\n${extra}`;
 const runCheck = () => {
   const r = spawnSync("node", [bin, "check"], { cwd: root, encoding: "utf8" });
   return { code: r.status, out: r.stdout.split("\n").filter(Boolean) };
@@ -62,7 +62,7 @@ describe("task files", () => {
   it("s-75e6 a new task lands in open", () => {
     createTask(root, { title: "Fix the login redirect", kind: "bug" });
     expect(ls("open").length).toBe(1);
-    const d = join(root, "flume/tasks/open", ls("open")[0] as string);
+    const d = join(root, "flume/tasks", ls("open")[0] as string);
     expect(readdirSync(d).sort()).toEqual(["body.md", "task.yaml"]);
     expect(ls("resolved").length).toBe(0);
   });
@@ -123,7 +123,6 @@ describe("task files", () => {
       id: e.nameId,
       title: "Add a roadmap",
       kind: "feature",
-      status: "open",
       phase: "proposal",
       created: "2026-11-20",
     });
@@ -145,13 +144,14 @@ describe("task files", () => {
     const r = resolveTask(root, e.nameId, new Date("2026-11-21T01:02:03.456Z"));
     expect(r.state).toBe("resolved");
     expect(read(r, "task.yaml")).toContain("resolved: 2026-11-21T01:02:03Z\n");
-    expect(read(r, "task.yaml")).toContain("status: resolved\n");
+    expect(read(r, "task.yaml")).toContain("resolution: done\n");
     expect(ls("open")).toEqual([]);
     expect(r.stem).toBe(e.stem);
     const o = reopenTask(root, e.nameId);
     expect(o.state).toBe("open");
     expect(read(o, "task.yaml")).not.toContain("resolved:");
-    expect(read(o, "task.yaml")).toContain("status: open\n");
+    expect(read(o, "task.yaml")).not.toContain("resolution");
+    expect(read(o, "task.yaml")).not.toContain("status");
   });
 
   it("s-a614 a parent must be an epic", () => {
@@ -183,15 +183,15 @@ describe("task files", () => {
     addComment(root, e.stem, "Hi", "scout");
     const r = resolveTask(root, e.stem);
     expect(readFileSync(join(root, r.path, "notes.csv"), "utf8")).toBe("a,b\n1,2\n");
-    expect(r.path).toContain("/resolved/");
+    expect(r.path).toContain("/archive/tasks/");
     expect(read(r, "body.md")).toBe("## The ask\n\n");
   });
 
   it("s-daad tasks at the top of the repository", () => {
     writeFileSync(join(root, "flume.yaml"), "dir: .\n");
     const e = createTask(root, { title: "Top", kind: "chore" });
-    expect(e.path).toBe(`tasks/open/${e.stem}`);
-    expect(existsSync(join(root, "tasks/open", e.stem, "task.yaml"))).toBe(true);
+    expect(e.path).toBe(`tasks/${e.stem}`);
+    expect(existsSync(join(root, "tasks", e.stem, "task.yaml"))).toBe(true);
     expect(existsSync(join(root, "flume"))).toBe(false);
   });
 
@@ -235,16 +235,12 @@ describe("flume check", () => {
 
   it("s-b0d8 duplicate IDs", () => {
     put("open", "aa-k7tm", fm("k7tm"));
-    put(
-      "resolved",
-      "bb-k7tm",
-      fm("k7tm", "resolved: 2026-11-21T00:00:00Z\n", "feature", "resolved"),
-    );
+    put("resolved", "bb-k7tm", fm("k7tm", "resolved: 2026-11-21T00:00:00Z\nresolution: done\n"));
     const r = runCheck();
     expect(r.code).toBe(1);
     expect(r.out.filter((l) => l.includes("duplicate id"))).toHaveLength(2);
-    expect(r.out.some((l) => l.startsWith("flume/tasks/open/aa-k7tm:"))).toBe(true);
-    expect(r.out.some((l) => l.startsWith("flume/tasks/resolved/bb-k7tm:"))).toBe(true);
+    expect(r.out.some((l) => l.startsWith("flume/tasks/aa-k7tm:"))).toBe(true);
+    expect(r.out.some((l) => l.startsWith("flume/archive/tasks/bb-k7tm:"))).toBe(true);
   });
 
   it("s-b427 a broken reference and a broken link", () => {
@@ -263,7 +259,7 @@ describe("flume check", () => {
     expect(r.out).toHaveLength(1);
     expect(r.out[0]).toContain("aa-k7tm");
     put("open", "aa-k7tm", fm("k7tm"));
-    put("resolved", "bb-n3pq", fm("n3pq", "", "feature", "resolved"));
+    put("resolved", "bb-n3pq", fm("n3pq", "resolution: done\n"));
     expect(checkProject(root).map(formatProblem).join("\n")).toContain("no resolved field");
   });
 
@@ -271,7 +267,7 @@ describe("flume check", () => {
     put("open", "Bad Name", fm("k7tm"));
     const r = runCheck();
     expect(r.code).toBe(1);
-    expect(r.out.some((l) => l.startsWith("flume/tasks/open/Bad Name:"))).toBe(true);
+    expect(r.out.some((l) => l.startsWith("flume/tasks/Bad Name:"))).toBe(true);
   });
 
   it("s-258c a dependency cycle", () => {
@@ -287,17 +283,35 @@ describe("flume check", () => {
     const r = runCheck();
     expect(r.code).toBe(1);
     expect(r.out).toHaveLength(1);
-    expect(r.out[0]).toContain("flume/tasks/open/aa-k7tm");
+    expect(r.out[0]).toContain("flume/tasks/aa-k7tm");
   });
 
-  it("s-da82 status disagrees with the folder", () => {
-    const e = createTask(root, { title: "one", kind: "chore" });
-    const p = join(root, e.path, "task.yaml");
-    writeFileSync(p, readFileSync(p, "utf8").replace("status: open", "status: resolved"));
+  it("s-da82 resolution disagrees with the folder", () => {
+    put("open", "aa-k7tm", fm("k7tm", "resolution: done\n"));
+    put("resolved", "bb-n3pq", fm("n3pq", "resolved: 2026-11-21T00:00:00Z\n"));
+    put("resolved", "cc-d4ef", fm("d4ef", "resolved: 2026-11-21T00:00:00Z\nresolution: maybe\n"));
     const r = runCheck();
     expect(r.code).toBe(1);
-    expect(r.out).toHaveLength(1);
-    expect(r.out[0]).toContain("status resolved differs from the folder open");
+    expect(r.out).toHaveLength(3);
+    expect(r.out.every((l) => l.includes("resolution"))).toBe(true);
+  });
+
+  it("s-7035 old layout folders are reported and never read", () => {
+    for (const old of ["open", "resolved"]) {
+      const d = join(root, "flume/tasks", old, "x-k7tm");
+      mkdirSync(d, { recursive: true });
+      writeFileSync(join(d, "task.yaml"), fm("k7tm"));
+      writeFileSync(join(d, "body.md"), "b\n");
+    }
+    const r = runCheck();
+    expect(r.code).toBe(1);
+    expect(r.out).toHaveLength(2);
+    expect(r.out[0]).toContain(
+      "flume/tasks/open/x-k7tm: old layout: move this folder to flume/tasks/",
+    );
+    expect(r.out[1]).toContain("move this folder to flume/archive/tasks/");
+    expect(listTaskFiles(root)).toEqual([]);
+    expect(existsSync(join(root, "flume/tasks/open/x-k7tm/task.yaml"))).toBe(true);
   });
 
   it("reports missing files, kind, parent and field problems", () => {
@@ -305,14 +319,14 @@ describe("flume check", () => {
     put("open", "b-n3pq", "id: n3pq\ntitle: x\n");
     put("open", "c-d4ef", fm("d4ef", "", "idea"));
     put("open", "d-g5hj", fm("g5hj", "parent: d4ef\n"));
-    mkdirSync(join(root, "flume/tasks/open/e-m2np"));
+    mkdirSync(join(root, "flume/tasks/e-m2np"));
     const text = checkProject(root).map(formatProblem).join("\n");
     expect(text).toContain("task.yaml not parsable");
     expect(text).toContain("required field kind missing");
     expect(text).toContain("kind idea is not one of");
     expect(text).toContain("parent d4ef is not an epic");
-    expect(text).toContain("flume/tasks/open/e-m2np: task.yaml missing");
-    expect(text).toContain("flume/tasks/open/e-m2np: body.md missing");
+    expect(text).toContain("flume/tasks/e-m2np: task.yaml missing");
+    expect(text).toContain("flume/tasks/e-m2np: body.md missing");
   });
 });
 

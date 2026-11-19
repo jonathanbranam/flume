@@ -214,6 +214,7 @@ export function taskObject(e: TaskEntry) {
     project: typeof f.project === "string" ? f.project : null,
     created: String(f.created ?? ""),
     resolved: typeof f.resolved === "string" ? f.resolved : null,
+    resolution: typeof f.resolution === "string" ? f.resolution : null,
     assignee: typeof f.assignee === "string" ? f.assignee : "",
     agent: typeof f.agent === "string" ? f.agent : "",
     phase: typeof f.phase === "string" && isPhase(f.phase) ? f.phase : "proposal",
