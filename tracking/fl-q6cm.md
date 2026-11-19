@@ -2,11 +2,14 @@
 id = "fl-q6cm"
 title = "flume help: install, setup and usage guides from the CLI"
 kind = "feature"
-state = "planned"
+state = "claimed"
 created_at = "2026-11-19T18:47:12.845Z"
-updated_at = "2026-11-19T19:11:06.069489431Z"
+updated_at = "2026-11-19T19:21:27.943558183Z"
 created_by = "external:advisor"
-watchers = ["external:advisor"]
+watchers = [
+    "external:advisor",
+    "agent:helpguides",
+]
 ticket = "q6cm"
 +++
 
