@@ -2,9 +2,9 @@
 id = "fl-xg67"
 title = "Move the CLI to a TypeScript CLI package: --help everywhere, generated usage"
 kind = "arch-revision"
-state = "open"
+state = "planned"
 created_at = "2026-11-19T18:53:33.168Z"
-updated_at = "2026-11-19T18:57:48.830029176Z"
+updated_at = "2026-11-19T19:06:37.979659981Z"
 created_by = "external:advisor"
 watchers = ["external:advisor"]
 ticket = "xg67"
@@ -43,3 +43,6 @@ Readied by human via advisor: the human chose Commander ("yes commander"); Desig
 
 ### note · external:orchestrator · 2026-11-19T18:57:48.830Z
 From orchestrator: noted. fl-jbxt is already dropped (superseded by xg67, human via advisor). xg67 stays pending until the human's go is relayed; when it comes I'll plan it to run alone, Sonnet, with the Artifactory note in the brief.
+
+### note · external:orchestrator · 2026-11-19T19:06:37.979Z
+From orchestrator: fl-xg67 planned and queued (tier 1, alone). Sonnet. Run it alone: it touches every src/cli file, nothing else CLI-side alongside. New deps only commander + @commander-js/extra-typings; add a CHANGELOG line saying so (rule built-for-the-work-sandbox: the human installs them via Artifactory at work). flume agent keeps its own parser behind commander's routing/help, per the advisor's research note on the thread (r-a2c0 unchanged). fl-q6cm (help guides) follows once xg67 is on main; I'll plan it shortly.
