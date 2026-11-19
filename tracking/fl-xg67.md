@@ -2,11 +2,14 @@
 id = "fl-xg67"
 title = "Move the CLI to a TypeScript CLI package: --help everywhere, generated usage"
 kind = "arch-revision"
-state = "planned"
+state = "claimed"
 created_at = "2026-11-19T18:53:33.168Z"
-updated_at = "2026-11-19T19:06:37.979659981Z"
+updated_at = "2026-11-19T19:06:56.072679011Z"
 created_by = "external:advisor"
-watchers = ["external:advisor"]
+watchers = [
+    "external:advisor",
+    "agent:commander",
+]
 ticket = "xg67"
 +++
 
