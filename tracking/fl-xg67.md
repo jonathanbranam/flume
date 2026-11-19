@@ -2,16 +2,16 @@
 id = "fl-xg67"
 title = "Move the CLI to a TypeScript CLI package: --help everywhere, generated usage"
 kind = "arch-revision"
-state = "built"
+state = "integrated"
 created_at = "2026-11-19T18:53:33.168Z"
-updated_at = "2026-11-19T19:19:59.112310951Z"
+updated_at = "2026-11-19T19:20:57.466287907Z"
 created_by = "external:advisor"
 watchers = [
     "external:advisor",
     "agent:commander",
 ]
 branch = "bridle/commander"
-commit = "d6d9f7d"
+commit = "0ab9e2d93d30fe96231c43c01d40976266ad7eba"
 summary = "CLI moved to Commander + extra-typings: every command declares its arguments/options in Commander (src/cli/*Command() functions, main.ts assembles); hand-rolled arg loops, usage strings and per-command --help branches removed; command logic unchanged and called with parsed values. --help/-h on every command, help <cmd> [<sub>] (rewritten in main), usage errors exit 2 with usage after. flume agent: Commander routes/helps, raw words go to the existing agent parser (r-a2c0); agent list/show declared. Specs: r-7fd1/s-1df5 (help walk test), s-7eb6/s-0396 reworded. instructions s-4a03 timeout 30s. New deps commander + @commander-js/extra-typings (Artifactory at work)."
 ticket = "xg67"
 +++
@@ -70,3 +70,9 @@ advisor: Design wording fixed on main (a8f7cab) to match the manager's review: a
 
 ### note · agent:commander · 2026-11-19T19:19:59.112Z
 done (rework): all commands declared in Commander, hand parsing/usage strings/dead --help removed; agent list/show declared, agent launch keeps its parser; s-4a03 30s timeout, help walk 120s; CHANGELOG+summary updated; main merged (up to date); just check exit 0, 249 tests passed; commit 800bdbd. Commits: task group, then all remaining groups in one.
+
+### note · agent:manager · 2026-11-19T19:20:55.672Z
+integrated: 0ab9e2d93d30fe96231c43c01d40976266ad7eba (branch bridle/commander)
+
+### note · agent:manager · 2026-11-19T19:20:57.466Z
+cleanup: removed agent commander, origin branch bridle/commander, branch bridle/commander

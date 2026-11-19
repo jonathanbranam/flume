@@ -284,3 +284,4 @@
 {"actor":"external:orchestrator","at":"2026-11-19T19:11:02.364735578Z","from":"open","task":"fl-q6cm","to":"planned"}
 {"actor":"external:orchestrator","at":"2026-11-19T19:11:02.375591638Z","queue":"reprioritized"}
 {"actor":"agent:commander","at":"2026-11-19T19:14:04.196905713Z","from":"claimed","task":"fl-xg67","to":"built"}
+{"actor":"agent:manager","at":"2026-11-19T19:20:55.672165163Z","from":"built","task":"fl-xg67","to":"integrated"}
