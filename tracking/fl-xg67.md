@@ -2,14 +2,17 @@
 id = "fl-xg67"
 title = "Move the CLI to a TypeScript CLI package: --help everywhere, generated usage"
 kind = "arch-revision"
-state = "claimed"
+state = "built"
 created_at = "2026-11-19T18:53:33.168Z"
-updated_at = "2026-11-19T19:06:56.072679011Z"
+updated_at = "2026-11-19T19:14:06.693879038Z"
 created_by = "external:advisor"
 watchers = [
     "external:advisor",
     "agent:commander",
 ]
+branch = "bridle/commander"
+commit = "d6d9f7d"
+summary = "CLI moved to Commander + extra-typings (src/cli/main.ts, table of specs): generated --help/-h on every command and subcommand, help <cmd> [<sub>], usage errors exit 2 with usage after message. Command logic and legacy parsers unchanged (commander routes/helps; flume agent hands raw args after 'agent' to the existing parser). New deps commander, @commander-js/extra-typings. Specs: r-7fd1/s-1df5 added (test walks help listings); s-7eb6, s-0396 reworded. CHANGELOG under Changed. Legacy --help branches in commands are now dead code (follow-up)."
 ticket = "xg67"
 +++
 
@@ -49,3 +52,12 @@ From orchestrator: noted. fl-jbxt is already dropped (superseded by xg67, human 
 
 ### note · external:orchestrator · 2026-11-19T19:06:37.979Z
 From orchestrator: fl-xg67 planned and queued (tier 1, alone). Sonnet. Run it alone: it touches every src/cli file, nothing else CLI-side alongside. New deps only commander + @commander-js/extra-typings; add a CHANGELOG line saying so (rule built-for-the-work-sandbox: the human installs them via Artifactory at work). flume agent keeps its own parser behind commander's routing/help, per the advisor's research note on the thread (r-a2c0 unchanged). fl-q6cm (help guides) follows once xg67 is on main; I'll plan it shortly.
+
+### note · agent:commander · 2026-11-19T19:13:58.903Z
+Decisions (commander-first, KISS): (1) Commander routes, prints generated help, refuses unknown commands/groups (exit 2, message then usage on stderr). Each command's own words are still parsed by its existing parser, unchanged: leaves allowUnknownOption/allowExcessArguments, options are declared so --help lists them; command-specific usage errors (missing ID, etc.) keep their old messages and exit 2. Alternative: declare every argument in commander and drop the legacy parsers; rejected as it changes logic the ticket says stays. Legacy per-command --help branches are now dead code (commander answers --help first); left in place, can be removed in a follow-up. (2) flume agent: commander helpOption off for the top agent command; action prints help only when the first word after agent is --help/-h, otherwise the raw words go to agent(); enablePositionalOptions on every command so options after a subcommand name are not taken by the parent. (3) flume help X [Y] is rewritten to X [Y] --help in main (commander's own help command is one level only). (4) version() is computed only when --version is given. (5) Specs: s-7eb6 and s-0396 reworded to the generated text; new r-7fd1 / s-1df5 with a test that walks the help listings. The help walk spawns ~120 processes (timeout 120 s); under heavy load instructions.test.ts s-4a03 (many spawns, 5 s limit) flaked once or twice, green on rerun.
+
+### note · agent:commander · 2026-11-19T19:14:04.196Z
+built: d6d9f7d (branch bridle/commander)
+
+### note · agent:commander · 2026-11-19T19:14:06.693Z
+done: CLI on Commander (extra-typings); --help/-h and help <cmd> [<sub>] everywhere, usage errors exit 2; flume agent routed by commander, raw args to existing parser (agent tests unchanged and green); commit d6d9f7d; just check exit 0, 249 tests passed (last-full-test-count file absent). Caveat: instructions.test.ts s-4a03 (5 s limit, many spawns) flaked under load twice, green on rerun and alone. Decisions on the ticket thread.
