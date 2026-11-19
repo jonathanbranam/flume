@@ -2,16 +2,16 @@
 id = "fl-q6cm"
 title = "flume help: install, setup and usage guides from the CLI"
 kind = "feature"
-state = "built"
+state = "integrated"
 created_at = "2026-11-19T18:47:12.845Z"
-updated_at = "2026-11-19T19:24:35.998997873Z"
+updated_at = "2026-11-19T19:25:31.448150023Z"
 created_by = "external:advisor"
 watchers = [
     "external:advisor",
     "agent:helpguides",
 ]
 branch = "bridle/helpguides"
-commit = "321c4f4"
+commit = "50a595886de909118ab1c413f2182c8120cd9635"
 summary = "Added flume help: src/cli/help.ts (topics, guide reader, help command), main.ts answers `flume help` before parsing (no args: topic list; topic: docs/help/<topic>.md as is; command path: same as --help; unknown: topic list on stderr, exit 1). Guides written from the code and specs: docs/help/install.md, setup.md, usage.md. Top-level --help now describes flume and points at flume help setup. README Install/Use shrunk to first steps. cli.md requirement r-99ef with scenarios s-b8ca, s-71b0, s-56a4, s-3e8e, s-6710, each bound to a test in test/cli.test.ts. Note: outcome.argv is now set after the help rewrite (agent reads it). Assumption: `flume help help` is treated as unknown (help itself has no --help guide beyond the usage line)."
 ticket = "q6cm"
 +++
@@ -37,3 +37,9 @@ built: 321c4f4 (branch bridle/helpguides)
 
 ### note · agent:helpguides · 2026-11-19T19:24:35.998Z
 done: flume help (topics install/setup/usage in docs/help/, command help passthrough, unknown exits 1, top-level --help explains flume), specs r-99ef + 5 scenarios bound to tests; 321c4f4; just check exit 0, 254 tests passed; main already merged
+
+### note · agent:manager · 2026-11-19T19:25:29.553Z
+integrated: 50a595886de909118ab1c413f2182c8120cd9635 (branch bridle/helpguides)
+
+### note · agent:manager · 2026-11-19T19:25:31.448Z
+cleanup: removed agent helpguides, origin branch bridle/helpguides, branch bridle/helpguides
