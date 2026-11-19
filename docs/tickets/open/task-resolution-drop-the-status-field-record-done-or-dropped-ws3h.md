@@ -17,7 +17,8 @@ A task's state is the folder it sits in, so task.yaml should not repeat it in a 
 What a resolved task does need is why it ended: done, or not done. Keep it to that distinction;
 the details go in a comment.
 
-Decide the folder layout before building, and build both together.
+Change the folder layout in the same change: open tasks in `tasks/`, resolved ones in
+`archive/tasks/`.
 
 ## Design
 
@@ -47,8 +48,16 @@ Decide the folder layout before building, and build both together.
 
 ### Folder layout
 
-Not decided yet; to be decided before this ticket is built, and built with it. The options are in
-Discussion.
+- An open task is `tasks/<slug-id>/` in the flume root; a resolved task is
+  `archive/tasks/<slug-id>/` in the flume root. The folder a task sits in is its state.
+- Close moves the folder to `archive/tasks/`; reopen moves it back to `tasks/`. Every file in the
+  folder moves with it, unchanged (as today).
+- New IDs are unique across `tasks/` and `archive/tasks/`; `show`, the API and `flume check` look
+  in both; `flume task list` lists `tasks/` unless `--closed` or `--all`.
+- `archive/` is the folder for anything kept as history; this ticket puts only tasks there.
+- The old layout: `flume check` reports any folder found in `tasks/open/` or `tasks/resolved/`,
+  saying to move it (open to `tasks/`, resolved to `archive/tasks/`). Flume does not move it
+  itself and does not read tasks there.
 
 ### Not in this ticket
 
@@ -58,7 +67,7 @@ Discussion.
 
 ## Discussion (for reference, not authoritative)
 
-### Folder layout (open: decide before building)
+### Folder layout (decided: B)
 
 The human, 2026-11-19 (to advisor), comparing their work setup ("claude-as"), where there is no
 open/closed split: active tickets in `task/`, and `archive/task/` for "anything that is old or
@@ -78,8 +87,10 @@ Options:
 - B. `tasks/<slug-id>/` for open, `archive/tasks/<slug-id>/` for resolved, with `archive/` as the
   project-wide folder for history.
 
-Either way the folder is the state and `status` goes. Advisor recommends B: it matches the
+Either way the folder is the state and `status` goes. Advisor recommended B: it matches the
 human's work setup, the open list is the bare folder, and the paths change in this ticket anyway.
+
+The human, 2026-11-19 ~4:30 PM ET: "B".
 
 ### The human's words on statuses, 2026-11-19 (verbatim, dictated)
 
