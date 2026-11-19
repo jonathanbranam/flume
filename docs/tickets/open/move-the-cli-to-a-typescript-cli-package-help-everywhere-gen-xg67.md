@@ -35,7 +35,9 @@ Commander with `@commander-js/extra-typings` (commander 15, Node 22.12 or later;
 
 ### Scope
 
-- Every command in `src/cli/` moves to the package. The command logic underneath does not change.
+- Every command in `src/cli/` moves to the package: its arguments and options are declared in
+  Commander and the hand-rolled parsing loops, usage strings and per-command `--help` code are
+  removed. What each command does does not change.
 - `flume agent` passes arguments it does not recognize through to `claude`, in order, and `--`
   stops consumption (agent spec, r-a2c0). This must still work; check it first, before the other
   commands move.
