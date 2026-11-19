@@ -19,10 +19,19 @@ in full, so a human or agent never needs the README or the repo to learn flume.
 
 ## Design
 
+### Top-level help: what flume is
+
+`flume --help` is where an agent starts, so it carries the explanation. Before the command list
+it says, in a few short lines, what flume is and how it works: tasks as files in a git repo, the
+phases a task moves through, the daemon the human runs, agents launched with `flume agent`, and
+`flume help setup` as the place to start. Acceptance check: an agent with no knowledge of flume,
+given only `flume --help` (and what it points to), answers "i want to use flume, explain how it
+works." correctly.
+
 ### Commands
 
-- `flume --help` lists `help` among the commands: "detailed guides on using flume: install,
-  setup, usage".
+- `flume --help` lists `help` among the commands: "detailed help on using flume: install, setup,
+  usage; flume help <command> is flume <command> --help".
 - `flume help` prints the topics, one line each with a one-line summary, and how to print one.
 - `flume help install`: clone the public repo, check out a release tag (optional), `npm ci
   --omit=dev` (at work outside the sandbox, through the Artifactory mirror), put flume on PATH,
@@ -30,12 +39,17 @@ in full, so a human or agent never needs the README or the repo to learn flume.
 - `flume help setup`: adopting flume, for a new project and for an existing one; the workspace
   (one git repo, or a folder of repos with a tasks repo: `flume init --root`, `flume clone`,
   `flume project`); running the daemon (`flume serve`, `status`, `stop`; only the human runs
-  serve).
+  serve). One name, no aliases.
 - `flume help usage`: what to run where and when: each command, who runs it (human or agent),
   from which folder, and the order of a task's life (new, claim, phases, close).
-- An unknown topic prints the topic list to standard error and exits 1.
+- `flume help <command> [<subcommand>]` prints exactly what `flume <command> [<subcommand>]
+  --help` prints, with the same exit code.
+- A topic name is never a command name, so the two never overlap. The spec test checks every
+  topic against the command list.
+- An unknown topic or command prints the topic list to standard error and exits 1.
 - Output is plain text (Markdown is fine) to standard output, exit 0. No `--json`: it is text, not
   data (rule cli-json-output, like `--help`).
+- `flume guide` is unchanged and separate: it prints the workflow guides agents push to phases.
 
 ### Source of the text
 
@@ -65,7 +79,20 @@ project, explains multi-folder repo workspace setup, etc.
 flume help usage     details on how to actually use each of the flume commands and what to run
 where and when"
 
-### Advisor's choices (for the human to confirm)
+### The human's answers, 2026-11-19 (verbatim)
+
+"just 'setup' is fine; agents start with '<command> --help' so the main thing is getting the
+description right there; I want an agent with NO knowledge of flume to respond intelligently to
+this question: "i want to use flume, explain how it works.""
+
+"'flume guide' seems fine; I see the point of the question, but yeah, a "guide" is something
+internal to flume;"
+
+"i prefer just --help, but since we're adding 'flume help <blank>', let's make is symmetric and an
+alias for exactly flume <command> --help, sure; so then our help docs cannot overlap with commands
+I suppose?"
+
+### Advisor's choices (as first proposed; the answers above settle the first three)
 
 - Topic name `setup`, not `init` or `adopt`, and no aliases: setup covers init, clone, project and
   the daemon, wider than `init`; one name keeps it simple. Alternative: accept `init` and `adopt`
