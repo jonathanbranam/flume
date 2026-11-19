@@ -8,7 +8,7 @@ repos: [flume]
 changes: []
 specs: []
 blocked_by: []
-related: [fl-mv4r]
+related: [fl-mv4r, fl-h8ty]
 ---
 
 ## The ask
@@ -16,6 +16,8 @@ related: [fl-mv4r]
 A task's state is the folder it sits in, so task.yaml should not repeat it in a `status` field.
 What a resolved task does need is why it ended: done, or not done. Keep it to that distinction;
 the details go in a comment.
+
+Decide the folder layout before building, and build both together.
 
 ## Design
 
@@ -43,17 +45,20 @@ the details go in a comment.
 `resolution` on an open task; a resolved task without one; a value other than `done` or
 `dropped`.
 
+### Folder layout
+
+Not decided yet; to be decided before this ticket is built, and built with it. The options are in
+Discussion.
+
 ### Not in this ticket
 
-- The folder layout (`tasks/open` and `tasks/resolved` today, or `tasks/` and
-  `archive/tasks/`): open, see Discussion.
 - States for an open task (held, parked, waiting on the human): see Discussion.
-- Kinds choosing their workflow: see Discussion.
+- Kinds choosing their workflow: fl-h8ty.
 - No migration: existing task files are not rewritten (the task-files spec assumes no migration).
 
 ## Discussion (for reference, not authoritative)
 
-### Origin
+### Folder layout (open: decide before building)
 
 The human, 2026-11-19 (to advisor), comparing their work setup ("claude-as"), where there is no
 open/closed split: active tickets in `task/`, and `archive/task/` for "anything that is old or
@@ -63,6 +68,18 @@ today's open/resolved split renamed (`tasks/` = open, `archive/tasks/` = resolve
 still a move. Gains: the open list is the bare `tasks/` folder; resolved work leaves the tree that
 agents and grep read; `archive/` can be a project-wide "history" convention (old specs, docs).
 Mostly cosmetic for tasks alone. Not decided.
+
+The human, 2026-11-19: "For this ticket, I want to decide on the folders structure before building
+it and do both together".
+
+Options:
+
+- A. Keep `tasks/open/<slug-id>/` and `tasks/resolved/<slug-id>/`.
+- B. `tasks/<slug-id>/` for open, `archive/tasks/<slug-id>/` for resolved, with `archive/` as the
+  project-wide folder for history.
+
+Either way the folder is the state and `status` goes. Advisor recommends B: it matches the
+human's work setup, the open list is the bare folder, and the paths change in this ticket anyway.
 
 ### The human's words on statuses, 2026-11-19 (verbatim, dictated)
 
@@ -93,28 +110,10 @@ effectively done with it, and that should be one of the resolved statuses."
 - Not two archive folders (`archive/done`, `archive/dropped`): a folder per outcome brings back the
   move-on-change cost for no gain.
 
-### Later: kinds choose the workflow (the human, 2026-11-19, verbatim, dictated)
+### Kinds and workflows
 
-"I think what the general standard is is that the kind of a ticket determines its workflow for
-someday, when we have multiple workflows. In particular, a docs-only update or something doesn't go
-through this workflow. By default, there's a default workflow for all tickets, but if there's an
-override for a specific kind, we would use that workflow."
-
-"I have tickets that are research tickets, and the purpose of it is to do a bunch of research and
-write a document, or maybe write other tickets. That whole thing is just: there are no statuses or
-phases or assignments, really. Do a bunch of research, write something out, then you're done."
-
-"I have bug fixes, which typically don't need the entire workflow, right? You identify a bug fix,
-you need to do the research, reproduce it, write failing test cases to prove you fixed it, and then
-go fix it. It's very similar to a coding ticket, but it maybe has some additional nuance to it."
-"You don't write any of these workflows out yet."
-
-"those are common ones: dot research, docs update, types of things, bug fixes, and new feature
-development."
-
-Today flume's kinds are feature, bug, chore, docs, research and epic, and every kind goes through
-the same five phases. Non-coding kinds (research, docs) exist already. Kind-specific workflows
-would build on the workflow layers (fl-mv4r); worth its own ticket when the human is ready.
+Moved to fl-h8ty (the human: "Create a different ticket on kinds and workflows as pending and move
+the discussion to that").
 
 ### Later: states for an open task
 
