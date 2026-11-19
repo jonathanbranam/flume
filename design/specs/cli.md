@@ -24,6 +24,39 @@ When --help (or -h) is given to flume, to any command or to any subcommand, flum
 - **WHEN** flume --help is run, and then --help and help are run on every command listed in the top-level help and on every subcommand listed in each group's help
 - **THEN** each prints a usage line to standard output, nothing to standard error, exits with code 0, and flume help prints the same text as --help for the same command
 
+### Requirement: Help prints guides  {#r-99ef}
+When flume help is run with no argument, flume SHALL print the list of help topics (install, setup and usage), one line each with a one-line summary, and say how to print one, and exit with code 0; when flume help TOPIC is run, flume SHALL print that topic's guide to standard output and exit with code 0; when the argument is neither a topic nor a command, flume SHALL print the topic list to standard error and exit with code 1; and no topic name SHALL be the name of a command. The top-level help SHALL list the help command and say, before the command list, what flume is and that flume help setup is the place to start.
+
+#### Scenario: The topic list  {#s-b8ca}
+*Verification*: **executable**
+- **GIVEN** any folder
+- **WHEN** flume help is run
+- **THEN** standard output names install, setup and usage, each with a summary, and the exit code is 0
+
+#### Scenario: Each topic prints  {#s-71b0}
+*Verification*: **executable**
+- **GIVEN** any folder
+- **WHEN** flume help install, flume help setup and flume help usage are run
+- **THEN** each prints a non-empty guide to standard output, nothing to standard error, and exits with code 0
+
+#### Scenario: An unknown topic  {#s-56a4}
+*Verification*: **executable**
+- **GIVEN** any folder
+- **WHEN** flume help frobnicate is run
+- **THEN** standard output is empty, standard error holds the topic list, and the exit code is 1
+
+#### Scenario: Topics are never commands  {#s-3e8e}
+*Verification*: **executable**
+- **GIVEN** the commands listed in the top-level help
+- **WHEN** each help topic name is compared with them
+- **THEN** no topic name is a command name
+
+#### Scenario: The top-level help lists help  {#s-6710}
+*Verification*: **executable**
+- **GIVEN** any folder
+- **WHEN** flume --help is run
+- **THEN** standard output lists the help command, mentions flume help setup before the command list, and the exit code is 0
+
 ### Requirement: The CLI finds the daemon by walking up  {#r-656f}
 When a command needs the daemon, flume SHALL use the address in the FLUME_URL environment variable if set, and otherwise the address in the nearest file .flume/daemon.json found in the current folder or any folder above it (the workspace of that daemon).
 

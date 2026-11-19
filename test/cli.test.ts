@@ -3,6 +3,7 @@ import { cpSync, mkdtempSync, rmSync, symlinkSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { topics } from "../src/cli/help.ts";
 
 const bin = new URL("../bin/flume.js", import.meta.url).pathname;
 const run = (...args: string[]) => execFileSync("node", [bin, ...args], { encoding: "utf8" });
@@ -141,4 +142,47 @@ describe("flume help everywhere", () => {
       }
     }
   }, 120_000);
+});
+
+describe("flume help guides", () => {
+  const go = (...args: string[]) => spawnSync("node", [bin, ...args], { encoding: "utf8" });
+
+  it("s-b8ca help lists the topics", () => {
+    const r = go("help");
+    expect(r.status).toBe(0);
+    for (const [name] of topics) expect(r.stdout).toMatch(new RegExp(`^ +${name} +\\S`, "m"));
+  });
+  it("s-71b0 each topic prints a guide", () => {
+    expect(topics.map(([n]) => n)).toEqual(["install", "setup", "usage"]);
+    for (const [name] of topics) {
+      const r = go("help", name);
+      expect(r.status, name).toBe(0);
+      expect(r.stdout.length, name).toBeGreaterThan(200);
+      expect(r.stderr, name).toBe("");
+    }
+  });
+  it("s-56a4 an unknown topic lists the topics on stderr, exit 1", () => {
+    const r = go("help", "frobnicate");
+    expect(r.status).toBe(1);
+    expect(r.stdout).toBe("");
+    expect(r.stderr).toContain("install");
+    expect(r.stderr).toContain("usage");
+  });
+  it("s-3e8e no topic is a command", () => {
+    const text = go("--help").stdout;
+    const cmds = text
+      .slice(text.indexOf("Commands:"))
+      .split("\n")
+      .map((l) => /^ {2}(\S+)/.exec(l)?.[1]);
+    expect(cmds).toContain("task");
+    for (const [name] of topics) expect(cmds).not.toContain(name);
+  });
+  it("s-6710 top-level help lists help and points at setup", () => {
+    const r = go("--help");
+    expect(r.status).toBe(0);
+    const text = r.stdout;
+    expect(text).toMatch(/^ {2}help /m);
+    expect(text.indexOf("flume help setup")).toBeGreaterThan(-1);
+    expect(text.indexOf("flume help setup")).toBeLessThan(text.indexOf("Commands:"));
+  });
 });
