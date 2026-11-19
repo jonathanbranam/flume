@@ -45,4 +45,4 @@ Advisor ran `--help` across the commands on main to list the gaps above. The hum
 flume (~/work/flume-work/local-flume, a2f4b0f) is older than main and also lacks it on serve and
 status; those are fixed on main.
 
-Related: the guides behind `flume help` (fl-HELPID).
+Related: the guides behind `flume help` (fl-q6cm).
