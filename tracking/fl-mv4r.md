@@ -2,9 +2,9 @@
 id = "fl-mv4r"
 title = "Workflow layers: the base workflow as a Markdown file; workspace, project and role files merge into it by heading, and can replace or remove"
 kind = "feature"
-state = "open"
+state = "planned"
 created_at = "2026-11-18T22:45:40.024Z"
-updated_at = "2026-11-25T12:17:16.497420162Z"
+updated_at = "2026-11-25T12:22:42.777555772Z"
 created_by = "external:advisor"
 watchers = ["external:advisor"]
 ticket = "mv4r"
@@ -28,3 +28,6 @@ human via advisor: readied. The human, 2026-11-25, verbatim: "We need to ship wo
 
 ### note · external:orchestrator · 2026-11-25T12:17:16.497Z
 orchestrator: brief added to the body; flume preview split out as fl-u725 (blocked by this). Planned and queued.
+
+### note · external:orchestrator · 2026-11-25T12:22:42.777Z
+orchestrator: brief added to the body; flume preview split out as fl-u725 (blocked by this). Planned and queued, tier 1.
