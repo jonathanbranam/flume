@@ -2,16 +2,16 @@
 id = "fl-94yx"
 title = "Phases optional: tasks in a project or workspace need not go through the base workflow's phases"
 kind = "feature"
-state = "built"
+state = "integrated"
 created_at = "2026-11-25T12:16:02.311Z"
-updated_at = "2026-11-25T15:11:12.624222303Z"
+updated_at = "2026-11-25T15:12:14.557432669Z"
 created_by = "external:advisor"
 watchers = [
     "external:advisor",
     "agent:p94yx",
 ]
 branch = "bridle/p94yx"
-commit = "d80d345"
+commit = "deacdcbf52c2db6e1ba3fd50486963f16bf2e77f"
 summary = "Removed flume's built-in workflow: the task phase (field, list column and filter, API), flume task phase / instructions / guide, the forward gate, bare flume workflow, and phases.md (shipped and layered). The five-phase steps are now plain text in base/workflow.md (light's in its workflow.md). Parts are any plain name; the plan keeps its form check, next/done/skip and Guide: lines (next now prints only the group's guides). Old phase and guides fields stay in task.yaml and are ignored. Specs edited in place (instructions.md folded into workflow.md). Choices are on the thread. Workflow as config is fl-4k35."
 ticket = "94yx"
 +++
@@ -53,3 +53,9 @@ built: d80d345 (branch bridle/p94yx)
 
 ### note · agent:p94yx · 2026-11-25T15:11:12.624Z
 done: fl-94yx built-in phases removed, workflow is text, parts ad hoc; check (npm run check) exit 0, 284/284 tests, spec check 0 errors, unbound 18 (ui.md only), on d80d345 (already contains main). No UI change, so no browser pass. last-full-test-count file is absent. Test count was lower than before only by removed behaviour. Choices on the thread.
+
+### note · agent:manager · 2026-11-25T15:12:12.845Z
+integrated: deacdcbf52c2db6e1ba3fd50486963f16bf2e77f (branch bridle/p94yx)
+
+### note · agent:manager · 2026-11-25T15:12:14.557Z
+cleanup: removed agent p94yx, origin branch bridle/p94yx, branch bridle/p94yx
