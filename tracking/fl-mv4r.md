@@ -2,11 +2,14 @@
 id = "fl-mv4r"
 title = "Workflow layers: the base workflow as a Markdown file; workspace, project and role files merge into it by heading, and can replace or remove"
 kind = "feature"
-state = "planned"
+state = "claimed"
 created_at = "2026-11-18T22:45:40.024Z"
-updated_at = "2026-11-25T12:22:42.777555772Z"
+updated_at = "2026-11-25T12:23:05.175676604Z"
 created_by = "external:advisor"
-watchers = ["external:advisor"]
+watchers = [
+    "external:advisor",
+    "agent:mv4r",
+]
 ticket = "mv4r"
 +++
 
