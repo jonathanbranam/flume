@@ -268,6 +268,16 @@ Before closing, ask the human to review the change in the browser.
 - first-prompt.md's H1 is not sent to claude (a heading as the opening message would read oddly); every other document is printed whole.
 - No prepend, no moving sections, no per-paragraph edits (YAGNI).
 
+## Brief (orchestrator, 2026-11-25)
+
+Readied by the human via the flume advisor (quote on the thread). Build the Design above as it stands, with the Assumed choices.
+
+- **Split out:** the `flume preview` command is fl-u725, which runs after this ticket lands. Everything else in the Design is this ticket: the base Markdown files (workflow.md, phases.md, project.md, first-prompt.md, plus base roles, guides and templates as files); the heading merge with the tags and errors; wiring prime, instructions, guide, roles, templates and `flume agent`'s first prompt through it; `flume check` for layered files; exit 1 on a layer error; the prime XML change (fl-87h9) and its spec.
+- **Likely files:** src/cli/agent.ts (DEFAULT_BASE, DEFAULT_PROJECT, DEFAULT_PROMPT), src/core/instructions.ts (PHASE_STEPS, COMMON_STEPS), src/core/prime.ts, src/core/workflow.ts, src/core/guides.ts, src/core/parts.ts (templates), src/core/check.ts, a new merge module under src/core/, the shipped base files, and the specs for prime and instructions. Put the merge in its own module with a small API that fl-u725 can call to get sections with their source file.
+- **Done when:** the base texts come out word for word as today with no layers present; there are unit tests for every merge rule and every error in the Design (each error names the file, line and heading); the two example overrides in the Design give the expected output; and the project's check is green, run once.
+- **Model:** Sonnet.
+- **Out of scope, not yet:** preview (fl-u725); anything the Design rules out (prepend, moving sections, per-paragraph edits).
+
 ## Discussion (for reference, not authoritative)
 
 The human, 2026-11-18 (to advisor), verbatim:
