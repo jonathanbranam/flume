@@ -130,6 +130,40 @@ describe("merging by heading", () => {
     ]);
   });
 
+  it("s-b418 each H1 error gives the rule, the problem and both fixes", () => {
+    const rule =
+      'every layer file has exactly one H1, the same as the H1 of the layer below ("# Doc")';
+    const fixOne =
+      'start the file with "# Doc" and put your sections under it as ## headings, tagged @add, @append or @remove as needed';
+    const fixTwo = 'put @replace on the H1 ("# Doc @replace")';
+    const one = (upper: string, problem: RegExp) => {
+      const r = merge(upper);
+      expect(r.errors).toHaveLength(1);
+      expect(r.errors[0]).toMatch(problem);
+      expect(r.errors[0]).toContain(rule);
+      expect(r.errors[0]).toContain(fixOne);
+      expect(r.errors[0]).toContain(fixTwo);
+    };
+    one("", /up\.md: line 1: no H1\. The rule/);
+    one("just text\n# Doc\n\nx\n", /line 1: text before the H1\./);
+    one("## Pre\n\n# Doc\n\nx\n", /line 1: heading "## Pre": a heading before the H1\./);
+    one("# Doc\n\nx\n\n# Again\n", /second H1\./);
+    one("# Other\n\nx\n", /the H1 differs from the H1 below, so it would add another H1\./);
+    one("# Doc @add\n", /@add is not allowed on the H1\./);
+  });
+
+  it("s-b418 an H1 error in the first layer names no layer below", () => {
+    const r = mergeLayers([{ file: "only.md", text: "x\n" }]);
+    expect(r.errors.map(formatLayerError)).toEqual([
+      expect.stringContaining("text before the H1. The rule: every layer file has exactly one H1"),
+      expect.stringContaining("no H1. The rule: every layer file has exactly one H1"),
+    ]);
+    for (const e of r.errors) {
+      expect(e.message).toContain('start the file with its one H1 ("# Title")');
+      expect(e.message).not.toContain("layer below");
+    }
+  });
+
   it("s-b591 a document with no layer below takes no tags", () => {
     const r = mergeLayers([{ file: "only.md", text: "# R\n\n## A @append\n\nx\n" }]);
     expect(r.errors.map(formatLayerError)).toEqual([

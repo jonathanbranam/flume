@@ -57,7 +57,28 @@ interface Node {
   children: Node[];
 }
 
-type Report = (n: { line: number; heading: string }, message: string) => void;
+/** An error's message; an H1 error needs the H1 of the layer below, known only after the layers below are merged. */
+type Message = string | ((below: string | undefined) => string);
+
+type Report = (n: { line: number; heading: string }, message: Message) => void;
+
+/**
+ * An H1 error gives the rule, the problem in this layer and both fixes. `below` is the H1 of the
+ * layer below, or undefined for the first layer, which has nothing to match.
+ */
+function h1Message(problem: string, below: string | undefined): string {
+  if (below === undefined)
+    return `${problem}. The rule: every layer file has exactly one H1, which is the document's title. The fix: start the file with its one H1 ("# Title") and put your sections under it as ## headings.`;
+  return `${problem}. The rule: every layer file has exactly one H1, the same as the H1 of the layer below ("# ${below}"). The fix: to change or add to the document, start the file with "# ${below}" and put your sections under it as ## headings, tagged @add, @append or @remove as needed; to replace the whole document, put @replace on the H1 ("# ${below} @replace").`;
+}
+
+const h1Problem =
+  (problem: string): Message =>
+  (below) =>
+    h1Message(problem, below);
+
+const resolve = (m: Message, below: string | undefined): string =>
+  typeof m === "string" ? m : m(below);
 
 const HEADING = /^ {0,3}(#{1,6})(?:[ \t]+(.*?))?[ \t]*$/;
 const FENCE = /^ {0,3}(`{3,}|~{3,})(.*)$/;
@@ -120,7 +141,7 @@ function parse(layer: Layer, report: Report): Node | undefined {
       const node: Node = { level, name: words, tag, line: at, heading, lines: [], children: [] };
       if (level === 1) {
         if (root) {
-          report(here, "a second H1; a document has exactly one");
+          report(here, h1Problem("a second H1"));
           // Its content cannot be placed: leave it out.
           stack.length = 0;
           stack.push(node);
@@ -130,7 +151,7 @@ function parse(layer: Layer, report: Report): Node | undefined {
           stack.push(node);
         }
       } else if (!root) {
-        report(here, "a heading before the H1; a document starts with its one H1");
+        report(here, h1Problem("a heading before the H1"));
         stray = true;
       } else {
         while ((stack.at(-1)?.level ?? 0) >= level) stack.pop();
@@ -158,13 +179,13 @@ function parse(layer: Layer, report: Report): Node | undefined {
     else if (line.trim() !== "" && !stray) {
       // Comments above the H1 (such as lint directives) are dropped.
       if (!wasComment && !line.trim().startsWith("<!--")) {
-        report({ line: at, heading: "" }, "text before the H1; a document starts with its one H1");
+        report({ line: at, heading: "" }, h1Problem("text before the H1"));
         stray = true;
       }
     }
     previous = plain && !f ? line : "";
   }
-  if (!root) report({ line: 1 + offset, heading: "" }, "no H1; a document has exactly one");
+  if (!root) report({ line: 1 + offset, heading: "" }, h1Problem("no H1"));
   return root;
 }
 
@@ -243,14 +264,11 @@ function place(parent: Section, n: Node, file: string, report: Report): void {
  */
 export function mergeLayers(layers: Layer[]): { doc: Section | undefined; errors: LayerError[] } {
   const errors: LayerError[] = [];
-  const reporter =
-    (file: string, into: LayerError[]): Report =>
-    (n, message) => {
-      into.push({ file, line: n.line, heading: n.heading, message });
-    };
   const parsed = layers.map((layer) => {
-    const found: LayerError[] = [];
-    const root = parse(layer, reporter(layer.file, found));
+    const found: { line: number; heading: string; message: Message }[] = [];
+    const root = parse(layer, (n, message) => {
+      found.push({ line: n.line, heading: n.heading, message });
+    });
     return { file: layer.file, root, found };
   });
   const from = Math.max(
@@ -259,18 +277,27 @@ export function mergeLayers(layers: Layer[]): { doc: Section | undefined; errors
   );
   let doc: Section | undefined;
   for (const { file, root, found } of parsed.slice(from)) {
-    errors.push(...found);
+    // The H1 below is the name of the document merged so far (undefined for the first layer).
+    const below = doc?.name;
+    const report: Report = (n, message) => {
+      errors.push({
+        file,
+        line: n.line,
+        heading: n.heading,
+        message: resolve(message, below),
+      });
+    };
+    for (const f of found) report(f, f.message);
     if (!root) continue;
-    const report = reporter(file, errors);
     if (root.tag === "replace" && empty(root)) report(root, "@replace with nothing under it");
     if (!doc) {
       if (root.tag && root.tag !== "replace")
         report(root, `@${root.tag} has nothing to act on: there is no layer below`);
       doc = fresh(root, file, report);
     } else if (root.tag === "add" || root.tag === "remove") {
-      report(root, `@${root.tag} is not allowed on the H1`);
+      report(root, h1Problem(`@${root.tag} is not allowed on the H1`));
     } else if (!same(root.name, doc.name)) {
-      report(root, `the H1 differs from the H1 below, "# ${doc.name}"`);
+      report(root, h1Problem("the H1 differs from the H1 below, so it would add another H1"));
     } else apply(doc, root, file, report);
   }
   return { doc, errors };

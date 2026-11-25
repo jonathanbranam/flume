@@ -57,6 +57,15 @@ flume SHALL treat as an error, naming the file, the line and the heading, and SH
 - **WHEN** layers break each rule in turn
 - **THEN** each gives an error naming the layer's file, the line and the heading, and a document with no H1 is also an error
 
+### Requirement: An H1 error explains the rule and the fixes  {#r-4030}
+flume SHALL, for each error about a layer's H1, state the rule (every layer file has exactly one H1, the same as the H1 of the layer below, named), the problem in that layer, and both fixes: start the file with the H1 of the layer below and put its sections under it as H2s with the tags needed, or put the replace tag on its H1 to replace the whole document.
+
+#### Scenario: Each H1 error says the rule, the problem and both fixes  {#s-b418}
+*Verification*: **executable**
+- **GIVEN** a lower document whose H1 is "Doc"
+- **WHEN** a layer's file has no H1, has text before its H1, has a heading before its H1, has a second H1, has an H1 named "Other", or has an H1 tagged add
+- **THEN** each error's text states that every layer file has exactly one H1, the same as the H1 of the layer below ("Doc"), states the problem in that layer, and gives both fixes: start the file with "Doc" and put sections under it as H2s, or put the replace tag on the H1
+
 ### Requirement: A project's workflow replaces and adds  {#r-8323}
 When a project's files override the shipped documents, flume SHALL show the project's agents the merged result.
 
