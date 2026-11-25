@@ -1,6 +1,6 @@
 ---
 id: fl-94yx
-title: "Phases optional: tasks in a project or workspace need not go through the base workflow's phases"
+title: "Workflows declared, not assumed: shipped and user workflows, a default per workspace and project, kinds mapped to workflows"
 kind: feature
 created: 2026-11-25
 created_by: external:advisor
