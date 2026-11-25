@@ -2,16 +2,16 @@
 id = "fl-vpvk"
 title = "Standard workflows: install a shipped none or light workflow at init or later"
 kind = "feature"
-state = "built"
+state = "integrated"
 created_at = "2026-11-25T12:08:54.578Z"
-updated_at = "2026-11-25T12:38:43.352817170Z"
+updated_at = "2026-11-25T12:39:05.302187109Z"
 created_by = "external:advisor"
 watchers = [
     "external:advisor",
     "agent:vpvk",
 ]
 branch = "bridle/vpvk"
-commit = "4db3eb6"
+commit = "006540a0e21322db9639863873acc4da572501c7"
 summary = "Shipped workflows none and light in workflows/NAME/ (the ticket drafts word for word). New: flume workflow install NAME [--project P] [--force] [--json], flume workflow install --list [--json], flume init --workflow NAME. Install needs no daemon: it copies and commits in the tasks repo. Code: src/core/shipped.ts, src/cli/workflow.ts, src/cli/init.ts; spec: design/specs/workflow-layers.md (init requirement in cli.md edited); tests: test/shipped.test.ts; help: setup.md, usage.md. Caveats: --force overwrites only the workflow's own files (light then none leaves light's phases.md); --project need not be in flume.yaml; init --workflow sets up nothing if a target file exists (init has no --force)."
 ticket = "vpvk"
 +++
@@ -37,3 +37,9 @@ built: 4db3eb6 (branch bridle/vpvk)
 
 ### note · agent:vpvk · 2026-11-25T12:38:43.352Z
 done: none and light workflows shipped, flume workflow install / --list and init --workflow; commit 4db3eb6, branch bridle/vpvk (contains main). just check exit 0, 281 tests passed (13 files); spec check 0 errors, new scenarios bound. Choices on the thread; note light then none --force leaves light's phases.md. u725 had not landed when I merged main. No tool or fetch failures.
+
+### note · agent:manager · 2026-11-25T12:39:03.273Z
+integrated: 006540a0e21322db9639863873acc4da572501c7 (branch bridle/vpvk)
+
+### note · agent:manager · 2026-11-25T12:39:05.302Z
+cleanup: removed agent vpvk, origin branch bridle/vpvk, branch bridle/vpvk
