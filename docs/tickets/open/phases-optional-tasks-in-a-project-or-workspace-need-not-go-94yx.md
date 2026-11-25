@@ -1,6 +1,6 @@
 ---
 id: fl-94yx
-title: "Workflows declared, not assumed: shipped and user workflows, a default per workspace and project, kinds mapped to workflows"
+title: "Remove the rigid built-in phases: the workflow is text in base/workflow.md, flume enforces none of it"
 kind: arch-revision
 created: 2026-11-25
 created_by: external:advisor
