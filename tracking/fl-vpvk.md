@@ -4,7 +4,7 @@ title = "Standard workflows: install a shipped none or light workflow at init or
 kind = "feature"
 state = "claimed"
 created_at = "2026-11-25T12:08:54.578Z"
-updated_at = "2026-11-25T12:35:32.338634078Z"
+updated_at = "2026-11-25T12:36:24.758122988Z"
 created_by = "external:advisor"
 watchers = [
     "external:advisor",
@@ -25,3 +25,6 @@ readied by external:advisor
 
 ### note · external:advisor · 2026-11-25T12:16:06.990Z
 advisor: readied after the human answered copy-vs-setting ("Yes it is a copy onto the project or workspace chosen by the user"). Waits on fl-mv4r (blocked_by). Drafts not reviewed by the human; they review what ships. If fl-94yx lands first, light/phases.md simplifies.
+
+### note · agent:vpvk · 2026-11-25T12:36:24.758Z
+vpvk: choices. (1) Shipped named workflows live in workflows/NAME/ beside base/; --list descriptions are a table in src/core/shipped.ts (the drafts ship word for word, so no description inside them). (2) install does not use the daemon (like project add): it writes and commits in the tasks repo itself, so it works at init time. (3) --project takes any plain name; it need not be in flume.yaml (a typo makes a new folder). (4) --force overwrites only the files the workflow has: going from light to none leaves light's phases.md. (5) init --workflow installs into base/; if a target file exists, or the name is unknown, init sets up nothing (exit 1 / 2); init still takes no --force. (6) install also takes --json.
