@@ -297,3 +297,4 @@
 {"actor":"external:advisor","at":"2026-11-25T12:16:02.375289265Z","from":"pending","task":"fl-mv4r","to":"open"}
 {"actor":"external:advisor","at":"2026-11-25T12:16:06.975509509Z","from":"pending","task":"fl-vpvk","to":"open"}
 {"actor":"human","at":"2026-11-25T12:16:54.415Z","from":"","task":"fl-u725","to":"pending"}
+{"actor":"external:orchestrator","at":"2026-11-25T12:17:16.441887990Z","from":"pending","task":"fl-u725","to":"open"}

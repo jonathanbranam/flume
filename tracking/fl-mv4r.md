@@ -4,7 +4,7 @@ title = "Workflow layers: the base workflow as a Markdown file; workspace, proje
 kind = "feature"
 state = "open"
 created_at = "2026-11-18T22:45:40.024Z"
-updated_at = "2026-11-25T12:16:02.398354583Z"
+updated_at = "2026-11-25T12:17:16.497420162Z"
 created_by = "external:advisor"
 watchers = ["external:advisor"]
 ticket = "mv4r"
@@ -25,3 +25,6 @@ readied by external:advisor
 
 ### note · external:advisor · 2026-11-25T12:16:02.398Z
 human via advisor: readied. The human, 2026-11-25, verbatim: "We need to ship workflow layers now then." (fl-vpvk, the shipped none and light workflows, is blocked on this.) Build from the Design as it stands; the Assumed choices hold.
+
+### note · external:orchestrator · 2026-11-25T12:17:16.497Z
+orchestrator: brief added to the body; flume preview split out as fl-u725 (blocked by this). Planned and queued.
