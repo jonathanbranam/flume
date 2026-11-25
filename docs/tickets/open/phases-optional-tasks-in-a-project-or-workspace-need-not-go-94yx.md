@@ -1,7 +1,7 @@
 ---
 id: fl-94yx
 title: "Workflows declared, not assumed: shipped and user workflows, a default per workspace and project, kinds mapped to workflows"
-kind: feature
+kind: arch-revision
 created: 2026-11-25
 created_by: external:advisor
 repos: [flume]
