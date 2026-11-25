@@ -11,6 +11,7 @@ export * from "./plan.ts";
 export * from "./prime.ts";
 export * from "./projects.ts";
 export * from "./roadmap.ts";
+export * from "./shipped.ts";
 export * from "./slug.ts";
 export * from "./store.ts";
 export * from "./taskfile.ts";

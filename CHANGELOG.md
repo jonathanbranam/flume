@@ -4,6 +4,8 @@
 
 ### Added
 
+- Standard workflows (fl-vpvk): flume ships `none` (no workflow) and `light` (a task per code change) in `workflows/`; `flume init --workflow NAME`, or `flume workflow install NAME [--project P] [--force]`, copies one into the tasks repo and commits it; `flume workflow install --list [--json]` lists them. Spec: `design/specs/workflow-layers.md`.
+
 - Workflow layers (fl-mv4r): flume's base text is now Markdown files in `base/` (`workflow.md`, `phases.md`, `project.md`, `first-prompt.md`, `templates/*.md`), and the files of the same name (also roles and guides) in the flume-root's `base/` and `projects/<project>/` merge into them by heading: replace by default, `@add`, `@append`, `@remove`, `@replace`. Anything that cannot be placed is an error naming file, line and heading: `prime`, `agent`, `task instructions`, `task template` and `guide` exit 1, and `flume check` lists them all. Changes for existing files: each needs exactly one H1; project guides and templates now merge instead of replacing; prime holds one `<workflow>` element instead of `flume_base`, `workspace_workflow`, `project_workflow` and `role`; `GET /api/prime` answers `parts` (workflow, project, role) and `first_prompt`; a plan may start with a `# Title` line. Spec: `design/specs/workflow-layers.md`.
 
 - `flume help` (fl-q6cm): lists the guides `install`, `setup` and `usage` (Markdown in `docs/help/`, printed as is); `flume help <topic>` prints one; `flume help <command> [<subcommand>]` prints what `--help` prints; an unknown topic or command prints the topic list to standard error and exits 1. The top-level `--help` now says what flume is and how it works, and lists `help`. The README Install and Use sections shrink to first steps. Spec: `design/specs/cli.md`.

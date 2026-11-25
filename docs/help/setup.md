@@ -36,6 +36,9 @@ cd my-workspace          # holds the project repos and the tasks repo
 flume init --root tasks  # the tasks repo is the folder named tasks
 ```
 
+Add `--workflow none` or `--workflow light` to start with a smaller workflow than the standard
+one (`flume help usage`, "Changing the workflow").
+
 ## An existing project
 
 Run the same `flume init`. It adds one commit (`flume.yaml`) to the task repo and changes

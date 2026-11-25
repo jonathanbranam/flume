@@ -1,6 +1,6 @@
 # Workflow layers
 
-flume's workflow text is made of Markdown documents that ship with flume and that the tasks repository can change, heading by heading. This spec covers the documents, the layers, the merge rule and the check. Where each document is shown is in the agent, workflow, instructions and api specs. Ticket: fl-mv4r.
+flume's workflow text is made of Markdown documents that ship with flume and that the tasks repository can change, heading by heading. This spec covers the documents, the layers, the merge rule and the check. Where each document is shown is in the agent, workflow, instructions and api specs. Shipped named workflows that can be installed as layers are at the end. Tickets: fl-mv4r, fl-vpvk.
 
 Assumptions (recorded on fl-mv4r): flume enforces the rules below and does not run a Markdown linter; a heading is a line starting with number signs (underlined headings are errors); comment lines above the H1 are allowed and dropped; one blank line separates the parts of a merged document; a guide's front matter is not merged.
 
@@ -98,3 +98,63 @@ When a guide is in both base and a project, flume SHALL merge the project guide'
 - **GIVEN** a base guide with a section A and a project guide of the same name adding a section B
 - **WHEN** flume guide is run for the guide and for the list, with the project
 - **THEN** the guide holds A and then B, and the list shows the project's description
+
+### Requirement: Shipped named workflows  {#r-2ee0}
+flume SHALL ship, besides its standard workflow, the named workflows none (a workflow.md only) and light (a workflow.md and a phases.md), each file's first heading tagged @replace so that, once installed, the layers below it are not read.
+
+#### Scenario: What each installed workflow shows  {#s-458f}
+*Verification*: **executable**
+- **GIVEN** a workspace set up with flume init and a running daemon
+- **WHEN** the none workflow is installed and flume prime is run, then light is installed with --force and flume prime and flume task instructions for a new task are run
+- **THEN** each prime holds the installed workflow text and none of the standard text, no tag is shown, the instructions hold light's proposal steps, and flume check passes
+
+### Requirement: Listing the shipped workflows  {#r-cbe7}
+When flume workflow install --list is run, in any folder and with no daemon, flume SHALL print one line per shipped workflow holding its name, a tab and a one-line description, and with --json one JSON array of objects with name and description; it SHALL exit with code 2 when --list is given with a name, --project or --force.
+
+#### Scenario: List as text and JSON  {#s-b84a}
+*Verification*: **executable**
+- **GIVEN** a folder that is no workspace
+- **WHEN** flume workflow install --list and flume workflow install --list --json are run
+- **THEN** both name none and light with a description each and exit with code 0
+
+### Requirement: Installing a shipped workflow  {#r-4433}
+When flume workflow install NAME [--project PROJECT] is run in a workspace, flume SHALL copy the files of the shipped workflow NAME, word for word, into projects/PROJECT of the flume root, or into base without --project, commit them in the tasks repository as one commit, and print the files (with --json, one object holding workflow and files, the paths relative to the tasks repository); it SHALL NOT need or start the daemon and SHALL NOT push. When any of those files exists, flume SHALL change nothing, name it on standard error and exit with code 1, unless --force is given, in which case it SHALL overwrite the workflow's files, leaving other files as they are. With no name, an unknown name or a project that is not a plain name it SHALL change nothing and exit with code 2.
+
+#### Scenario: Install into the workspace  {#s-9d18}
+*Verification*: **executable**
+- **GIVEN** a workspace set up with flume init and no daemon running
+- **WHEN** flume workflow install light is run
+- **THEN** base of the flume root holds workflow.md and phases.md equal to the shipped files, the task repository has one new commit and nothing uncommitted
+
+#### Scenario: Install for a project  {#s-cf59}
+*Verification*: **executable**
+- **GIVEN** a workspace set up with flume init
+- **WHEN** flume workflow install none --project web --json is run
+- **THEN** projects/web of the flume root holds workflow.md, base holds none, and the output names the workflow and the file
+
+#### Scenario: An existing file is kept unless forced  {#s-8750}
+*Verification*: **executable**
+- **GIVEN** a workspace whose base phases.md of the flume root was written by the human
+- **WHEN** flume workflow install light is run, then again with --force
+- **THEN** the first exits with code 1, names phases.md and changes nothing, and the second overwrites it with the shipped file and commits
+
+#### Scenario: A name that cannot be installed  {#s-2bce}
+*Verification*: **executable**
+- **GIVEN** a workspace set up with flume init
+- **WHEN** flume workflow install is run with no name, with the name standard, and with --project a/b
+- **THEN** each exits with code 2 and the task repository has no new commit
+
+### Requirement: Init can install a workflow  {#r-00d6}
+When flume init --workflow NAME is run, flume SHALL also install the shipped workflow NAME into base of the flume root as flume workflow install NAME does. When NAME is not shipped (exit code 2) or one of its files already exists (exit code 1, naming it), flume SHALL set up and change nothing.
+
+#### Scenario: Init with a workflow  {#s-249d}
+*Verification*: **executable**
+- **GIVEN** a git repository
+- **WHEN** flume init --workflow light is run in it
+- **THEN** flume/base holds light's two files, committed, and git status lists nothing
+
+#### Scenario: Init refuses and sets up nothing  {#s-6ef1}
+*Verification*: **executable**
+- **GIVEN** a git repository, and another whose flume/base/workflow.md exists
+- **WHEN** flume init --workflow bogus is run in the first and flume init --workflow none in the second
+- **THEN** they exit with codes 2 and 1, no .flume folder or flume.yaml is made, and the existing file is unchanged

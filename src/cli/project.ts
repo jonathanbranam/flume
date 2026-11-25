@@ -19,7 +19,7 @@ const err = (s: string) => process.stderr.write(`${s}\n`);
 const out = (s: string) => process.stdout.write(`${s}\n`);
 
 /** The workspace folder and the task root for the folder `cwd`, or an error message. */
-function locate(cwd: string): { ws: string; taskRoot: string } | string {
+export function locate(cwd: string): { ws: string; taskRoot: string } | string {
   const ws = findInitialized(cwd);
   if (!ws) return "no flume workspace here: run flume init first";
   const taskRoot = readConfigRoot(ws) ?? findProject(ws)?.mainCheckout;

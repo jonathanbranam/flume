@@ -94,6 +94,17 @@ Do the plan, one group at a time. Run `npm test` before reporting each item.
 Ask the human to read the plan before you start.
 ```
 
+Flume also ships whole workflows to use instead of its standard one, for repos that need less:
+
+```sh
+flume workflow install --list     # none, light (--json too)
+flume workflow install light [--project P]   # copy into base/ (or projects/P/) and commit
+```
+
+The copies are yours to edit; a flume update does not change them. An existing file stops the
+install (`--force` overwrites the workflow's files). To go back to the standard workflow, remove
+the installed files.
+
 ## Checks and the roadmap
 
 ```sh
