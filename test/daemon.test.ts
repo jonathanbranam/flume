@@ -14,6 +14,7 @@ import { networkInterfaces, tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, afterEach, beforeEach, describe, expect, it } from "vitest";
 import { parse } from "yaml";
+import { SHIPPED_DIR } from "../src/core/documents.ts";
 import { type Daemon, startDaemon } from "../src/daemon/index.ts";
 
 const bin = new URL("../bin/flume.js", import.meta.url).pathname;
@@ -357,26 +358,35 @@ describe("daemon api", () => {
   };
 
   it("s-1581 prime layers in order", async () => {
-    putFlume("base/workflow.md", "BASE\n");
-    putFlume("projects/web/workflow.md", "WEB\n");
-    putFlume("base/roles/worker.md", "ROLE\n");
-    putFlume("projects/web/roles/worker.md", "WEBROLE\n");
+    putFlume("base/workflow.md", "# Flume workflow\n\n## Base @add\n\nBASE\n");
+    putFlume("projects/web/workflow.md", "# Flume workflow\n\n## Web @add\n\nWEB\n");
+    putFlume("base/roles/worker.md", "# Worker\n\nROLE\n");
+    putFlume("projects/web/roles/worker.md", "# Worker @append\n\nWEBROLE\n");
     const r = await call("GET", "/api/prime?project=web&role=worker");
     expect(r.status).toBe(200);
-    expect(r.body.text).toBe("BASE\n\nWEB\n\nROLE\n\nWEBROLE\n");
-    expect(r.body.parts).toEqual({
-      workspace: "BASE\n",
-      project: "WEB\n",
-      role: "ROLE\n\nWEBROLE\n",
-    });
+    const { workflow, project, role } = r.body.parts;
+    expect(workflow).toMatch(/^# Flume workflow\n[\s\S]*## Base\n\nBASE\n\n## Web\n\nWEB\n$/);
+    expect(project).toMatch(/^# Project\n\nYou are working on the \{project\} project/);
+    expect(role).toBe("# Worker\n\nROLE\n\nWEBROLE\n");
+    expect(r.body.text).toBe([workflow, project, role].join("\n"));
+    expect(r.body.first_prompt).toBe(
+      "Check your tickets and status, suggest next steps, and follow up.",
+    );
   });
 
-  it("s-3fa0 prime skips missing files", async () => {
-    putFlume("base/workflow.md", "BASE\n");
-    const r = await call("GET", "/api/prime?project=web&role=worker");
+  it("s-3fa0 prime with no files in the flume root", async () => {
+    const r = await call("GET", "/api/prime?role=worker");
     expect(r.status).toBe(200);
-    expect(r.body.text).toBe("BASE\n");
-    expect((await call("GET", "/api/prime")).body.text).toBe("BASE\n");
+    expect(r.body.parts.workflow).toBe(readFileSync(join(SHIPPED_DIR, "workflow.md"), "utf8"));
+    expect([r.body.parts.project, r.body.parts.role]).toEqual(["", ""]);
+    expect(r.body.text).toBe(r.body.parts.workflow);
+  });
+
+  it("s-0f6e a broken layer answers 422", async () => {
+    putFlume("base/workflow.md", "# Flume workflow\n\n## Nope\n\nx\n");
+    const r = await call("GET", "/api/prime");
+    expect(r.status).toBe(422);
+    expect(r.body.error).toContain('flume/base/workflow.md: line 3: heading "## Nope"');
   });
 
   it("s-f8c8 a path-like name is refused", async () => {
@@ -401,10 +411,13 @@ describe("daemon api", () => {
   });
 
   it("s-e610 read a guide", async () => {
-    putFlume("base/guides/deploy.md", "---\nname: deploy\ndescription: Ship it\n---\nSTEPS\n");
+    putFlume(
+      "base/guides/deploy.md",
+      "---\nname: deploy\ndescription: Ship it\n---\n# Deploy\n\nSTEPS\n",
+    );
     const r = await call("GET", "/api/guides/deploy?project=web");
     expect(r.status).toBe(200);
-    expect(r.body.body).toBe("STEPS\n");
+    expect(r.body.body).toBe("# Deploy\n\nSTEPS\n");
     expect(r.body.name).toBe("deploy");
   });
 

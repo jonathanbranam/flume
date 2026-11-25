@@ -1,7 +1,15 @@
-import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { parseDocument } from "yaml";
-import { flumeRoot } from "./layout.ts";
+import { documentFiles, listFiles, plainName } from "./documents.ts";
+import {
+  BrokenLayers,
+  formatLayerError,
+  type Layer,
+  mergeLayers,
+  renderSection,
+} from "./layers.ts";
+import { flumeRoot, rel } from "./layout.ts";
 import { SEGMENT_RE } from "./prime.ts";
 
 /** What a guide's front matter says about it. */
@@ -15,10 +23,16 @@ export interface Guide extends GuideInfo {
   body: string;
 }
 
-export type GuideResult = { ok: true; guide: Guide } | { ok: false; error: string };
+/** A guide file as parsed: also how many lines its front matter takes. */
+type Parsed = { ok: true; guide: Guide; offset: number } | { ok: false; error: string };
+
+export type GuideResult =
+  | { ok: true; guide: Guide }
+  /** `layers` is set when the bodies could not be merged (as opposed to bad front matter). */
+  | { ok: false; error: string; layers?: BrokenLayers };
 
 /** Parse a guide file's text: flat YAML front matter between --- lines, then the body. */
-export function parseGuide(name: string, text: string): GuideResult {
+export function parseGuide(name: string, text: string): Parsed {
   const m = /^---\r?\n([\s\S]*?)\r?\n---[ \t]*(?:\r?\n|$)([\s\S]*)$/.exec(text);
   if (!m) return { ok: false, error: "front matter missing (a --- block at the top)" };
   const doc = parseDocument(m[1] as string, { schema: "failsafe" });
@@ -40,7 +54,8 @@ export function parseGuide(name: string, text: string): GuideResult {
     return { ok: false, error: "front matter field description missing" };
   const guide: Guide = { name, description: r.description, body: m[2] as string };
   if (typeof r.stage === "string" && r.stage !== "") guide.stage = r.stage;
-  return { ok: true, guide };
+  const before = text.slice(0, text.length - guide.body.length);
+  return { ok: true, guide, offset: before.split("\n").length - 1 };
 }
 
 const dirs = (root: string, project: string): string[] => {
@@ -48,39 +63,49 @@ const dirs = (root: string, project: string): string[] => {
   return project ? [join(flumeRoot(root), "projects", project, "guides"), base] : [base];
 };
 
-function names(dir: string): string[] {
-  try {
-    return readdirSync(dir)
-      .filter((f) => f.endsWith(".md"))
-      .map((f) => f.slice(0, -3))
-      .sort();
-  } catch {
-    return [];
+const names = (dir: string): string[] =>
+  listFiles(dir)
+    .filter((f) => f.endsWith(".md"))
+    .map((f) => f.slice(0, -3));
+
+/** The guide files of `name`, lowest layer first, parsed; or the first front matter error. */
+function guideLayers(
+  root: string,
+  project: string,
+  name: string,
+): { layers: Layer[]; top: Guide | undefined } | { error: string } {
+  const layers: Layer[] = [];
+  let top: Guide | undefined;
+  for (const f of documentFiles(root, project, `guides/${name}.md`)) {
+    const r = parseGuide(name, readFileSync(f.path, "utf8"));
+    if (!r.ok) return { error: `${f.file}: ${r.error}` };
+    top = r.guide;
+    layers.push({ file: f.file, text: r.guide.body, lineOffset: r.offset });
   }
+  return { layers, top };
 }
 
-function plain(project: string): void {
-  if (project !== "" && !SEGMENT_RE.test(project))
-    throw new Error(`project '${project}' is not a plain name`);
-}
-
-/** The guide `name`: the project's if its file exists, else the base one; undefined if neither. */
+/**
+ * The guide `name`, its bodies merged by heading (shipped, base, project) and its front matter
+ * that of the most specific file; undefined when no layer has it.
+ */
 export function readGuide(root: string, project: string, name: string): GuideResult | undefined {
-  plain(project);
+  plainName("project", project);
   if (!SEGMENT_RE.test(name)) throw new Error(`guide '${name}' is not a plain name`);
-  for (const d of dirs(root, project)) {
-    const f = join(d, `${name}.md`);
-    if (existsSync(f)) {
-      const r = parseGuide(name, readFileSync(f, "utf8"));
-      return r.ok ? r : { ok: false, error: `${f}: ${r.error}` };
-    }
+  const found = guideLayers(root, project, name);
+  if ("error" in found) return { ok: false, error: found.error };
+  if (!found.top) return undefined;
+  const merged = mergeLayers(found.layers);
+  if (merged.errors.length > 0 || !merged.doc) {
+    const layers = new BrokenLayers(merged.errors);
+    return { ok: false, error: layers.message, layers };
   }
-  return undefined;
+  return { ok: true, guide: { ...found.top, body: renderSection(merged.doc) } };
 }
 
-/** The valid guides available to `project` (base ones, overridden by the project's), by name. */
+/** The guides available to `project` with good front matter (the project's wins), by name. */
 export function listGuides(root: string, project: string): GuideInfo[] {
-  plain(project);
+  plainName("project", project);
   const out = new Map<string, GuideInfo>();
   for (const d of [...dirs(root, project)].reverse())
     for (const n of names(d)) {
@@ -93,21 +118,29 @@ export function listGuides(root: string, project: string): GuideInfo[] {
   return [...out.values()].sort((a, b) => a.name.localeCompare(b.name));
 }
 
-/** One problem per guide file with missing or unparsable front matter, base and every project. */
+/**
+ * One problem per guide file with missing or unparsable front matter, and one per merge error in a
+ * guide's body, base and every project.
+ */
 export function checkGuides(root: string): { path: string; message: string }[] {
   const out: { path: string; message: string }[] = [];
-  const top = flumeRoot(root);
-  const where: [string, string][] = [[join(top, "base", "guides"), "base/guides"]];
-  let projects: string[] = [];
-  try {
-    projects = readdirSync(join(top, "projects"));
-  } catch {}
-  for (const p of projects.sort())
-    where.push([join(top, "projects", p, "guides"), `projects/${p}/guides`]);
-  for (const [d, label] of where)
-    for (const n of names(d)) {
-      const r = parseGuide(n, readFileSync(join(d, `${n}.md`), "utf8"));
-      if (!r.ok) out.push({ path: `${label}/${n}.md`, message: r.error });
+  const projects = listFiles(join(flumeRoot(root), "projects")).filter((p) => SEGMENT_RE.test(p));
+  for (const project of ["", ...projects]) {
+    const dir = project ? `projects/${project}` : "base";
+    for (const n of names(join(flumeRoot(root), dir, "guides"))) {
+      const path = rel(root, dir, "guides", `${n}.md`);
+      const r = parseGuide(n, readFileSync(join(root, path), "utf8"));
+      if (!r.ok) {
+        out.push({ path, message: r.error });
+        continue;
+      }
+      if (!SEGMENT_RE.test(n)) continue;
+      const found = guideLayers(root, project, n);
+      // A broken lower file is reported in its own turn.
+      if ("error" in found) continue;
+      for (const e of mergeLayers(found.layers).errors)
+        if (e.file === path) out.push({ path, message: formatLayerError(e) });
     }
+  }
   return out;
 }

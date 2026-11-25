@@ -1,9 +1,8 @@
 import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { documentText } from "./documents.ts";
 import { readGuide } from "./guides.ts";
-import { flumeRoot } from "./layout.ts";
 import { checkPlan, currentGroup, markItems, type PlanGroup, parsePlan } from "./plan.ts";
-import { SEGMENT_RE } from "./prime.ts";
 import { listTaskFiles, parseOrThrow, resolveRef, type TaskEntry } from "./store.ts";
 import { fields } from "./taskfile.ts";
 import { PART_FILES, WRITABLE_PARTS, type WritablePart } from "./workflow.ts";
@@ -68,61 +67,13 @@ export function removePart(root: string, ref: string, part: string): TaskEntry {
   return mustFind(root, ref);
 }
 
-export const BUILTIN_TEMPLATES: Record<WritablePart, string> = {
-  body: `## Proposal
-<!-- What is proposed, and why. -->
-
-## Goal
-<!-- What is true when this is done. -->
-
-## Scope
-### In scope
-
-### Out of scope
-`,
-  design: `## Context
-<!-- Background and constraints. -->
-
-## Goals / Non-goals
-
-## Decisions
-<!-- Each decision, the alternatives and why this one. -->
-
-## Risks / Trade-offs
-`,
-  spec: `## Requirements
-### Requirement: <name>
-<!-- One EARS sentence: When <trigger>, the system SHALL <response>. -->
-
-#### Scenario: <name>
-- GIVEN <state>
-- WHEN <action>
-- THEN <result>
-`,
-  plan: `## 1. <group name>
-<!-- Numbered groups, each with numbered items; [ ] open, [x] done, [-] skipped. -->
-<!-- Optional: Guide: <name> lines under a heading, before its items, name guides for that group (flume guide lists them). -->
-
-- [ ] 1.1 <item>
-- [ ] 1.2 <item>
-`,
-};
-
 /**
- * The template for a part: projects/<project>/templates/<part>.md of the flume-root, else
- * base/templates/<part>.md, else the built-in one. The most specific is used whole.
+ * The template for a part: templates/<part>.md merged by heading over flume's shipped one, the
+ * workspace's (base/) and the project's. Throws BrokenLayers.
  */
 export function templateFor(root: string, project: string, part: string): string {
   const name = mustPart(part);
-  if (project !== "" && !SEGMENT_RE.test(project))
-    throw new Error(`project '${project}' is not a plain name`);
-  const fr = flumeRoot(root);
-  const files = [
-    ...(project ? [join(fr, "projects", project, "templates", `${name}.md`)] : []),
-    join(fr, "base", "templates", `${name}.md`),
-  ];
-  const f = files.find((x) => existsSync(x));
-  return f ? readFileSync(f, "utf8") : BUILTIN_TEMPLATES[name];
+  return documentText(root, project, `templates/${name}.md`);
 }
 
 function planOf(root: string, ref: string): { e: TaskEntry; text: string } {

@@ -65,12 +65,39 @@ flume guide <name>                # print one
 ```
 
 `flume agent` needs `claude` on PATH (`tmux` optional: one pane per agent). Its prime text
-holds flume's workflow, then the workspace's `base/` and `projects/<project>/` files.
+holds the merged workflow, project and role documents (see below).
+
+## Changing the workflow
+
+Flume ships `workflow.md`, `phases.md` (the steps per phase), `project.md`, `first-prompt.md` and
+`templates/{body,design,spec,plan}.md`. A file of the same name in the flume-root's `base/`, then
+in `projects/<project>/`, merges into it by heading. `roles/<role>.md` and `guides/<name>.md`
+merge the same way. Every such file has exactly one `# H1` (a guide's comes after its front
+matter), and it must match the H1 below.
+
+- A heading with no tag replaces that section's own text; sub-sections you don't mention stay.
+- `## Name @add` adds a new section; `@append` adds text; `@remove` drops a section (give it no
+  text); `@replace` replaces the section and all its sub-sections.
+- `# Name @replace` on the H1: your file stands alone.
+- Anything flume cannot place (such as a heading that matches nothing) is an error: the command
+  that needs the file stops, and `flume check` lists every error with its file and line.
+
+```markdown
+# Phases
+
+## Implement
+
+Do the plan, one group at a time. Run `npm test` before reporting each item.
+
+## Plan @append
+
+Ask the human to read the plan before you start.
+```
 
 ## Checks and the roadmap
 
 ```sh
-flume check             # validate task files, guides and the roadmap; exit 1 on a problem
+flume check             # validate task files, workflow files, guides and roadmap; exit 1 if any
 flume roadmap show      # the roadmap with each task's state (needs the daemon)
 flume roadmap check     # links to no task, resolved tasks listed as upcoming
 ```

@@ -68,7 +68,7 @@ const yaml = (repo: string, id: string): string => {
 };
 const as = (name: string): NodeJS.ProcessEnv => ({ AGENT_NAME: name });
 
-describe("workflow fields and assignment", () => {
+describe("workflow fields and assignment", { timeout: 30_000 }, () => {
   it("s-3b36 a new task starts at proposal", async () => {
     const repo = await project();
     const y = yaml(repo, mk(repo));
@@ -182,7 +182,7 @@ describe("workflow fields and assignment", () => {
   });
 });
 
-describe("task parts and templates", () => {
+describe("task parts and templates", { timeout: 30_000 }, () => {
   it("s-773d show lists the parts", async () => {
     const repo = await project();
     const id = mk(repo);
@@ -239,23 +239,26 @@ describe("task parts and templates", () => {
     for (const p of ["body", "design", "spec", "plan"]) expect(t(p).trim()).not.toBe("");
     expect(t("spec")).toMatch(/#### Scenario[\s\S]*GIVEN[\s\S]*WHEN[\s\S]*THEN/);
     expect(t("plan")).toMatch(/^## 1\. .*\n[\s\S]*- \[ \] 1\.1 /m);
+    // The template, title and all, is itself a plan that can be written.
+    expect(flume(repo, ["task", "write", mk(repo), "plan"], t("plan")).status).toBe(0);
     expect(flume(repo, ["task", "template", "comments"]).status).toBe(1);
     flume(repo, ["stop"]);
   });
 
-  it("s-dd9e template overrides replace", async () => {
+  it("s-dd9e template layers merge", async () => {
     const repo = await project();
     const w = (rel: string, text: string) => {
       const f = join(repo, "flume", rel);
       mkdirSync(dirname(f), { recursive: true });
       writeFileSync(f, text);
     };
-    const builtin = flume(repo, ["task", "template", "spec"]).stdout;
-    w("base/templates/design.md", "BASE\n");
-    w("projects/web/templates/design.md", "WEB\n");
-    expect(flume(repo, ["task", "template", "design"]).stdout).toBe("BASE\n");
-    expect(flume(repo, ["task", "template", "design", "--project", "web"]).stdout).toBe("WEB\n");
-    expect(flume(repo, ["task", "template", "spec", "--project", "web"]).stdout).toBe(builtin);
+    const t = (...a: string[]) => flume(repo, ["task", "template", ...a]).stdout;
+    const builtin = t("spec");
+    w("base/templates/design.md", "# Design\n\n## Context\n\nBASE\n");
+    w("projects/web/templates/design.md", "# Design @replace\n\nWEB\n");
+    expect(t("design")).toContain("## Context\n\nBASE\n\n## Goals / Non-goals\n");
+    expect(t("design", "--project", "web")).toBe("# Design\n\nWEB\n");
+    expect(t("spec", "--project", "web")).toBe(builtin);
     flume(repo, ["stop"]);
   });
 });
@@ -273,7 +276,7 @@ const plan = (repo: string, id: string) => flume(repo, ["task", "show", id, "pla
 const writePlan = (repo: string, id: string, text: string) =>
   flume(repo, ["task", "write", id, "plan"], text);
 
-describe("the plan", () => {
+describe("the plan", { timeout: 30_000 }, () => {
   it("s-847c a good plan is accepted", async () => {
     const repo = await project();
     const id = mk(repo);
@@ -363,7 +366,7 @@ describe("the plan", () => {
   });
 });
 
-describe("phase, workflow and list", () => {
+describe("phase, workflow and list", { timeout: 30_000 }, () => {
   it("s-0872 any phase may follow any other", async () => {
     const repo = await project();
     const id = mk(repo);
@@ -424,31 +427,25 @@ describe("phase, workflow and list", () => {
   });
 });
 
-describe("prime text", () => {
+describe("prime text", { timeout: 30_000 }, () => {
   it("s-7bb1 prime names the workflow commands", () => {
     const d = realpathSync(mkdtempSync(join(tmpdir(), "flume-wfprime-")));
     dirs.push(d);
     const r = flume(d, ["prime", "--name", "scout"]);
     expect(r.status).toBe(0);
-    const base = /<flume_base>([\s\S]*?)<\/flume_base>/.exec(r.stdout)?.[1] ?? "";
+    const base = /<workflow>([\s\S]*?)<\/workflow>/.exec(r.stdout)?.[1] ?? "";
     expect(base).toContain("You are agent scout, stored in $AGENT_NAME");
     for (const c of [
       "flume task claim",
       "flume task instructions",
       "flume task guide",
       "--phase",
-      "Guide:",
       "flume task show",
       "flume task template",
       "flume task write",
       "flume task phase",
-      "flume task next",
-      "flume task done",
-      "flume task skip",
-      "--reason",
       "flume task assign ID human",
       "flume task comment",
-      "flume task close",
     ])
       expect(base).toContain(c);
     for (const f of ["body.md", "design.md", "spec.md", "plan.md", "task.yaml"])

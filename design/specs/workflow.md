@@ -106,22 +106,22 @@ When flume task write ID PART is run, flume SHALL replace the text of the part (
 - **THEN** the first exits 0 and show prints the file's text, and the other three exit with code 1
 
 ### Requirement: Every written part has a template  {#r-e3d9}
-When flume task template PART is run, flume SHALL print the template of the part (body, design, spec or plan): the file projects/PROJECT/templates/PART.md of the flume root when --project PROJECT is given and the file exists, else base/templates/PART.md of the flume root when it exists, else flume's built-in template; the most specific one SHALL be printed whole, never joined with another.
+When flume task template PART is run, flume SHALL print the template of the part (body, design, spec or plan): the document templates/PART.md merged by heading (the workflow-layers spec) from the one flume ships, base/templates/PART.md of the flume root and, when --project PROJECT is given, projects/PROJECT/templates/PART.md.
 
 #### Scenario: Built-in templates  {#s-3a2d}
 *Verification*: **executable**
 - **GIVEN** no template files
 - **WHEN** flume task template is run for each of body, design, spec and plan
-- **THEN** each prints a non-empty Markdown text, the spec template holds a Scenario heading with GIVEN, WHEN and THEN lines, and the plan template holds a group heading and an open item
+- **THEN** each prints a non-empty Markdown text, the spec template holds a Scenario heading with GIVEN, WHEN and THEN lines, the plan template holds a group heading and an open item, and the plan template as printed is accepted by flume task write ID plan
 
-#### Scenario: Overrides replace  {#s-dd9e}
+#### Scenario: Template layers merge  {#s-dd9e}
 *Verification*: **executable**
-- **GIVEN** a base template for design with the text BASE and a project template for design in project web with the text WEB
+- **GIVEN** a base template for design replacing the text of its Context section with BASE, and a project template for design in project web replacing the whole document with WEB
 - **WHEN** flume task template design is run with no project, and with --project web, and flume task template spec with --project web
-- **THEN** they print BASE, WEB and the built-in spec template, each exactly and without any other text
+- **THEN** the first prints the shipped design template with BASE under Context, the second the heading Design and WEB alone, and the third the shipped spec template
 
 ### Requirement: The plan is a checklist in a fixed form  {#r-8402}
-When flume task write ID plan is run, flume SHALL accept only a plan made of numbered groups ("## 1. Name", numbered from 1 in order), each optionally naming guides with lines "Guide: name" right under its heading (see the instructions spec) and with at least one item ("- [ ] 1.1 text", numbered group.item in order, with [ ] open, [x] done or [-] skipped), where a skipped item MAY be followed by a line "  Skipped: reason"; blank lines and one-line comments in the form <!-- text --> are allowed; for any other plan flume SHALL exit with code 1, say what is wrong and change nothing.
+When flume task write ID plan is run, flume SHALL accept only a plan made of an optional title line ("# Title") followed by numbered groups ("## 1. Name", numbered from 1 in order), each optionally naming guides with lines "Guide: name" right under its heading (see the instructions spec) and with at least one item ("- [ ] 1.1 text", numbered group.item in order, with [ ] open, [x] done or [-] skipped), where a skipped item MAY be followed by a line "  Skipped: reason"; blank lines and one-line comments in the form <!-- text --> are allowed; for any other plan flume SHALL exit with code 1, say what is wrong and change nothing.
 
 #### Scenario: A good plan is accepted  {#s-847c}
 *Verification*: **executable**
@@ -193,13 +193,13 @@ When flume task list is run, each line SHALL hold the ID, kind, state, phase, as
 - **THEN** they list the first task, the second, the second, the first and third, and the last exits with code 1; each line has the phase and assignee columns, and the JSON list has the keys phase, assignee and agent
 
 ### Requirement: The prime text teaches the workflow  {#r-745b}
-flume prime SHALL begin its flume_base section with text that names the agent (You are agent NAME, stored in $AGENT_NAME), tells the agent to use only flume commands for tasks, says the human is in control of the phases, and names the commands for each phase: flume task claim (saying that it prints the instructions for the current phase), flume task instructions (saying to run it, not flume task show, to see them again), flume task show, flume task guide (with --phase, for pushing a guide to a later phase), the Guide: lines of a plan group, flume task template, flume task write, flume task phase, flume task next, flume task done, flume task skip with --reason, flume task assign ID human, flume task comment and flume task close; and it SHALL NOT name any path in the tasks repository.
+The workflow document flume ships SHALL name the agent (You are agent NAME, stored in $AGENT_NAME), tell the agent to use only flume commands for tasks, say the human is in control of the phases, and name the commands: flume task claim (saying that it prints the instructions for the current phase), flume task instructions (saying to run it, not flume task show, to see them again), flume task show, flume task guide (with --phase, for pushing a guide to a later phase), flume task template, flume task write, flume task phase, flume task assign ID human and flume task comment; and it SHALL NOT name any path in the tasks repository. The commands of a single phase (Guide: lines, flume task next, flume task done, flume task skip, flume task close) are in that phase's steps (the instructions spec).
 
 #### Scenario: Prime names the workflow commands  {#s-7bb1}
 *Verification*: **executable**
 - **GIVEN** any project with no daemon running
 - **WHEN** flume prime is run for the agent scout
-- **THEN** the flume_base section holds You are agent scout and each of the commands above (and Guide:), and holds none of the file names body.md, design.md, spec.md, plan.md, task.yaml
+- **THEN** the workflow element holds You are agent scout and each of the commands above, and holds none of the file names body.md, design.md, spec.md, plan.md, task.yaml
 
 ### Requirement: Every change to a task is appended to its history  {#r-1a7e}
 When a command changes a task (create, update of a field, assign or claim, phase, comment, plan done or skip, close, reopen, write or remove of a part), flume SHALL append one line to the file history.jsonl in the task's folder and never rewrite an earlier line; each line is a JSON object with time (UTC, ISO 8601 ending in Z), by (the actor of the command per the actor requirement: the name in AGENT_NAME, else agent-<first 8 characters of CLAUDE_CODE_SESSION_ID> (agent-unknown without it) when CLAUDECODE is set, else human) and action, plus field, from and to for a field change (update, assign with field assignee, phase with field phase), part (the name only, not the text) for write and remove, items (and reason for a skip) for plan_done and plan_skip, title and kind for create, and resolution (done or dropped) for close; a command that changes nothing or is refused SHALL append nothing; and the file SHALL move with the folder on close and reopen.

@@ -3,6 +3,12 @@ import { readdirSync } from "node:fs";
 import { Command, type CommandUnknownOpts } from "@commander-js/extra-typings";
 import { stringify } from "yaml";
 import { agentsDir, type Entry, flumeHome, readEntry, writeEntry } from "../core/agents.ts";
+import {
+  documentText,
+  joinedText,
+  type PrimeDocuments,
+  primeDocuments,
+} from "../core/documents.ts";
 import { xmlBlock, xmlOpen, xmlText } from "../core/prime.ts";
 import { daemonUrl, findFlumeFolder, request } from "../daemon/index.ts";
 import { act, outcome, Usage } from "./program.ts";
@@ -16,29 +22,6 @@ prompt, -n/--name, --append-system-prompt[-file], a repeated single-value option
 missing its value) and exits 2 on one. The prime text always goes to claude with
 --append-system-prompt, and flume always passes --name <name>.
 `;
-const DEFAULT_BASE = `You are agent {name}, stored in $AGENT_NAME.
-Use the flume CLI to work with tasks; run flume --help to learn it.
-Never start flume serve yourself; only the human does. If flume says the server is not running, ask the human to start it.
-
-Read and change tasks only with flume commands. Never read or edit task files directly.
-
-The human is in control. They may move a task to any phase, forwards or backwards, or skip phases ("write design and specs", "remove the specs and start over on the design", "the ticket is simple, skip specs and plan, just implement"). Do what they ask.
-
-Working a task:
-1. Claim the task (flume task claim ID); it prints your instructions for the task's current phase. Follow them. To see them again, run flume task instructions ID, not flume task show (that prints the task's data, not what to do). Flume will not move a task forward for you until you have read the instructions for its current phase.
-2. The phases, in order (the specific steps for each are in the instructions; read a part with flume task show ID PART, write one with flume task write ID PART starting from its template: flume task template PART):
-   - proposal: check that the task has a clear proposal, goal and scope. If not, ask the human. Write them in the body.
-   - design: when goal and scope are clear, think through the design questions and write the design.
-   - specs: when the design is clear, write the spec: clear requirements in EARS form ("When <trigger>, the system SHALL <response>").
-   - plan: read the body, design and spec, then write the plan: how to implement the task, step by step, in numbered groups. Decide which guides apply to each group and name them with Guide: lines under the group's heading. Then mark the task ready: flume task phase ID implement.
-   - implement: get the current group of plan items and its guides (flume task next ID), do them, and report each one: flume task done ID ITEM, or flume task skip ID ITEM --reason TEXT if it should not be done. Repeat until the plan is complete. When writing code, enter a git worktree to make the changes; when done, merge main into it, then exit the worktree and merge it into main. Close the task when done (flume task close ID).
-3. When your phase is done, set the next phase (flume task phase ID PHASE). One agent will likely not do the whole workflow: another may take the next phase, or finish the plan. If you are waiting on the human, assign the task back to them (flume task assign ID human).
-4. In every phase, record important conversations with the human as comments (flume task comment ID), quoting the human verbatim.
-5. Guides are how-to notes. In every phase: if you see guides (flume guide) that matter for a later phase of this task, push them (flume task guide ID NAME --phase PHASE); they are printed with that phase's instructions. Read any guide that matters for your own work now (flume guide NAME).
-`;
-const DEFAULT_PROJECT =
-  "You are working on the {project} project. Read that project's CLAUDE.md and follow its instructions.\n";
-const DEFAULT_PROMPT = "Check your tickets and status, suggest next steps, and follow up.";
 const NAME_RE = /^[a-z0-9][a-z0-9-]*$/;
 
 interface Parsed {
@@ -208,50 +191,61 @@ To set up a new workspace, tell the human to do this:
 
 Do not run these commands yourself without the human, and never start the server yourself.`;
 
+/** The prime text and the first prompt to launch with when the human gives none. */
+interface Prime {
+  text: string;
+  firstPrompt: string;
+}
+
 /**
- * The prime text: one flume_prime element holding flume's built-in text, then the workflow parts
- * the daemon builds from the flume-root files for this project and role, then the guides; empty
- * parts are left out. With no daemon (or a refusal) the built-in text is printed with a
- * server_not_running element (a workspace was found) or a flume_not_set_up element (none was) saying why the rest is missing; a refusal gives a workflow_missing element.
+ * The prime text: one flume_prime element holding a workflow element (the merged workflow.md,
+ * project.md and role, which the daemon builds from flume's shipped files and the flume-root's),
+ * then the guides. With no daemon (or a refusal) the workflow element holds the shipped documents
+ * alone, followed by a server_not_running element (a workspace was found), a flume_not_set_up
+ * element (none was) or a workflow_missing element (refused) saying why the rest is missing.
+ * Throws when a layered file has an error.
  */
-async function primeText(name: string, project: string, role: string): Promise<string> {
+async function primeText(name: string, project: string, role: string): Promise<Prime> {
   const vars = { name, project };
-  let base = fill(DEFAULT_BASE, vars);
-  if (project) base += `\n${fill(DEFAULT_PROJECT, vars)}`;
-  const parts: string[] = [xmlBlock("flume_base", {}, base)];
   const url = daemonUrl(process.cwd());
   const q = new URLSearchParams({ project, role });
   const r = url ? await request(url, "GET", `/api/prime?${q}`) : undefined;
-  if (!r) {
-    const ws = findFlumeFolder(process.cwd(), flumeHome());
-    if (ws) {
-      parts.push(xmlBlock("server_not_running", {}, serverNotRunning(ws)));
-    } else {
-      parts.push(xmlBlock("flume_not_set_up", {}, NOT_SET_UP));
-    }
-  } else if (r.status !== 200) {
-    parts.push(
-      xmlBlock(
-        "workflow_missing",
-        {},
-        `The workflow text is missing: ${r.body?.error ?? `request failed (${r.status})`}`,
-      ),
-    );
-  } else {
-    const w = (r.body.parts ?? {}) as { workspace?: string; project?: string; role?: string };
-    if (w.workspace) parts.push(xmlBlock("workspace_workflow", {}, w.workspace));
-    if (w.project) parts.push(xmlBlock("project_workflow", { project }, w.project));
-    if (w.role) parts.push(xmlBlock("role", { name: role }, w.role));
+  if (r?.status === 422) throw new Error(r.body?.error ?? "a workflow file has an error");
+  let docs: PrimeDocuments;
+  const after: string[] = [];
+  if (r?.status === 200) {
+    docs = { ...r.body.parts, first_prompt: r.body.first_prompt };
     const guides = (r.body.guides ?? []) as { name: string; description: string; stage?: string }[];
     if (guides.length > 0) {
       let g = "<guides>\n<!-- Print one with: flume guide <name> -->\n";
       for (const x of guides)
         g += `${xmlOpen("guide", { name: x.name, stage: x.stage })}${xmlText(x.description)}</guide>\n`;
-      parts.push(`${g}</guides>\n`);
+      after.push(`${g}</guides>\n`);
+    }
+  } else {
+    // Shipped files only: no project name goes into a path.
+    docs = primeDocuments(undefined, "", "");
+    if (project) docs.project = documentText(undefined, "", "project.md");
+    if (r) {
+      const why = r.body?.error ?? `request failed (${r.status})`;
+      after.push(xmlBlock("workflow_missing", {}, `The workflow text is missing: ${why}`));
+    } else {
+      const ws = findFlumeFolder(process.cwd(), flumeHome());
+      if (ws) after.push(xmlBlock("server_not_running", {}, serverNotRunning(ws)));
+      else after.push(xmlBlock("flume_not_set_up", {}, NOT_SET_UP));
     }
   }
+  const body = joinedText({
+    ...docs,
+    workflow: fill(docs.workflow, vars),
+    project: fill(docs.project, vars),
+  });
+  const parts = [...(body ? [xmlBlock("workflow", {}, body)] : []), ...after];
   const root = xmlOpen("flume_prime", { agent: name, project, role });
-  return `${root}\n\n${parts.join("\n")}\n</flume_prime>\n`;
+  return {
+    text: `${root}\n\n${parts.join("\n")}\n</flume_prime>\n`,
+    firstPrompt: fill(docs.first_prompt, vars),
+  };
 }
 
 /** Refuse a name outside NAME_RE before anything is read or written; undefined when it is fine. */
@@ -382,10 +376,14 @@ export async function prime(p: {
   const bad = badName(name);
   if (bad) throw new Usage(bad);
   const old = readEntry(name);
-  process.stdout.write(
-    await primeText(name, p.project ?? old?.project ?? "", p.role ?? old?.role ?? ""),
-  );
-  return 0;
+  try {
+    const r = await primeText(name, p.project ?? old?.project ?? "", p.role ?? old?.role ?? "");
+    process.stdout.write(r.text);
+    return 0;
+  } catch (e) {
+    process.stderr.write(`flume: ${(e as Error).message}\n`);
+    return 1;
+  }
 }
 
 /** `flume agent ...`; returns the exit code (claude's, for a launch). */
@@ -428,16 +426,23 @@ export async function agent(args: string[]): Promise<number> {
     last_launch: now,
   };
   writeEntry(entry);
+  let primed: Prime;
+  try {
+    primed = await primeText(name, project, role);
+  } catch (e) {
+    process.stderr.write(`flume: ${(e as Error).message}\n`);
+    return 1;
+  }
   if (pane) tmux(["set-option", "-p", "-t", pane, "@flume_agent", name]);
 
   const claudeArgs = [
     "--append-system-prompt",
-    await primeText(name, project, role),
+    primed.text,
     "--name",
     name,
     ...p.passthrough,
     "--",
-    p.prompt ?? DEFAULT_PROMPT,
+    p.prompt ?? primed.firstPrompt,
   ];
   const env: NodeJS.ProcessEnv = { ...process.env, AGENT_NAME: name };
   if (project) env.AGENT_PROJECT = project;

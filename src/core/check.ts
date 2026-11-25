@@ -1,7 +1,9 @@
 import { existsSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
+import { checkDocuments } from "./documents.ts";
 import { checkGuides } from "./guides.ts";
 import { isValidId } from "./ids.ts";
+import { formatLayerError } from "./layers.ts";
 import { rel } from "./layout.ts";
 import { checkProjects } from "./projects.ts";
 import { checkRoadmap } from "./roadmap.ts";
@@ -164,6 +166,8 @@ export function checkProject(root: string): Problem[] {
   }
   problems.push(...checkProjects(root));
   problems.push(...checkRoadmap(root));
+  for (const { file, errors } of checkDocuments(root))
+    problems.push(...errors.map((e) => ({ path: file, message: formatLayerError(e) })));
   problems.push(...checkGuides(root));
   return problems;
 }

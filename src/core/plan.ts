@@ -21,6 +21,7 @@ const GROUP = /^## (\d+)\. (\S.*)$/;
 const ITEM = /^- \[( |x|-)\] (\d+\.\d+) (\S.*)$/;
 const GUIDE_LINE = /^Guide: (\S+)$/;
 const GUIDE_NAME = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
+const TITLE = /^# \S.*$/;
 const SKIPPED = /^ {2}Skipped: (\S.*)$/;
 const COMMENT = /^<!--.*-->$/;
 const MARK: Record<string, ItemState> = { " ": "open", x: "done", "-": "skipped" };
@@ -29,17 +30,21 @@ const MARK_OF: Record<ItemState, string> = { open: " ", done: "x", skipped: "-" 
 export type PlanParse = { ok: true; groups: PlanGroup[] } | { ok: false; error: string };
 
 /**
- * Parse a plan. Every non blank line is a group heading ("## 1. Title"), an item
+ * Parse a plan. After an optional "# Title" first line, every non blank line is a group heading ("## 1. Title"), an item
  * ("- [ ] 1.1 text", with x or - for done or skipped), a "  Skipped: reason" line under a
  * skipped item, or a one line <!-- comment -->. Items are numbered group.item in order.
  */
 export function parsePlan(text: string): PlanParse {
   const groups: PlanGroup[] = [];
   const lines = text.split("\n");
+  let first = true;
   for (let i = 0; i < lines.length; i++) {
     const line = (lines[i] as string).replace(/\s+$/, "");
     const at = `line ${i + 1}`;
     if (line === "" || COMMENT.test(line.trim())) continue;
+    const title = first && TITLE.test(line);
+    first = false;
+    if (title) continue;
     let m = GROUP.exec(line);
     if (m) {
       if (Number(m[1]) !== groups.length + 1)

@@ -19,7 +19,8 @@ pushes and never starts the daemon.
 
 Inside the flume-root folder of the tasks repo live your own files: `base/` and
 `projects/<project>/` (workflow text, roles, guides, templates) and `roadmap.md`. Agents receive
-them through `flume prime`, never by reading the files.
+them through `flume prime`, never by reading the files. How your files change flume's own is in
+`flume help usage` under "Changing the workflow".
 
 ## A new project
 

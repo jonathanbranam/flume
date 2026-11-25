@@ -58,7 +58,7 @@ const guide = (repo: string, name: string, body = `${name.toUpperCase()} TEXT`, 
   put(
     repo,
     `base/guides/${name}.md`,
-    `---\nname: ${name}\ndescription: About ${name}\n${stage ? `stage: ${stage}\n` : ""}---\n${body}\n`,
+    `---\nname: ${name}\ndescription: About ${name}\n${stage ? `stage: ${stage}\n` : ""}---\n# ${name}\n\n${body}\n`,
   );
 
 function mk(repo: string, title = "A task"): string {
@@ -94,7 +94,7 @@ describe("pushing guides", () => {
     expect(yaml(repo, id)).not.toContain("guides");
     expect(flume(repo, ["task", "guide", id, "testing"]).status).toBe(2);
     flume(repo, ["stop"]);
-  });
+  }, 30_000);
 
   // 30 s: many process spawns, flaky at 5 s under parallel load (worse with the help walk).
   it("s-4a03 refused pushes change nothing", async () => {
@@ -194,13 +194,15 @@ describe("instructions", () => {
     expect(r.stdout).toContain('<steps phase="design">');
     expect(r.stdout).toContain(`flume task write ${id} design`);
     expect(r.stdout).toContain('<template part="design">');
-    expect(r.stdout).toContain('<guide name="db-schema" stage="design">\nDB BODY\n</guide>');
+    expect(r.stdout).toContain(
+      '<guide name="db-schema" stage="design">\n# db-schema\n\nDB BODY\n</guide>',
+    );
     expect(r.stdout).not.toContain('<guide name="testing"');
     flume(repo, ["task", "phase", id, "implement"]);
     const i = inst(repo, id).stdout;
     expect(i).toContain('<steps phase="implement">');
     expect(i).not.toContain("<template");
-    expect(i).toContain('<guide name="testing">\nTESTING TEXT\n</guide>');
+    expect(i).toContain('<guide name="testing">\n# testing\n\nTESTING TEXT\n</guide>');
     flume(repo, ["stop"]);
   });
 
@@ -262,8 +264,8 @@ describe("instructions", () => {
     ]);
     const j = JSON.parse(flume(repo, ["task", "next", id, "--json"]).stdout);
     expect(j.guides).toEqual([
-      { name: "testing", body: "TESTING TEXT\n" },
-      { name: "style", body: "STYLE TEXT\n" },
+      { name: "testing", body: "# testing\n\nTESTING TEXT\n" },
+      { name: "style", body: "# style\n\nSTYLE TEXT\n" },
     ]);
     flume(repo, ["stop"]);
   });

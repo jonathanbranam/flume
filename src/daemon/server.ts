@@ -7,6 +7,7 @@ import {
   addComment,
   appendHistory,
   assignTask,
+  BrokenLayers,
   checkProject,
   createTask,
   formatGroup,
@@ -14,12 +15,14 @@ import {
   type HistoryData,
   instructionsFor,
   isPhase,
+  joinedText,
   listGuides,
   listTaskFiles,
   markPlan,
   nextGroup,
   PATCH_FIELDS,
   PHASES,
+  primeDocuments,
   pushGuide,
   readGuide,
   readHistory,
@@ -37,9 +40,7 @@ import {
   taskObject,
   templateFor,
   updateTask,
-  workflowParts,
   workflowSteps,
-  workflowText,
   writePart,
 } from "../core/index.ts";
 import { commitPaths, inRepo } from "./git.ts";
@@ -104,6 +105,8 @@ export function startDaemon(opts: {
       return f();
     } catch (e) {
       if (e instanceof HttpError) throw e;
+      // 422: a layered workflow file has an error; clients print it and exit 1.
+      if (e instanceof BrokenLayers) throw new HttpError(422, e.message);
       throw new HttpError(400, (e as Error).message);
     }
   };
@@ -136,11 +139,13 @@ export function startDaemon(opts: {
       allow("GET");
       const project = url.searchParams.get("project") ?? "";
       const role = url.searchParams.get("role") ?? "";
+      const { first_prompt, ...parts } = bad(() => primeDocuments(root, project, role));
       return [
         200,
         {
-          text: bad(() => workflowText(root, project, role)),
-          parts: bad(() => workflowParts(root, project, role)),
+          text: joinedText({ ...parts, first_prompt }),
+          parts,
+          first_prompt,
           guides: bad(() => listGuides(root, project)),
         },
       ];
@@ -151,7 +156,7 @@ export function startDaemon(opts: {
       const project = url.searchParams.get("project") ?? "";
       const r = bad(() => readGuide(root, project, name));
       if (!r) throw new HttpError(404, `no guide ${name}`);
-      if (!r.ok) throw new HttpError(400, r.error);
+      if (!r.ok) throw new HttpError(r.layers ? 422 : 400, r.error);
       return [200, r.guide];
     }
     if (a === "workflow" && parts.length === 2) {
@@ -254,7 +259,7 @@ export function startDaemon(opts: {
             complete: group === undefined,
             group: group ?? null,
             text: group ? formatGroup(group) : "",
-            guides: group ? groupGuides(root, e.nameId, group) : [],
+            guides: group ? bad(() => groupGuides(root, e.nameId, group)) : [],
           },
         ];
       }

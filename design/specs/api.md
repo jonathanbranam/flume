@@ -160,20 +160,25 @@ When GET /api/roadmap is requested, the daemon SHALL answer 200 with sections, a
 - **THEN** the status is 404 and the body has an error message
 
 ### Requirement: Prime text from the flume root  {#r-216d}
-When GET /api/prime is requested with the optional query parameters project and role, the daemon SHALL answer 200 with an object whose text is the concatenation, in this order and each separated from the next by a blank line, of those of these files in the flume root that exist: base/workflow.md; projects/PROJECT/workflow.md (when project is given); base/roles/ROLE.md (when role is given); projects/PROJECT/roles/ROLE.md (when both are given); text is empty when none exists; the object SHALL also hold parts, an object with workspace (base/workflow.md), project (projects/PROJECT/workflow.md) and role (base/roles/ROLE.md then projects/PROJECT/roles/ROLE.md, separated by a blank line), each "" when it has no file; a project or role that is not one plain name (letters, digits, dots, hyphens and underscores, starting with a letter or digit) SHALL answer 400 with an error message.
+When GET /api/prime is requested with the optional query parameters project and role, the daemon SHALL answer 200 with an object holding parts, an object with workflow (the merged workflow.md), project (the merged project.md, "" with no project) and role (the merged roles/ROLE.md, "" with no role or no file of it), merged as the workflow-layers spec says with placeholders left as written; text, the non-empty parts in that order separated by a blank line; and first_prompt, the text under the H1 of the merged first-prompt.md. A project or role that is not one plain name (letters, digits, dots, hyphens and underscores, starting with a letter or digit) SHALL answer 400 with an error message, and a merge error in one of these documents SHALL answer 422 with an error message holding every such error's file, line and heading.
 
 #### Scenario: Layers in order  {#s-1581}
 *Verification*: **executable**
-- **GIVEN** a flume root with base/workflow.md holding BASE, projects/web/workflow.md holding WEB, base/roles/worker.md holding ROLE and projects/web/roles/worker.md holding WEBROLE
+- **GIVEN** a flume root with base/workflow.md adding BASE, projects/web/workflow.md adding WEB, base/roles/worker.md holding ROLE and projects/web/roles/worker.md appending WEBROLE
 - **WHEN** GET /api/prime is requested with project web and role worker
-- **THEN** the status is 200 and text holds BASE, WEB, ROLE and WEBROLE in that order
-- **AND** parts.workspace holds BASE, parts.project holds WEB and parts.role holds ROLE then WEBROLE
+- **THEN** the status is 200, parts.workflow is the shipped workflow with BASE and then WEB added, parts.project is the shipped project document, parts.role holds ROLE then WEBROLE, text joins the three and first_prompt is the shipped first prompt
 
 #### Scenario: Missing files are skipped  {#s-3fa0}
 *Verification*: **executable**
-- **GIVEN** a flume root with only base/workflow.md holding BASE
-- **WHEN** GET /api/prime is requested with project web and role worker
-- **THEN** the status is 200 and text holds BASE and nothing else
+- **GIVEN** a flume root with no layered files
+- **WHEN** GET /api/prime is requested with role worker
+- **THEN** the status is 200, parts.workflow is the shipped workflow, parts.project and parts.role are empty and text equals parts.workflow
+
+#### Scenario: A broken layer  {#s-0f6e}
+*Verification*: **executable**
+- **GIVEN** a flume root whose base/workflow.md has a heading Nope that matches nothing
+- **WHEN** GET /api/prime is requested
+- **THEN** the status is 422 and the error names flume/base/workflow.md, the line and the heading
 
 #### Scenario: A path-like name is refused  {#s-f8c8}
 *Verification*: **executable**
@@ -182,7 +187,7 @@ When GET /api/prime is requested with the optional query parameters project and 
 - **THEN** the status is 400 and the body has an error message
 
 ### Requirement: Guides  {#r-eee6}
-When GET /api/prime is requested, the daemon SHALL also answer in the object a list guides with one object per guide available to the project (those of base/guides and, when project is given, projects/PROJECT/guides, a project's guide replacing the base one of the same name) holding name, description and, when the guide has one, stage, ordered by name; a guide whose front matter is missing, unparsable, has a name differing from the file name or no description is left out. When GET /api/guides/NAME is requested with the optional query parameter project, the daemon SHALL answer 200 with an object holding name, description, stage (when present) and body (the text after the front matter) of the project's guide if its file exists, else the base guide; 404 with an error message when neither file exists; 400 with an error message when the guide's front matter is missing or unparsable or when NAME or project is not one plain name.
+When GET /api/prime is requested, the daemon SHALL also answer in the object a list guides with one object per guide available to the project (those of base/guides and, when project is given, projects/PROJECT/guides, a project's guide taking the place of the base one of the same name in the list) holding name, description and, when the guide has one, stage, ordered by name; a guide whose front matter is missing, unparsable, has a name differing from the file name or no description is left out. When GET /api/guides/NAME is requested with the optional query parameter project, the daemon SHALL answer 200 with an object holding name, description, stage (when present) and body (the text after the front matter, the project's guide merged into the base one as the workflow-layers spec says; the other fields those of the project's guide if its file exists, else the base guide); 404 with an error message when neither file exists; 400 with an error message when the guide's front matter is missing or unparsable or when NAME or project is not one plain name; 422 when its text has a merge error.
 
 #### Scenario: Prime lists guides  {#s-000f}
 *Verification*: **executable**
@@ -192,9 +197,9 @@ When GET /api/prime is requested, the daemon SHALL also answer in the object a l
 
 #### Scenario: Read a guide  {#s-e610}
 *Verification*: **executable**
-- **GIVEN** a flume root with base/guides/deploy.md holding front matter and the body STEPS, and no guide for project web
+- **GIVEN** a flume root with base/guides/deploy.md holding front matter and a heading Deploy with STEPS, and no guide for project web
 - **WHEN** GET /api/guides/deploy is requested with project web
-- **THEN** the status is 200 and body is STEPS and name is deploy
+- **THEN** the status is 200 and body is the heading and STEPS and name is deploy
 
 #### Scenario: Unknown or broken guide  {#s-b6e2}
 *Verification*: **executable**
@@ -270,7 +275,7 @@ When a request creates or changes a task (create, update, comment, assign, phase
 - **THEN** two new commits exist, each message contains the task ID, each holds only that task folder, and the working tree is clean
 
 ### Requirement: Workflow endpoints  {#r-a0d8}
-The daemon SHALL answer these and commit each change as one commit naming the task: POST /api/tasks/{id}/assign (JSON assignee, optional actor and force; an actor that takes a task held by someone else without force gets 400 and no change) and POST /api/tasks/{id}/phase (JSON phase); GET, PUT (JSON text) and DELETE /api/tasks/{id}/parts/{part}; GET /api/tasks/{id}/plan/next (answers complete, group and text), POST /api/tasks/{id}/plan/done (JSON items) and POST /api/tasks/{id}/plan/skip (JSON items and reason); GET /api/templates/{part} with an optional project query; GET /api/workflow (the list of phases); and GET /api/tasks takes assignee and phase queries.
+The daemon SHALL answer these and commit each change as one commit naming the task: POST /api/tasks/{id}/assign (JSON assignee, optional actor and force; an actor that takes a task held by someone else without force gets 400 and no change) and POST /api/tasks/{id}/phase (JSON phase); GET, PUT (JSON text) and DELETE /api/tasks/{id}/parts/{part}; GET /api/tasks/{id}/plan/next (answers complete, group and text), POST /api/tasks/{id}/plan/done (JSON items) and POST /api/tasks/{id}/plan/skip (JSON items and reason); GET /api/templates/{part} with an optional project query (the merged template; 422 for a merge error); GET /api/workflow (the list of phases); and GET /api/tasks takes assignee and phase queries.
 
 #### Scenario: Assign, phase, parts and plan over HTTP  {#s-409c}
 *Verification*: **executable**

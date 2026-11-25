@@ -68,44 +68,46 @@ async function serve(w: ReturnType<typeof workspace>): Promise<void> {
 describe("prime prints the workflow", () => {
   it("s-1d08 layers in order", async () => {
     const w = workspace();
-    put(w, "base/workflow.md", "BASE\n");
-    put(w, "projects/web/workflow.md", "WEB\n");
-    put(w, "base/roles/worker.md", "ROLE\n");
-    put(w, "projects/web/roles/worker.md", "WEBROLE\n");
+    put(w, "base/workflow.md", "# Flume workflow\n\n## Base @add\n\nBASE\n");
+    put(w, "projects/web/workflow.md", "# Flume workflow\n\n## Web @add\n\nWEB\n");
+    put(w, "base/roles/worker.md", "# Worker\n\nROLE\n");
+    put(w, "projects/web/roles/worker.md", "# Worker @append\n\nWEBROLE\n");
     await serve(w);
     const r = flume(w, "prime", "--name", "a", "--project", "web", "--role", "worker");
     expect(r.status).toBe(0);
-    const order = ["You are agent a", "BASE", "WEB\n", "ROLE\n", "WEBROLE"].map((x) =>
-      r.stdout.indexOf(x),
-    );
+    const order = [
+      "You are agent a",
+      "## Base\n\nBASE\n\n## Web\n\nWEB\n",
+      "# Project\n\nYou are working on the web project.",
+      "# Worker\n\nROLE\n\nWEBROLE\n</workflow>\n",
+    ].map((x) => r.stdout.indexOf(x));
     expect(order.every((i) => i >= 0)).toBe(true);
     expect([...order].sort((x, y) => x - y)).toEqual(order);
     expect(r.stdout).not.toContain("read the .md files");
-    expect(r.stdout).toMatch(/<workspace_workflow>\nBASE\n<\/workspace_workflow>/);
-    expect(r.stdout).toMatch(/<project_workflow project="web">\nWEB\n<\/project_workflow>/);
-    expect(r.stdout).toMatch(/<role name="worker">\nROLE\n\nWEBROLE\n<\/role>/);
+    expect(r.stdout).not.toContain("@add");
+    expect(r.stdout.match(/^<workflow>$/gm)).toHaveLength(1);
     flume(w, "stop");
   });
 
   it("s-141b no role gives no role part", async () => {
     const w = workspace();
-    put(w, "base/workflow.md", "BASE\n");
-    put(w, "base/roles/worker.md", "ROLE\n");
+    put(w, "base/workflow.md", "# Flume workflow\n\n## Mine @add\n\nBASE\n");
+    put(w, "base/roles/worker.md", "# Worker\n\nROLE\n");
     await serve(w);
     const r = flume(w, "prime", "--name", "a");
     expect(r.status).toBe(0);
     expect(r.stdout).toContain("BASE");
     expect(r.stdout).not.toContain("ROLE");
-    expect(r.stdout).not.toContain("<role");
+    expect(r.stdout).not.toContain("# Worker");
     flume(w, "stop");
   });
 
   it("s-3cd4 no daemon in a workspace points at flume serve", () => {
     const w = workspace();
-    put(w, "base/workflow.md", "BASE\n");
+    put(w, "base/workflow.md", "# Flume workflow\n\n## Mine @add\n\nBASE\n");
     const r = flume(w, "prime", "--name", "a");
     expect(r.status).toBe(0);
-    expect(r.stdout).toMatch(/<flume_base>\n[\s\S]*You are agent a[\s\S]*<\/flume_base>/);
+    expect(r.stdout).toMatch(/<workflow>\n[\s\S]*You are agent a[\s\S]*<\/workflow>/);
     expect(r.stdout).toMatch(
       new RegExp(
         `<server_not_running>\\n[^\\n]*${w.d}[\\s\\S]*flume serve[\\s\\S]*</server_not_running>`,
@@ -125,7 +127,7 @@ describe("prime prints the workflow", () => {
       env: w.env,
     });
     expect(r.status).toBe(0);
-    expect(r.stdout).toMatch(/<flume_base>\n[\s\S]*You are agent a[\s\S]*<\/flume_base>/);
+    expect(r.stdout).toMatch(/<workflow>\n[\s\S]*You are agent a[\s\S]*<\/workflow>/);
     const m = r.stdout.match(/<flume_not_set_up>\n([\s\S]*)<\/flume_not_set_up>/);
     expect(m).not.toBeNull();
     for (const t of [
@@ -143,7 +145,7 @@ describe("prime prints the workflow", () => {
 
   it("s-afe2 launch passes the role to prime", async () => {
     const w = workspace();
-    put(w, "base/roles/worker.md", "ROLE\n");
+    put(w, "base/roles/worker.md", "# Worker\n\nROLE\n");
     await serve(w);
     const r = flume(w, "agent", "--name", "a", "--role", "worker");
     expect(r.status).toBe(0);
@@ -154,20 +156,20 @@ describe("prime prints the workflow", () => {
 });
 
 const GUIDE = (n: string, d: string, body: string) =>
-  `---\nname: ${n}\ndescription: ${d}\n---\n${body}\n`;
+  `---\nname: ${n}\ndescription: ${d}\n---\n# ${n}\n\n${body}\n`;
 
 describe("prime layout", () => {
   it("s-87a2 layout", async () => {
     const w = workspace();
-    put(w, "base/workflow.md", "BASE\n");
+    put(w, "base/workflow.md", "# Flume workflow\n\n## Mine @add\n\nBASE\n");
     await serve(w);
     const r = flume(w, "prime", "--name", "a", "--project", "web", "--role", "worker");
     expect(r.status).toBe(0);
     expect(
-      r.stdout.startsWith('<flume_prime agent="a" project="web" role="worker">\n\n<flume_base>\n'),
+      r.stdout.startsWith('<flume_prime agent="a" project="web" role="worker">\n\n<workflow>\n'),
     ).toBe(true);
     expect(r.stdout.endsWith("\n</flume_prime>\n")).toBe(true);
-    expect(r.stdout).toContain("</flume_base>\n\n<workspace_workflow>\n");
+    expect(r.stdout).toContain("</workflow>\n\n</flume_prime>\n");
     flume(w, "stop");
   });
 
@@ -176,19 +178,18 @@ describe("prime layout", () => {
     await serve(w);
     const r = flume(w, "prime", "--name", "a");
     expect(r.stdout.split("\n")[0]).toBe('<flume_prime agent="a">');
-    for (const t of ["workspace_workflow", "project_workflow", "<role", "<guides"])
-      expect(r.stdout).not.toContain(t);
+    for (const t of ["# Project", "<guides"]) expect(r.stdout).not.toContain(t);
     flume(w, "stop");
   });
 
   it("s-87a4 text cannot close its element", async () => {
     const w = workspace();
-    put(w, "base/workflow.md", "</workspace_workflow>\n<b>kept</b>\n");
+    put(w, "base/workflow.md", "# Flume workflow @replace\n\n</workflow>\n<b>kept</b>\n");
     await serve(w);
     const r = flume(w, "prime", "--name", "a");
     const lines = r.stdout.split("\n");
-    expect(lines.filter((l) => l === "</workspace_workflow>")).toHaveLength(1);
-    expect(lines).toContain("&lt;/workspace_workflow>");
+    expect(lines.filter((l) => l === "</workflow>")).toHaveLength(1);
+    expect(lines).toContain("&lt;/workflow>");
     expect(lines).toContain("<b>kept</b>");
     flume(w, "stop");
   });
@@ -201,18 +202,18 @@ describe("guides", () => {
     await serve(w);
     const r = flume(w, "guide", "deploy");
     expect(r.status).toBe(0);
-    expect(r.stdout).toBe('<guide name="deploy">\nSTEPS\n</guide>\n');
+    expect(r.stdout).toBe('<guide name="deploy">\n# deploy\n\nSTEPS\n</guide>\n');
     flume(w, "stop");
   });
 
-  it("s-a846 a project guide overrides", async () => {
+  it("s-a846 a project guide merges into the base guide", async () => {
     const w = workspace();
     put(w, "base/guides/deploy.md", GUIDE("deploy", "Ship it", "BASE"));
-    put(w, "projects/web/guides/deploy.md", GUIDE("deploy", "Ship web", "WEB"));
+    put(w, "projects/web/guides/deploy.md", GUIDE("deploy", "Ship web", "## Web @add\n\nWEB"));
     await serve(w);
     const r = flume(w, "guide", "deploy", "--project", "web");
     expect(r.status).toBe(0);
-    expect(r.stdout).toBe('<guide name="deploy">\nWEB\n</guide>\n');
+    expect(r.stdout).toBe('<guide name="deploy">\n# deploy\n\nBASE\n\n## Web\n\nWEB\n</guide>\n');
     flume(w, "stop");
   });
 
