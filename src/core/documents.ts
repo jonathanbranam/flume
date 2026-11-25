@@ -35,7 +35,7 @@ export function documentFiles(
   return all.filter((f) => existsSync(f.path));
 }
 
-const layersOf = (root: string | undefined, project: string, doc: string): Layer[] =>
+export const layersOf = (root: string | undefined, project: string, doc: string): Layer[] =>
   documentFiles(root, project, doc).map((f) => ({
     file: f.file,
     text: readFileSync(f.path, "utf8"),

@@ -94,6 +94,16 @@ Do the plan, one group at a time. Run `npm test` before reporting each item.
 Ask the human to read the plan before you start.
 ```
 
+## Previewing a merged document
+
+```sh
+flume preview workflow --project P          # the merged text, as prime uses it
+flume preview role worker --layers          # each section preceded by the file it came from
+flume preview guide NAME --json             # the sections as JSON, each with its sources
+```
+
+`preview` takes `workflow`, `phases`, `project`, `first-prompt`, `role R`, `guide G` and
+`template PART`. A layer error prints its file, line and heading and exits 1.
 Flume also ships whole workflows to use instead of its standard one, for repos that need less:
 
 ```sh

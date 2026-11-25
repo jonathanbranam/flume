@@ -69,7 +69,7 @@ const names = (dir: string): string[] =>
     .map((f) => f.slice(0, -3));
 
 /** The guide files of `name`, lowest layer first, parsed; or the first front matter error. */
-function guideLayers(
+export function guideLayers(
   root: string,
   project: string,
   name: string,

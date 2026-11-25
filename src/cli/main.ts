@@ -5,6 +5,7 @@ import { checkCommand } from "./check.ts";
 import { daemonCommands } from "./daemon.ts";
 import { guideText, helpCommand, isCommandPath, topicList } from "./help.ts";
 import { initCommand } from "./init.ts";
+import { previewCommand } from "./preview.ts";
 import { outcome } from "./program.ts";
 import { cloneCommand, projectCommand } from "./project.ts";
 import { roadmapCommand } from "./roadmap.ts";
@@ -51,6 +52,7 @@ export async function main(args: string[]): Promise<number> {
     .addCommand(agentCommand())
     .addCommand(primeCommand())
     .addCommand(guideCommand())
+    .addCommand(previewCommand())
     .addCommand(bugCommand())
     .addCommand(helpCommand() as unknown as Command);
   configure(program);

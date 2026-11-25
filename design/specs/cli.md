@@ -527,3 +527,60 @@ When flume check is run with --json, flume SHALL print one JSON array on standar
 - **GIVEN** no daemon running and a task whose id differs from its folder name
 - **WHEN** flume check --json is run
 - **THEN** standard output is a JSON array of one object whose path names that task folder and whose message is not empty, and the exit code is 1
+
+### Requirement: Preview prints a merged document  {#r-7ebf}
+When flume preview is run with one of the targets workflow, phases, project, first-prompt, role NAME, guide NAME or template PART, and with --project P when given, flume SHALL print to standard output the merged document of that target, as text, holding the same text that flume prime holds for it (the first prompt is the text under its H1), with placeholders left as written, and exit with code 0.
+
+#### Scenario: A project's override in the preview  {#s-0117}
+*Verification*: **executable**
+- **GIVEN** no daemon running, a workspace whose base workflow file has a section Extra and a project folder acme whose workflow file replaces Extra
+- **WHEN** flume preview workflow --project acme is run
+- **THEN** standard output holds the whole workflow with the section Extra showing the project's text, and the exit code is 0
+
+#### Scenario: Each other target prints its document  {#s-d4a8}
+*Verification*: **executable**
+- **GIVEN** no daemon running, and a base role file, a base guide and a base template for body
+- **WHEN** flume preview role NAME, flume preview guide NAME and flume preview template body are run
+- **THEN** each prints its merged text to standard output and exits with code 0
+
+### Requirement: Preview marks the source of each section  {#r-7c9b}
+When flume preview is run with --layers, flume SHALL print before each section's heading a line of the form "<!-- from: FILES -->", where FILES names, separated by commas, the files the section's text came from, each named as the layer errors name it (for example flume/base/workflow.md or flume/projects/acme/workflow.md).
+
+#### Scenario: Sources of an overridden document  {#s-9c6a}
+*Verification*: **executable**
+- **GIVEN** no daemon running, and the workspace and project of the previous scenario with a project section added
+- **WHEN** flume preview workflow --project acme --layers is run
+- **THEN** the line before the heading Extra names the project's workflow file, and the line before a section only the base file has names the base file, and the exit code is 0
+
+### Requirement: Preview takes --json  {#r-a44b}
+When flume preview is run with --json, flume SHALL print one JSON object on standard output holding the document's root section, with the fields level, name, text, sources (the list of files its text came from) and children (the same shape, one per sub-section, in order), and exit with code 0.
+
+#### Scenario: Preview as JSON  {#s-abcd}
+*Verification*: **executable**
+- **GIVEN** no daemon running and a workspace whose base workflow file has a section Extra
+- **WHEN** flume preview workflow --json is run
+- **THEN** standard output is one JSON object whose children include an object named Extra with a sources list naming the base workflow file, and the exit code is 0
+
+### Requirement: A layer error stops preview  {#r-1413}
+When flume preview is run and a layer of the previewed document has an error, flume SHALL print each error to standard error with the file, the line and the heading, print nothing to standard output and exit with code 1.
+
+#### Scenario: A broken project layer  {#s-830d}
+*Verification*: **executable**
+- **GIVEN** no daemon running and a project workflow file with a heading that matches nothing below it
+- **WHEN** flume preview workflow --project acme is run
+- **THEN** standard error names the project's workflow file, the line and the heading, standard output is empty, and the exit code is 1
+
+#### Scenario: A document no layer has  {#s-f7b7}
+*Verification*: **executable**
+- **GIVEN** no daemon running and a workspace with no guide named nope
+- **WHEN** flume preview guide nope is run
+- **THEN** standard error names the guide, standard output is empty, and the exit code is 1
+
+### Requirement: Preview refuses an unknown template part  {#r-383a}
+When flume preview template is run with a part that is not body, design, spec or plan, flume SHALL print a usage message to standard error and exit with code 2.
+
+#### Scenario: An unknown part  {#s-60c0}
+*Verification*: **executable**
+- **GIVEN** no daemon running
+- **WHEN** flume preview template bogus is run
+- **THEN** standard error holds a usage message naming the parts and the exit code is 2
