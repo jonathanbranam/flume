@@ -292,3 +292,4 @@
 {"actor":"external:orchestrator","at":"2026-11-19T22:48:19.387790354Z","queue":"reprioritized"}
 {"actor":"agent:ws3h","at":"2026-11-19T22:52:30.136763137Z","from":"claimed","task":"fl-ws3h","to":"built"}
 {"actor":"agent:manager","at":"2026-11-19T22:53:38.361171031Z","from":"built","task":"fl-ws3h","to":"integrated"}
+{"actor":"human","at":"2026-11-25T12:08:54.578Z","from":"","task":"fl-vpvk","to":"pending"}
