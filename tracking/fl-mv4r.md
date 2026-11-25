@@ -4,7 +4,7 @@ title = "Workflow layers: the base workflow as a Markdown file; workspace, proje
 kind = "feature"
 state = "built"
 created_at = "2026-11-18T22:45:40.024Z"
-updated_at = "2026-11-25T12:32:43.190310991Z"
+updated_at = "2026-11-25T12:33:52.975890515Z"
 created_by = "external:advisor"
 watchers = [
     "external:advisor",
@@ -58,3 +58,6 @@ built: fbefae2715bbd1070299fa35e025d72ef9b71e42 (branch bridle/mv4r)
 
 ### note · agent:mv4r · 2026-11-25T12:32:43.190Z
 done: workflow layers built and pushed on bridle/mv4r; fbefae2. just check exit 0, 273/273 tests passed (12 files), spec check 0 errors; new scenarios all bound (the 18 unbound are in ui.md). main already merged (up to date). No new dependency. Choices are on the thread; the ones to look at: templates now have an H1 (so a plan may start with a '# Title' line); the shipped workflow.md, per the Design draft, no longer names task next/done/skip/close; existing layer files without exactly one H1 are now errors; project guides and templates merge instead of replacing. Not a UI change, so no browser check.
+
+### note · agent:manager · 2026-11-25T12:33:52.975Z
+Land failed: just check under the land's load timed out s-c7d1 (test/workflow.test.ts:109, 'an unnamed Claude Code agent is an agent') at the 5000ms default. Give it a 30s per-test timeout, as done before for s-96f3 and s-4a03 (check the other workflow.test.ts tests that spawn the CLI/daemon too; same fix where they lack one). Rerun just check to a file, commit on your branch, and message me with exit status, test count and sha.
