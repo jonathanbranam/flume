@@ -304,3 +304,4 @@
 {"actor":"external:orchestrator","at":"2026-11-25T12:22:42.741605592Z","queue":"reprioritized"}
 {"actor":"external:orchestrator","at":"2026-11-25T12:22:42.750693363Z","queue":"reprioritized"}
 {"actor":"agent:mv4r","at":"2026-11-25T12:32:39.063501754Z","from":"claimed","task":"fl-mv4r","to":"built"}
+{"actor":"agent:manager","at":"2026-11-25T12:34:57.329199162Z","from":"built","task":"fl-mv4r","to":"integrated"}

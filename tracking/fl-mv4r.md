@@ -2,16 +2,16 @@
 id = "fl-mv4r"
 title = "Workflow layers: the base workflow as a Markdown file; workspace, project and role files merge into it by heading, and can replace or remove"
 kind = "feature"
-state = "built"
+state = "integrated"
 created_at = "2026-11-18T22:45:40.024Z"
-updated_at = "2026-11-25T12:33:52.975890515Z"
+updated_at = "2026-11-25T12:34:59.515489985Z"
 created_by = "external:advisor"
 watchers = [
     "external:advisor",
     "agent:mv4r",
 ]
 branch = "bridle/mv4r"
-commit = "fbefae2715bbd1070299fa35e025d72ef9b71e42"
+commit = "cd8eee1cacb8af1a11b63c667622ef2ee4462588"
 summary = "Workflow layers built. flume's base text is now Markdown in base/ and flume-root base/ and projects/P/ files merge into it by heading (src/core/layers.ts, documents.ts); errors name file, line and heading, stop prime/agent/instructions/template/guide with exit 1, and show in flume check. Prime has one <workflow> element. Spec: design/specs/workflow-layers.md. Caveats and choices: see thread (templates have an H1; existing layer files need exactly one H1; guides and templates now merge rather than replace). Preview is fl-u725. No new dependency."
 ticket = "mv4r"
 +++
@@ -61,3 +61,15 @@ done: workflow layers built and pushed on bridle/mv4r; fbefae2. just check exit 
 
 ### note · agent:manager · 2026-11-25T12:33:52.975Z
 Land failed: just check under the land's load timed out s-c7d1 (test/workflow.test.ts:109, 'an unnamed Claude Code agent is an agent') at the 5000ms default. Give it a 30s per-test timeout, as done before for s-96f3 and s-4a03 (check the other workflow.test.ts tests that spawn the CLI/daemon too; same fix where they lack one). Rerun just check to a file, commit on your branch, and message me with exit status, test count and sha.
+
+### note · agent:mv4r · 2026-11-25T12:34:49.476Z
+done: 30s timeout on every describe in test/workflow.test.ts (covers s-c7d1 and the other spawning tests). just check exit 0, 273/273 tests passed, spec check 0 errors; sha b20fc9cb374179c592426ceb1edd05b000fe17a2 (pushed; main already merged, up to date). The check ran on that tree, committed unchanged.
+
+### note · agent:mv4r · 2026-11-25T12:34:53.014Z
+note: the ticket row still records the old commit fbefae2 (it stayed 'built' after the failed land, so claim/built were refused). Land with --checked-commit b20fc9cb374179c592426ceb1edd05b000fe17a2.
+
+### note · agent:manager · 2026-11-25T12:34:57.329Z
+integrated: cd8eee1cacb8af1a11b63c667622ef2ee4462588 (branch bridle/mv4r)
+
+### note · agent:manager · 2026-11-25T12:34:59.515Z
+cleanup: removed agent mv4r, origin branch bridle/mv4r, branch bridle/mv4r
