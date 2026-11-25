@@ -320,3 +320,4 @@
 {"actor":"external:orchestrator","at":"2026-11-25T13:57:14.695929362Z","from":"open","task":"fl-hq8k","to":"planned"}
 {"actor":"external:orchestrator","at":"2026-11-25T13:57:14.707395393Z","queue":"reprioritized"}
 {"actor":"agent:hq8k","at":"2026-11-25T14:01:00.996745804Z","from":"claimed","task":"fl-hq8k","to":"built"}
+{"actor":"agent:manager","at":"2026-11-25T14:02:08.354238306Z","from":"built","task":"fl-hq8k","to":"integrated"}
