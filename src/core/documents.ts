@@ -4,7 +4,6 @@ import { fileURLToPath } from "node:url";
 import { BrokenLayers, type Layer, mergeLayers, renderSection, sectionBody } from "./layers.ts";
 import { flumeRoot, rel } from "./layout.ts";
 import { SEGMENT_RE } from "./prime.ts";
-import { WRITABLE_PARTS } from "./workflow.ts";
 
 /** The base documents shipped with flume, read at run time. */
 export const SHIPPED_DIR = fileURLToPath(new URL("../../base", import.meta.url));
@@ -109,7 +108,7 @@ export function listFiles(dir: string): string[] {
   }
 }
 
-const TOP = ["workflow.md", "phases.md", "project.md", "first-prompt.md"];
+const TOP = ["workflow.md", "project.md", "first-prompt.md"];
 
 /**
  * Every layered document file of the tasks repo (base/ and each project's folder), by the name it
@@ -120,13 +119,11 @@ export function layeredDocs(root: string): { project: string; doc: string }[] {
   const projects = listFiles(join(flumeRoot(root), "projects")).filter((p) => SEGMENT_RE.test(p));
   for (const project of ["", ...projects]) {
     const dir = join(flumeRoot(root), project ? `projects/${project}` : "base");
-    const docs = [
-      ...TOP,
-      ...listFiles(join(dir, "roles"))
+    const inFolder = (folder: string) =>
+      listFiles(join(dir, folder))
         .filter((f) => f.endsWith(".md") && SEGMENT_RE.test(f))
-        .map((f) => `roles/${f}`),
-      ...WRITABLE_PARTS.map((p) => `templates/${p}.md`),
-    ];
+        .map((f) => `${folder}/${f}`);
+    const docs = [...TOP, ...inFolder("roles"), ...inFolder("templates")];
     for (const doc of docs) if (existsSync(join(dir, doc))) out.push({ project, doc });
   }
   return out;

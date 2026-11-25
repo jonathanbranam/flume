@@ -66,13 +66,13 @@ When a task's title changes or the task is resolved or reopened, flume SHALL kee
 - **THEN** the folder name is the same as before and the title line in task.yaml reads Brand new title
 
 ### Requirement: task.yaml holds the task's fields  {#r-770c}
-A task folder's task.yaml SHALL be a flat YAML mapping with these fields: id, title, kind, phase (proposal for a new task; see the workflow spec), created (a date, YYYY-MM-DD, UTC), and optionally assignee, agent (see the workflow spec), project (the name of the project the task belongs to), parent, blocked_by (a list of IDs), related (a list of IDs) resolved (a UTC timestamp, YYYY-MM-DDTHH:MM:SSZ) and resolution (done or dropped), where resolved and resolution are present only on a resolved task; the state of a task is the folder it sits in and is not a field.
+A task folder's task.yaml SHALL be a flat YAML mapping with these fields: id, title, kind, created (a date, YYYY-MM-DD, UTC), and optionally assignee, agent (see the workflow spec), project (the name of the project the task belongs to), parent, blocked_by (a list of IDs), related (a list of IDs) resolved (a UTC timestamp, YYYY-MM-DDTHH:MM:SSZ) and resolution (done or dropped), where resolved and resolution are present only on a resolved task (a field flume does not use is ignored: the workflow spec); the state of a task is the folder it sits in and is not a field.
 
-#### Scenario: A new task has the minimal fields  {#s-ee5a}
+#### Scenario: A new task has only the minimal fields  {#s-3f1d}
 *Verification*: **executable**
 - **GIVEN** a project with no tasks
 - **WHEN** a task titled Add a roadmap with kind feature is created on 2026-11-20 UTC
-- **THEN** its task.yaml has id equal to the ID in the folder name, title Add a roadmap, kind feature, phase proposal and no resolution and created 2026-11-20
+- **THEN** its task.yaml has id equal to the ID in the folder name, title Add a roadmap, kind feature, no phase and no resolution and created 2026-11-20
 - **THEN** its task.yaml has no resolved field
 
 #### Scenario: IDs in front matter are bare  {#s-9e99}

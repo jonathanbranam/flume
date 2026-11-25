@@ -36,6 +36,8 @@
 
 ### Changed
 
+- Flume no longer builds in or enforces a workflow (fl-94yx): the task phase, `flume task phase`, `task instructions`, `task guide`, bare `flume workflow` and `phases.md` are gone; the steps are plain text in `workflow.md`, and a part may have any plain name.
+
 - Identity lines (fl-hq8k): `flume prime` and `flume agent` print "You are agent NAME, stored in $AGENT_NAME." and, with a project, "You are working on project P, stored in $AGENT_PROJECT." first, outside every layer, so no overlay can replace them. Removed from base `workflow.md`, `project.md` and the shipped none and light `workflow.md`. Spec: `design/specs/agent.md`.
 - Layer H1 errors (fl-a5vb): every error about a layer file's H1 (no H1, text or a heading before it, a second H1, an H1 that differs from the layer below, or an H1 tagged @add or @remove) now gives the rule (one H1 per file, the same as the layer below), the problem in that layer and both fixes (start the file with the H1 below and use H2s, or put @replace on the H1). The error text is the only change; the merge rules are the same. Spec: `design/specs/workflow-layers.md`.
 - Task resolution (fl-ws3h): task.yaml drops `status` (the folder is the state) and a resolved task records `resolution` (`done` or `dropped`); `flume task close ID` resolves as done, `close ID --dropped REASON` as dropped with REASON added as a comment; open tasks live in `tasks/` and resolved ones in `archive/tasks/`; `flume check` reports resolution problems and any folder left in the old `tasks/open/` or `tasks/resolved/`. No migration.

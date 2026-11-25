@@ -191,27 +191,25 @@ describe("flume task commands", () => {
     flume(repo, ["stop"]);
   });
 
-  it("s-e485 show by bare ID", async () => {
+  it("s-8c13 show a task by bare ID", async () => {
     const repo = await project();
     const t = mk(repo, "Shown", "--body", "Hello");
     const r = flume(repo, ["task", "show", t.id]);
     expect(r.status).toBe(0);
-    expect(r.stdout).toBe(
-      `${readFile(repo, t.path, "task.yaml")}\nparts: body\nFor what to do now: flume task instructions ${t.id}\n`,
-    );
+    expect(r.stdout).toBe(`${readFile(repo, t.path, "task.yaml")}\nparts: body\n`);
     const missing = flume(repo, ["task", "show", "abcd"]);
     expect(missing.status).toBe(1);
     expect(missing.stderr).toContain("abcd");
     flume(repo, ["stop"]);
   });
 
-  it("s-13df show finds a resolved task", async () => {
+  it("s-e84a show a resolved task", async () => {
     const repo = await project();
     const t = mk(repo, "Done");
     flume(repo, ["task", "close", t.id]);
     const r = flume(repo, ["task", "show", t.id]);
     expect(r.stdout).toBe(
-      `${readFile(repo, t.path.replace("flume/tasks/", "flume/archive/tasks/"), "task.yaml")}\nparts: body\nFor what to do now: flume task instructions ${t.id}\n`,
+      `${readFile(repo, t.path.replace("flume/tasks/", "flume/archive/tasks/"), "task.yaml")}\nparts: body\n`,
     );
     flume(repo, ["stop"]);
   });
@@ -236,14 +234,7 @@ describe("flume task commands", () => {
     flume(repo, ["task", "close", three.id]);
     const closed = flume(repo, ["task", "list", "--closed"]).stdout.trim().split("\n");
     expect(closed).toHaveLength(1);
-    expect(closed[0]?.split("\t")).toEqual([
-      three.id,
-      "feature",
-      "resolved",
-      "proposal",
-      "",
-      "Three",
-    ]);
+    expect(closed[0]?.split("\t")).toEqual([three.id, "feature", "resolved", "", "Three"]);
     expect(flume(repo, ["task", "list", "--all"]).stdout.trim().split("\n")).toHaveLength(3);
     flume(repo, ["stop"]);
   });
@@ -374,7 +365,7 @@ describe("flume task commands", () => {
     expect(existsSync(join(wt, "flume"))).toBe(false);
     expect(flume(wt, ["task", "list"]).stdout).toContain("From the worktree");
     expect(flume(wt, ["task", "show", t.id]).stdout).toBe(
-      `${readFile(repo, t.path, "task.yaml")}\nparts: body\nFor what to do now: flume task instructions ${t.id}\n`,
+      `${readFile(repo, t.path, "task.yaml")}\nparts: body\n`,
     );
     expect(flume(wt, ["task", "update", t.id, "title", "Renamed"]).status).toBe(0);
     expect(flume(wt, ["task", "comment", t.id, "--text", "n"]).status).toBe(0);
@@ -427,13 +418,13 @@ describe("flume check as JSON", () => {
 });
 
 describe("flume task history", () => {
-  it("s-5e1f history as text and JSON", async () => {
+  it("s-0014 the history as text and as JSON", async () => {
     const repo = await project();
     const scout = { AGENT_NAME: "scout" };
     const r = flume(repo, ["task", "new", "Hist"], undefined, scout);
     const id = r.stdout.trim();
-    flume(repo, ["task", "instructions", id], undefined, scout);
-    flume(repo, ["task", "phase", id, "design"], undefined, scout);
+    flume(repo, ["task", "claim", id], undefined, scout);
+    flume(repo, ["task", "write", id, "design"], "D\n", scout);
     const text = flume(repo, ["task", "history", id]);
     const rows = text.stdout
       .trim()
@@ -442,11 +433,11 @@ describe("flume task history", () => {
     expect(rows).toHaveLength(3);
     expect(rows.map((c) => [c[1], c[2]])).toEqual([
       ["scout", "create"],
-      ["scout", "instructions"],
-      ["scout", "phase"],
+      ["scout", "assign"],
+      ["scout", "write"],
     ]);
     const j = JSON.parse(flume(repo, ["task", "history", id, "--json"]).stdout);
-    expect(j.map((x: { action: string }) => x.action)).toEqual(["create", "instructions", "phase"]);
+    expect(j.map((x: { action: string }) => x.action)).toEqual(["create", "assign", "write"]);
     expect(flume(repo, ["task", "history", "zzzz"]).status).toBe(1);
     const url = JSON.parse(readFileSync(join(repo, ".flume/daemon.json"), "utf8")).url;
     const api = await (await fetch(`${url}/api/tasks/${id}/history`)).json();

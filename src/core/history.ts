@@ -15,8 +15,6 @@ export interface HistoryEntry {
   part?: string;
   items?: string[];
   reason?: string;
-  guide?: string;
-  phase?: string;
   title?: string;
   kind?: string;
   resolution?: string;

@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { Command } from "@commander-js/extra-typings";
 import { formatHistory } from "../core/history.ts";
-import { guideBlocks } from "../core/instructions.ts";
+import { guideBlocks } from "../core/plan-guides.ts";
 import { actorName, isAgent } from "../daemon/actor.ts";
 import { daemonUrl, NOT_RUNNING, request } from "../daemon/index.ts";
 import { act, Usage } from "./program.ts";
@@ -38,7 +38,7 @@ const FIELDS: Record<string, string> = {
 type Task = any;
 
 function human(r: Task): string {
-  return `${r.id}\t${r.kind}\t${r.state}\t${r.phase}\t${r.assignee}\t${r.title}`;
+  return `${r.id}\t${r.kind}\t${r.state}\t${r.assignee}\t${r.title}`;
 }
 
 interface Opts {
@@ -53,7 +53,6 @@ interface Opts {
   remove?: boolean;
   reason?: string;
   dropped?: string;
-  phase?: string;
   closed?: boolean;
   all?: boolean;
   assignee?: string;
@@ -120,26 +119,10 @@ export async function task(cwd: string, sub: string, pos: string[], o: Opts): Pr
     } else if (sub === "show") {
       const t = await call("GET", `/api/tasks/${enc(pos[0] as string)}`);
       if (json) out(JSON.stringify(t));
-      else
-        process.stdout.write(
-          `${t.fields}\nparts: ${t.parts.join(", ")}\nFor what to do now: flume task instructions ${pos[0]}\n`,
-        );
+      else process.stdout.write(`${t.fields}\nparts: ${t.parts.join(", ")}\n`);
     } else if (sub === "write") {
       const base = `/api/tasks/${enc(pos[0] as string)}/parts/${enc(pos[1] as string)}`;
       const t = o.remove ? await call("DELETE", base) : await call("PUT", base, { text });
-      if (json) out(JSON.stringify(t));
-    } else if (sub === "phase") {
-      const t = await call("POST", `/api/tasks/${enc(pos[0] as string)}/phase`, {
-        phase: pos[1],
-      });
-      if (json) out(JSON.stringify(t));
-      else out(`next: flume task instructions ${pos[0]}`);
-    } else if (sub === "guide") {
-      const t = await call("POST", `/api/tasks/${enc(pos[0] as string)}/guides`, {
-        guide: pos[1],
-        phase: o.phase,
-        remove: o.remove,
-      });
       if (json) out(JSON.stringify(t));
     } else if (sub === "next") {
       const r = await call("GET", `/api/tasks/${enc(pos[0] as string)}/plan/next`);
@@ -149,9 +132,6 @@ export async function task(cwd: string, sub: string, pos: string[], o: Opts): Pr
         process.stdout.write(r.text);
         if (r.guides.length > 0) process.stdout.write(`\n${guideBlocks(r.guides).join("\n")}`);
       }
-    } else if (sub === "instructions") {
-      const r = await call("POST", `/api/tasks/${enc(pos[0] as string)}/instructions`);
-      process.stdout.write(r.text);
     } else if (sub === "done" || sub === "skip") {
       const t = await call("POST", `/api/tasks/${enc(pos[0] as string)}/plan/${sub}`, {
         items: pos.slice(1),
@@ -170,7 +150,6 @@ export async function task(cwd: string, sub: string, pos: string[], o: Opts): Pr
       if (o.kind !== undefined) q.set("kind", o.kind);
       if (o.parent !== undefined) q.set("parent", o.parent);
       if (o.assignee !== undefined) q.set("assignee", o.assignee);
-      if (o.phase !== undefined) q.set("phase", o.phase);
       const list: Task[] = await call("GET", `/api/tasks?${q}`);
       if (json) out(JSON.stringify(list));
       else for (const t of list) out(human(t));
@@ -190,10 +169,6 @@ export async function task(cwd: string, sub: string, pos: string[], o: Opts): Pr
         ...(isAgent() ? { actor: actorName() } : {}),
       });
       if (json) out(JSON.stringify(t));
-      else if (isAgent() && who === actorName()) {
-        const r = await call("POST", `/api/tasks/${enc(pos[0] as string)}/instructions`);
-        process.stdout.write(r.text);
-      }
     } else if (sub === "update") {
       const key = FIELDS[pos[1] as string] as string;
       const v = pos[2] as string;
@@ -237,7 +212,7 @@ class Failure extends Error {}
 /** The `flume task` group: every subcommand declares its arguments and options here. */
 export function taskCommand(): Command {
   const group = new Command("task").description(
-    "new, show, list, update, comment, assign, claim, phase, write, ...",
+    "new, show, list, update, comment, assign, claim, write, ...",
   );
   group.addHelpText("after", "\nPaths for --body-file and --file: a dash means standard input.");
   // Each subcommand's action hands its parsed values to task(); a refused combination is a usage error.
@@ -266,25 +241,19 @@ export function taskCommand(): Command {
     });
   sub("show", "the task's fields and parts; or one part's text")
     .argument("<id>")
-    .argument("[part]", "body, design, spec, plan or comments")
+    .argument("[part]", "a part name, such as body, plan or comments")
     .option(J, JD)
     .action(function (id, part, o) {
       return run(this, "show", part === undefined ? [id] : [id, part], o);
     });
   sub("write", "replace a part's text (standard input by default), or remove the part")
     .argument("<id>")
-    .argument("<part>", "body, design, spec or plan")
+    .argument("<part>", "any plain name, such as body, design or plan")
     .option("--file <path>", "read the text from a file; a dash means standard input")
     .option("--remove", "remove the part")
     .option(J, JD)
     .action(function (id, part, o) {
       return run(this, "write", [id, part], o);
-    });
-  sub("instructions", "what to do now: the current phase's steps, template and pushed guides")
-    .argument("<id>")
-    .addHelpText("after", "\nAgent text; takes no --json.")
-    .action(function (id) {
-      return run(this, "instructions", [id], {});
     });
   sub("next", "print the current plan group (heading and items)")
     .argument("<id>")
@@ -307,15 +276,6 @@ export function taskCommand(): Command {
     .action(function (id, items, o) {
       return run(this, "skip", [id, ...items], o);
     });
-  sub("guide", "push a guide to a later (or the current) phase of the task")
-    .argument("<id>")
-    .argument("<name>")
-    .requiredOption("--phase <phase>", "the phase to push the guide to")
-    .option("--remove", "drop the guide")
-    .option(J, JD)
-    .action(function (id, name, o) {
-      return run(this, "guide", [id, name], o);
-    });
   sub("template", "print the template to start a part from")
     .argument("<part>")
     .option("--project <p>", "project")
@@ -335,7 +295,6 @@ export function taskCommand(): Command {
     .option("--kind <k>", "only this kind")
     .option("--parent <id>", "only children of this task")
     .option("--assignee <name>", "only this assignee (a name, or human)")
-    .option("--phase <phase>", "only this phase")
     .option(J, JD)
     .action(function (o) {
       return run(this, "list", [], o);
@@ -355,13 +314,6 @@ export function taskCommand(): Command {
     .option(J, JD)
     .action(function (id, o) {
       return run(this, "comment", [id], o);
-    });
-  sub("phase", "set the phase: proposal, design, specs, plan, implement")
-    .argument("<id>")
-    .argument("<phase>")
-    .option(J, JD)
-    .action(function (id, phase, o) {
-      return run(this, "phase", [id, phase], o);
     });
   sub("assign", "hold the task: NAME, or yourself ($AGENT_NAME)")
     .argument("<id>")

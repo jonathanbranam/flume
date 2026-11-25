@@ -6,7 +6,7 @@ says what to run, who runs it and when.
 ## Who runs what
 
 - **The human** runs `flume init`, `clone`, `project`, `serve`, `status`, `stop`, `check` and
-  `roadmap`, decides which phase a task is in, and reads task parts.
+  `roadmap`, directs which step of the workflow comes next, and reads task parts.
 - **Agents** run the `flume task ...` commands on the task they hold, `flume prime` and
   `flume guide`. Agents never run `flume serve`.
 - The human launches agents with `flume agent`; the daemon must be running first.
@@ -17,29 +17,20 @@ Claude Code set, a command counts as the human's.
 
 ## A task's life
 
-A task is a folder of files in the tasks repo. It moves through five phases, in order; each
-phase writes one part and the next requires it:
-
-1. proposal: writes `body` (what and why)
-2. design: writes `design`
-3. specs: writes `spec`
-4. plan: writes `plan` (a checklist grouped by headings)
-5. implement: no part; work the plan
-
-`flume workflow` prints them (`--json` too). The human controls the phases; an agent moving
-forward is subject to the rules `flume task instructions` prints.
+A task is a folder of files in the tasks repo. Its text is in parts: `body` (the ask, which
+every task has) and any other part an agent writes, by any plain name. The standard workflow uses
+`design`, `spec` and `plan` (a checklist grouped by headings). The workflow itself is text in
+`workflow.md`, given to agents by `flume prime`; flume does not enforce it.
 
 The usual order:
 
 ```sh
 flume task new "Add search" -k feature [--body-file -]   # prints the task ID
-flume task list [--phase P] [--assignee NAME|human]      # one tab-separated line per task
-flume task claim <id>          # take it yourself; prints the current phase's instructions
-flume task instructions <id>   # the current phase's steps, template and pushed guides again
-flume task template <part>     # the template to start a part from
+flume task list [--assignee NAME|human]                  # one tab-separated line per task
+flume task claim <id>          # take it yourself
+flume task template <part>     # the template to start a part from (nothing when there is none)
 flume task write <id> <part>   # replace a part from stdin, or --file PATH; --remove deletes it
-flume task phase <id> <phase>  # move to another phase
-flume task next <id>           # in implement: the current plan group and its Guide: lines
+flume task next <id>           # the current plan group and the guides its Guide: lines name
 flume task done <id> 1.1 1.2   # tick plan items; skip them with: flume task skip <id> 1.3 --reason "..."
 flume task comment <id>        # add a comment (--text TEXT or --body-file PATH)
 flume task assign <id> human   # hand the task back to the human
@@ -47,8 +38,7 @@ flume task close <id>          # resolve it as done; close <id> --dropped "why" 
 ```
 
 Other task commands: `task show <id> [part]` (fields and parts, or one part's text), `task update
-<id> <field> <value>` (title, kind, parent, blocked-by, related), `task guide <id> <name> --phase
-P` (push a guide to a phase), `task history <id>` (every change, oldest first). Most take `--json`.
+<id> <field> <value>` (title, kind, parent, blocked-by, related), `task history <id>` (every change, oldest first). Most take `--json`.
 
 An agent that finds a task held by someone else needs `--force` to take it. Every change is
 committed in the tasks repo and logged in the task's `history.jsonl`.
@@ -60,7 +50,7 @@ flume agent --name scout [--project P] [--role R] ["a prompt"]   # launch Claude
 flume agent list                  # agents, with last seen (--json too)
 flume agent show scout            # one agent's entry
 flume prime --name scout          # print the prime text an agent starts with
-flume guide                       # list the workflow guides agents push to phases
+flume guide                       # list the guides
 flume guide <name>                # print one
 ```
 
@@ -69,7 +59,7 @@ holds the merged workflow, project and role documents (see below).
 
 ## Changing the workflow
 
-Flume ships `workflow.md`, `phases.md` (the steps per phase), `project.md`, `first-prompt.md` and
+Flume ships `workflow.md` (the workflow, as text), `project.md`, `first-prompt.md` and
 `templates/{body,design,spec,plan}.md`. A file of the same name in the flume-root's `base/`, then
 in `projects/<project>/`, merges into it by heading. `roles/<role>.md` and `guides/<name>.md`
 merge the same way. Every such file has exactly one `# H1` (a guide's comes after its front
@@ -83,13 +73,13 @@ matter), and it must match the H1 below.
   that needs the file stops, and `flume check` lists every error with its file and line.
 
 ```markdown
-# Phases
+# Flume workflow
 
-## Implement
+## Guides @replace
 
-Do the plan, one group at a time. Run `npm test` before reporting each item.
+Read the guide testing before you write any code.
 
-## Plan @append
+## The human is in control @append
 
 Ask the human to read the plan before you start.
 ```
@@ -102,7 +92,7 @@ flume preview role worker --layers          # each section preceded by the file 
 flume preview guide NAME --json             # the sections as JSON, each with its sources
 ```
 
-`preview` takes `workflow`, `phases`, `project`, `first-prompt`, `role R`, `guide G` and
+`preview` takes `workflow`, `project`, `first-prompt`, `role R`, `guide G` and
 `template PART`. A layer error prints its file, line and heading and exits 1.
 Flume also ships whole workflows to use instead of its standard one, for repos that need less:
 

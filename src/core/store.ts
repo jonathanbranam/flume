@@ -12,6 +12,7 @@ import { join } from "node:path";
 import { checkProject } from "./check.ts";
 import { isValidId, mintId } from "./ids.ts";
 import { rel } from "./layout.ts";
+import { listParts } from "./parts.ts";
 import { slugify } from "./slug.ts";
 import {
   deleteField,
@@ -23,7 +24,6 @@ import {
   setField,
   type TaskFile,
 } from "./taskfile.ts";
-import { PART_FILES } from "./workflow.ts";
 
 export type State = "open" | "resolved";
 
@@ -45,7 +45,7 @@ export interface TaskEntry {
   body: string | undefined;
   /** comments.md as stored; empty when the file is missing. */
   comments: string;
-  /** The names of the parts the folder holds (body, design, spec, plan, comments). */
+  /** The names of the parts the folder holds: body first, comments last, the rest by name. */
   parts: string[];
 }
 
@@ -78,9 +78,7 @@ export function listTaskFiles(root: string): TaskEntry[] {
         yaml: readOr(join(folder, TASK_YAML), undefined),
         body: readOr(join(folder, BODY_MD), undefined),
         comments: readOr(join(folder, COMMENTS_MD), "") as string,
-        parts: Object.entries(PART_FILES)
-          .filter(([, f]) => existsSync(join(folder, f)))
-          .map(([p]) => p),
+        parts: listParts(folder),
       });
     }
   }
@@ -129,7 +127,6 @@ export function createTask(root: string, t: NewTask): TaskEntry {
   setField(file, "id", id);
   setField(file, "title", t.title);
   setField(file, "kind", t.kind);
-  setField(file, "phase", "proposal");
   setField(file, "created", (t.now ?? new Date()).toISOString().slice(0, 10));
   if (t.project) setField(file, "project", t.project);
   if (t.parent !== undefined) setField(file, "parent", bare(entries, t.parent));

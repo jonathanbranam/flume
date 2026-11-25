@@ -394,22 +394,22 @@ When any flume task command is given --json, flume SHALL print the daemon's JSON
 - **THEN** both print a usage message to standard error and exit with code 2
 
 ### Requirement: Task show prints the task  {#r-c36b}
-When flume task show is run with an ID, flume SHALL print the task's task.yaml exactly as stored, then a blank line, then the line "parts: " and the names of the parts the task has, separated by a comma and a space, then the line "For what to do now: flume task instructions ID" (with the ID as given; not in --json), to standard output and exit with code 0; for an ID that names no task it SHALL print a message to standard error and exit with code 1. (The text of one part: see the workflow spec.)
+When flume task show is run with an ID, flume SHALL print the task's task.yaml exactly as stored, then a blank line, then the line "parts: " and the names of the parts the task has, separated by a comma and a space, to standard output and exit with code 0; for an ID that names no task it SHALL print a message to standard error and exit with code 1. (The text of one part: see the workflow spec.)
 
-#### Scenario: Show by bare ID  {#s-e485}
+#### Scenario: Show a task by bare ID  {#s-8c13}
 *Verification*: **executable**
 - **GIVEN** an open task with ID k7tm
 - **WHEN** flume task show k7tm is run
-- **THEN** the output is task.yaml as stored, a blank line, the line parts: body and the line For what to do now: flume task instructions followed by the ID as given
+- **THEN** the output is task.yaml as stored, a blank line and the line parts: body, and nothing more
 
-#### Scenario: Show finds a resolved task  {#s-13df}
+#### Scenario: Show a resolved task  {#s-e84a}
 *Verification*: **executable**
 - **GIVEN** a resolved task with ID k7tm
 - **WHEN** flume task show k7tm is run
-- **THEN** the output is task.yaml as stored, a blank line, the line parts: body and the line For what to do now: flume task instructions followed by the ID as given
+- **THEN** the output is task.yaml as stored, a blank line and the line parts: body, and nothing more
 
 ### Requirement: Task list prints one line per task  {#r-1a8b}
-When flume task list is run, it SHALL print one line per task, ordered by created date and then ID, each with the ID, kind, state (open or resolved), phase, assignee (empty when none) and title separated by single tabs; it SHALL list open tasks unless --closed (resolved only) or --all (both) is given, and --kind K and --parent ID SHALL keep only matching tasks (more filters: the workflow spec).
+When flume task list is run, it SHALL print one line per task, ordered by created date and then ID, each with the ID, kind, state (open or resolved), assignee (empty when none) and title separated by single tabs; it SHALL list open tasks unless --closed (resolved only) or --all (both) is given, and --kind K and --parent ID SHALL keep only matching tasks (more filters: the workflow spec).
 
 #### Scenario: Default is open only  {#s-9e76}
 *Verification*: **executable**
@@ -529,7 +529,7 @@ When flume check is run with --json, flume SHALL print one JSON array on standar
 - **THEN** standard output is a JSON array of one object whose path names that task folder and whose message is not empty, and the exit code is 1
 
 ### Requirement: Preview prints a merged document  {#r-7ebf}
-When flume preview is run with one of the targets workflow, phases, project, first-prompt, role NAME, guide NAME or template PART, and with --project P when given, flume SHALL print to standard output the merged document of that target, as text, holding the same text that flume prime holds for it (the first prompt is the text under its H1), with placeholders left as written, and exit with code 0.
+When flume preview is run with one of the targets workflow, project, first-prompt, role NAME, guide NAME or template PART, and with --project P when given, flume SHALL print to standard output the merged document of that target, as text, holding the same text that flume prime holds for it (the first prompt is the text under its H1), with placeholders left as written, and exit with code 0.
 
 #### Scenario: A project's override in the preview  {#s-0117}
 *Verification*: **executable**
@@ -576,11 +576,11 @@ When flume preview is run and a layer of the previewed document has an error, fl
 - **WHEN** flume preview guide nope is run
 - **THEN** standard error names the guide, standard output is empty, and the exit code is 1
 
-### Requirement: Preview refuses an unknown template part  {#r-383a}
-When flume preview template is run with a part that is not body, design, spec or plan, flume SHALL print a usage message to standard error and exit with code 2.
+### Requirement: Preview refuses a bad template name  {#r-383a}
+When flume preview template is run with a name that is not a plain name, flume SHALL print a message to standard error, print nothing on standard output and exit with code 1.
 
-#### Scenario: An unknown part  {#s-60c0}
+#### Scenario: A name that is not plain  {#s-ce44}
 *Verification*: **executable**
 - **GIVEN** no daemon running
-- **WHEN** flume preview template bogus is run
-- **THEN** standard error holds a usage message naming the parts and the exit code is 2
+- **WHEN** flume preview template ../escape is run
+- **THEN** standard error names it, standard output is empty and the exit code is 1

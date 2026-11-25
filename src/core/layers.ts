@@ -1,5 +1,5 @@
 /**
- * Merging layered Markdown documents by heading (workflow, phases, project, first-prompt, roles,
+ * Merging layered Markdown documents by heading (workflow, project, first-prompt, roles,
  * guides and templates). Each layer's file merges into the result of the layers below it; whatever
  * cannot be placed exactly is an error, never a guess.
  */

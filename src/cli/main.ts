@@ -28,7 +28,7 @@ export async function main(args: string[]): Promise<number> {
       [
         "a workflow tool for agents",
         "",
-        "Flume keeps work as tasks: folders of Markdown files in a git repo (the tasks repo). A task moves through five phases (proposal, design, specs, plan, implement), each writing one part that the next requires; the human controls the phases. A local daemon, which only the human starts with flume serve, owns the files and commits every change. Agents are Claude Code sessions launched with flume agent; they claim a task and work it with flume task commands.",
+        "Flume keeps work as tasks: folders of Markdown files in a git repo (the tasks repo). A task has a body and any other parts an agent writes (a plan is a checklist flume can feed one group at a time); the workflow to follow is plain text agents are given, which flume does not enforce. A local daemon, which only the human starts with flume serve, owns the files and commits every change. Agents are Claude Code sessions launched with flume agent; they claim a task and work it with flume task commands.",
         "",
         "New here? Run flume help setup. flume help lists every guide.",
       ].join("\n"),

@@ -11,9 +11,6 @@ const ENVELOPE = [
   "guides",
   "guide",
   "guide_missing",
-  "flume_instructions",
-  "steps",
-  "template",
 ];
 const ENVELOPE_RE = new RegExp(`<(/?)(${ENVELOPE.join("|")})(?=[\\s>/]|$)`, "g");
 

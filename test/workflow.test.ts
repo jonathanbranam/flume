@@ -69,11 +69,10 @@ const yaml = (repo: string, id: string): string => {
 const as = (name: string): NodeJS.ProcessEnv => ({ AGENT_NAME: name });
 
 describe("workflow fields and assignment", { timeout: 30_000 }, () => {
-  it("s-3b36 a new task starts at proposal", async () => {
+  it("s-c12c a new task has no holder", async () => {
     const repo = await project();
     const y = yaml(repo, mk(repo));
-    expect(y).toMatch(/^phase: proposal$/m);
-    expect(y).not.toMatch(/assignee|agent/);
+    expect(y).not.toMatch(/assignee|agent|phase/);
     flume(repo, ["stop"]);
   });
 
@@ -106,7 +105,7 @@ describe("workflow fields and assignment", { timeout: 30_000 }, () => {
     flume(repo, ["stop"]);
   });
 
-  it("s-c7d1 an unnamed Claude Code agent is an agent", async () => {
+  it("s-b38b an unnamed agent acts under its own name", async () => {
     const repo = await project();
     const id = mk(repo);
     flume(repo, ["task", "assign", id, "scout"]);
@@ -120,15 +119,13 @@ describe("workflow fields and assignment", { timeout: 30_000 }, () => {
     expect(r2.stderr).toContain("--force");
     expect(flume(repo, ["task", "assign", id, "rook", "--force"], undefined, cc).status).toBe(0);
     flume(repo, ["task", "comment", id, "--text", "hi"], undefined, cc);
-    flume(repo, ["task", "instructions", id], undefined, { CLAUDECODE: "1" });
-    flume(repo, ["task", "phase", id, "design"], undefined, { CLAUDECODE: "1" });
-    flume(repo, ["task", "phase", id, "specs"]);
+    flume(repo, ["task", "write", id, "plan"], "## 1. G\n\n- [ ] 1.1 a\n", { CLAUDECODE: "1" });
     const h = JSON.parse(flume(repo, ["task", "history", id, "--json"]).stdout);
     const by = (a: string) =>
       h.filter((x: { action: string }) => x.action === a).map((x: { by: string }) => x.by);
     expect(by("assign")).toEqual(["human", "agent-abcdef01"]);
     expect(by("comment")).toEqual(["agent-abcdef01"]);
-    expect(by("phase")).toEqual(["agent-unknown", "human"]);
+    expect(by("write")).toEqual(["agent-unknown"]);
     expect(
       show(repo, id).comments ?? flume(repo, ["task", "show", id, "comments"]).stdout,
     ).toContain("agent-abcdef01");
@@ -182,15 +179,41 @@ describe("workflow fields and assignment", { timeout: 30_000 }, () => {
   });
 });
 
+describe("claim", { timeout: 30_000 }, () => {
+  it("s-f13a claim only claims", async () => {
+    const repo = await project();
+    const id = mk(repo);
+    const r = flume(repo, ["task", "claim", id], undefined, as("scout"));
+    expect([r.status, r.stdout]).toEqual([0, ""]);
+    const h = JSON.parse(flume(repo, ["task", "history", id, "--json"]).stdout);
+    expect(h.map((x: { action: string }) => x.action)).toEqual(["create", "assign"]);
+    flume(repo, ["stop"]);
+  });
+});
+
+describe("old task fields", { timeout: 30_000 }, () => {
+  it("s-2087 an old phase and guides are ignored", async () => {
+    const repo = await project();
+    const id = mk(repo);
+    const path = join(repo, show(repo, id).path, "task.yaml");
+    const old = "phase: implement\nguides:\n  implement:\n    - testing\n";
+    writeFileSync(path, `${readFileSync(path, "utf8")}${old}`);
+    expect(flume(repo, ["task", "list"]).stdout).not.toContain("implement");
+    expect(Object.keys(show(repo, id))).not.toContain("phase");
+    expect(Object.keys(show(repo, id))).not.toContain("guides");
+    expect(flume(repo, ["task", "update", id, "title", "New"]).status).toBe(0);
+    expect(readFileSync(path, "utf8")).toContain(old);
+    flume(repo, ["stop"]);
+  });
+});
+
 describe("task parts and templates", { timeout: 30_000 }, () => {
-  it("s-773d show lists the parts", async () => {
+  it("s-47ca show lists the parts", async () => {
     const repo = await project();
     const id = mk(repo);
     const r = flume(repo, ["task", "show", id]);
     expect(r.status).toBe(0);
-    expect(r.stdout).toMatch(
-      /\nparts: body\nFor what to do now: flume task instructions [a-z0-9]+\n$/,
-    );
+    expect(r.stdout).toMatch(/\nparts: body\n$/);
     expect(r.stdout).not.toContain("flume/tasks");
     flume(repo, ["stop"]);
   });
@@ -209,13 +232,9 @@ describe("task parts and templates", { timeout: 30_000 }, () => {
     const id = mk(repo);
     expect(flume(repo, ["task", "write", id, "design"], "## Context\nHi\n").status).toBe(0);
     expect(flume(repo, ["task", "show", id, "design"]).stdout).toBe("## Context\nHi\n");
-    expect(flume(repo, ["task", "show", id]).stdout).toMatch(
-      /parts: body, design\nFor what to do now: flume task instructions [a-z0-9]+\n$/,
-    );
+    expect(flume(repo, ["task", "show", id]).stdout).toMatch(/parts: body, design\n$/);
     expect(flume(repo, ["task", "write", id, "design", "--remove"]).status).toBe(0);
-    expect(flume(repo, ["task", "show", id]).stdout).toMatch(
-      /parts: body\nFor what to do now: flume task instructions [a-z0-9]+\n$/,
-    );
+    expect(flume(repo, ["task", "show", id]).stdout).toMatch(/parts: body\n$/);
     flume(repo, ["stop"]);
   });
 
@@ -233,6 +252,31 @@ describe("task parts and templates", { timeout: 30_000 }, () => {
     flume(repo, ["stop"]);
   });
 
+  it("s-6438 a part by any plain name", async () => {
+    const repo = await project();
+    const id = mk(repo);
+    expect(flume(repo, ["task", "write", id, "release-notes"], "Notes\n").status).toBe(0);
+    expect(flume(repo, ["task", "show", id, "release-notes"]).stdout).toBe("Notes\n");
+    expect(flume(repo, ["task", "show", id]).stdout).toMatch(/parts: body, release-notes\n$/);
+    expect(flume(repo, ["task", "write", id, "../escape"], "x").status).toBe(1);
+    expect(flume(repo, ["task", "write", id, "Release-Notes"], "x").status).toBe(1);
+    expect(flume(repo, ["task", "show", id, "release-notes"]).stdout).toBe("Notes\n");
+    expect(show(repo, id).parts).toEqual(["body", "release-notes"]);
+    flume(repo, ["stop"]);
+  });
+
+  it("s-2677 a part with no template, or one of its own", async () => {
+    const repo = await project();
+    const f = join(repo, "flume/base/templates/risks.md");
+    mkdirSync(dirname(f), { recursive: true });
+    writeFileSync(f, "# Risks\n\nRISKS\n");
+    const t = (p: string) => flume(repo, ["task", "template", p]);
+    expect([t("notes").status, t("notes").stdout]).toEqual([0, ""]);
+    expect(t("risks").stdout).toContain("RISKS");
+    expect(t("../escape").status).toBe(1);
+    flume(repo, ["stop"]);
+  });
+
   it("s-3a2d built-in templates", async () => {
     const repo = await project();
     const t = (p: string) => flume(repo, ["task", "template", p]).stdout;
@@ -241,7 +285,6 @@ describe("task parts and templates", { timeout: 30_000 }, () => {
     expect(t("plan")).toMatch(/^## 1\. .*\n[\s\S]*- \[ \] 1\.1 /m);
     // The template, title and all, is itself a plan that can be written.
     expect(flume(repo, ["task", "write", mk(repo), "plan"], t("plan")).status).toBe(0);
-    expect(flume(repo, ["task", "template", "comments"]).status).toBe(1);
     flume(repo, ["stop"]);
   });
 
@@ -310,9 +353,7 @@ describe("the plan", { timeout: 30_000 }, () => {
       expect(r.status, bad).toBe(1);
       expect(r.stderr).toContain("plan form");
     }
-    expect(flume(repo, ["task", "show", id]).stdout).toMatch(
-      /parts: body\nFor what to do now: flume task instructions [a-z0-9]+\n$/,
-    );
+    expect(flume(repo, ["task", "show", id]).stdout).toMatch(/parts: body\n$/);
     flume(repo, ["stop"]);
   });
 
@@ -366,69 +407,35 @@ describe("the plan", { timeout: 30_000 }, () => {
   });
 });
 
-describe("phase, workflow and list", { timeout: 30_000 }, () => {
-  it("s-0872 any phase may follow any other", async () => {
-    const repo = await project();
-    const id = mk(repo);
-    expect(flume(repo, ["task", "phase", id, "implement"]).status).toBe(0);
-    expect(show(repo, id).phase).toBe("implement");
-    expect(flume(repo, ["task", "phase", id, "design"]).status).toBe(0);
-    expect(show(repo, id).phase).toBe("design");
-    expect(flume(repo, ["task", "phase", id, "nonsense"]).status).toBe(1);
-    expect(show(repo, id).phase).toBe("design");
-    flume(repo, ["stop"]);
-  });
-
-  it("s-737f the workflow as text and JSON", async () => {
-    const repo = await project();
-    const lines = flume(repo, ["workflow"]).stdout.trim().split("\n");
-    expect(lines).toHaveLength(5);
-    expect(lines[0]).toMatch(/^1\. proposal/);
-    expect(lines[4]).toMatch(/^5\. implement/);
-    const j = JSON.parse(flume(repo, ["workflow", "--json"]).stdout);
-    expect(j.map((s: { phase: string }) => s.phase)).toEqual([
-      "proposal",
-      "design",
-      "specs",
-      "plan",
-      "implement",
-    ]);
-    expect(j[1]).toEqual({ phase: "design", part: "design", requires: "proposal" });
-    expect(j[0].requires).toBeNull();
-    expect(j[4].part).toBeNull();
-    flume(repo, ["stop"]);
-  });
-
-  it("s-fd1f filter by assignee and phase", async () => {
+describe("list", { timeout: 30_000 }, () => {
+  it("s-4a30 filter by assignee", async () => {
     const repo = await project();
     const a = mk(repo, "A");
     const b = mk(repo, "B");
-    const c = mk(repo, "C");
+    mk(repo, "C");
     flume(repo, ["task", "assign", a, "scout"]);
     flume(repo, ["task", "assign", b, "human"]);
-    flume(repo, ["task", "phase", b, "design"]);
     const ids = (...f: string[]) =>
       flume(repo, ["task", "list", ...f])
         .stdout.trim()
         .split("\n")
         .filter(Boolean)
-        .map((l) => l.split("\t")[0])
-        .sort();
+        .map((l) => l.split("\t")[0]);
     expect(ids("--assignee", "scout")).toEqual([a]);
     expect(ids("--assignee", "human")).toEqual([b]);
-    expect(ids("--phase", "design")).toEqual([b]);
-    expect(ids("--phase", "proposal")).toEqual([a, c].sort());
-    expect(flume(repo, ["task", "list", "--phase", "nonsense"]).status).toBe(1);
+    expect(flume(repo, ["task", "list", "--phase", "design"]).status).toBe(2);
     const row = flume(repo, ["task", "list", "--assignee", "scout"]).stdout.trim().split("\t");
-    expect(row.slice(3, 5)).toEqual(["proposal", "scout"]);
-    for (const t of JSON.parse(flume(repo, ["task", "list", "--json"]).stdout))
-      expect(Object.keys(t)).toEqual(expect.arrayContaining(["phase", "assignee", "agent"]));
+    expect(row).toEqual([a, "feature", "open", "scout", "A"]);
+    for (const t of JSON.parse(flume(repo, ["task", "list", "--json"]).stdout)) {
+      expect(Object.keys(t)).toEqual(expect.arrayContaining(["assignee", "agent"]));
+      expect(Object.keys(t)).not.toContain("phase");
+    }
     flume(repo, ["stop"]);
   });
 });
 
 describe("prime text", { timeout: 30_000 }, () => {
-  it("s-7bb1 prime names the workflow commands", () => {
+  it("s-0865 prime names the workflow commands and phases", () => {
     const d = realpathSync(mkdtempSync(join(tmpdir(), "flume-wfprime-")));
     dirs.push(d);
     const r = flume(d, ["prime", "--name", "scout"]);
@@ -438,17 +445,22 @@ describe("prime text", { timeout: 30_000 }, () => {
     expect(base).not.toContain("You are agent scout");
     for (const c of [
       "flume task claim",
-      "flume task instructions",
-      "flume task guide",
-      "--phase",
       "flume task show",
       "flume task template",
       "flume task write",
-      "flume task phase",
+      "flume task next",
+      "flume task done",
+      "flume task skip",
+      "flume task close",
       "flume task assign ID human",
       "flume task comment",
+      "flume guide",
     ])
       expect(base).toContain(c);
+    for (const p of ["Proposal", "Design", "Specs", "Plan", "Implement"])
+      expect(base).toContain(`### ${p}\n`);
+    for (const c of ["flume task instructions", "flume task phase", "flume task guide"])
+      expect(base).not.toContain(c);
     for (const f of ["body.md", "design.md", "spec.md", "plan.md", "task.yaml"])
       expect(base).not.toContain(f);
   });

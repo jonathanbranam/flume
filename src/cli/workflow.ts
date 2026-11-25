@@ -9,7 +9,7 @@ import {
   SHIPPED_WORKFLOWS,
   shippedFiles,
 } from "../core/index.ts";
-import { commitPaths, daemonUrl, hasChanges, NOT_RUNNING, request } from "../daemon/index.ts";
+import { commitPaths, hasChanges } from "../daemon/index.ts";
 import { act, Usage } from "./program.ts";
 import { locate } from "./project.ts";
 
@@ -100,43 +100,9 @@ function install(cwd: string, name: string | undefined, o: InstallOptions): numb
   return 0;
 }
 
-/** `flume workflow [--json]`; returns the exit code. */
-export async function workflow(cwd: string, json: boolean): Promise<number> {
-  const url = daemonUrl(cwd);
-  const r = url ? await request(url, "GET", "/api/workflow") : undefined;
-  if (!r) {
-    process.stderr.write(NOT_RUNNING);
-    return 1;
-  }
-  if (r.status >= 400) {
-    process.stderr.write(`flume: ${r.body?.error ?? `request failed (${r.status})`}\n`);
-    return 1;
-  }
-  if (json) {
-    process.stdout.write(`${JSON.stringify(r.body)}\n`);
-    return 0;
-  }
-  const steps = r.body as { phase: string; part: string | null; requires: string | null }[];
-  steps.forEach((s, i) => {
-    process.stdout.write(
-      `${i + 1}. ${s.phase}: writes ${s.part ?? "(none: works the plan)"}; requires ${s.requires ?? "nothing"}\n`,
-    );
-  });
-  return 0;
-}
-
 /** The `flume workflow` command. */
 export function workflowCommand(): CommandUnknownOpts {
-  const group = new Command("workflow")
-    .description("print the phases, or install a shipped workflow")
-    .option("--json", "print JSON")
-    .addHelpText(
-      "after",
-      "\nWith no command, print the whole workflow: each phase in order, the part it writes and the phase it requires.",
-    )
-    .action(function (o) {
-      return act(this, () => workflow(process.cwd(), o.json === true));
-    });
+  const group = new Command("workflow").description("install a shipped workflow");
   group
     .command("install")
     .description("copy a shipped workflow into the tasks repo and commit it")

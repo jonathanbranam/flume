@@ -9,14 +9,13 @@ import {
   type Section,
   sectionBody,
 } from "../core/layers.ts";
-import { isWritablePart } from "../core/parts.ts";
+import { mustPartName } from "../core/parts.ts";
 import { SEGMENT_RE } from "../core/prime.ts";
-import { WRITABLE_PARTS } from "../core/workflow.ts";
 import { findRoot } from "./check.ts";
-import { act, Usage } from "./program.ts";
+import { act } from "./program.ts";
 
 /** The documents preview can print: the name the command takes, and what it reads. */
-type Target = "workflow" | "phases" | "project" | "first-prompt" | "role" | "guide" | "template";
+type Target = "workflow" | "project" | "first-prompt" | "role" | "guide" | "template";
 
 interface Options {
   project?: string;
@@ -35,8 +34,6 @@ function layersFor(
   switch (target) {
     case "workflow":
       return named("workflow.md");
-    case "phases":
-      return named("phases.md");
     case "project":
       return named("project.md");
     case "first-prompt":
@@ -45,7 +42,7 @@ function layersFor(
       if (!SEGMENT_RE.test(arg as string)) throw new Error(`role '${arg}' is not a plain name`);
       return named(`roles/${arg}.md`);
     case "template":
-      return named(`templates/${arg}.md`);
+      return named(`templates/${mustPartName(arg as string)}.md`);
     case "guide": {
       if (!SEGMENT_RE.test(arg as string)) throw new Error(`guide '${arg}' is not a plain name`);
       const found = guideLayers(root, project, arg as string);
@@ -92,8 +89,6 @@ export function preview(target: Target, arg: string | undefined, o: Options): nu
     process.stderr.write(`flume: project '${project}' is not a plain name\n`);
     return 1;
   }
-  if (target === "template" && !isWritablePart(arg as string))
-    throw new Usage(`unknown part '${arg}': parts are ${WRITABLE_PARTS.join(", ")}`);
   try {
     const { doc, layers } = layersFor(findRoot(process.cwd()), target, arg, project);
     const r = mergeLayers(layers);
@@ -138,14 +133,13 @@ export function previewCommand(): CommandUnknownOpts {
     "print a merged layered document (the text prime uses), with its layers",
   );
   sub(group, "workflow", "the workflow text");
-  sub(group, "phases", "the phases text");
   sub(group, "project", "the project's workflow text");
   sub(group, "first-prompt", "the first prompt the launcher sends");
   sub(group, "role", "a role's text", { name: "role", help: "the role name" });
   sub(group, "guide", "a guide's text", { name: "guide", help: "the guide name" });
   sub(group, "template", "a part's template", {
     name: "part",
-    help: `the part: ${WRITABLE_PARTS.join(", ")}`,
+    help: "the part name",
   });
   return group;
 }

@@ -101,10 +101,10 @@ describe("preview prints a merged document", () => {
     expect(r.stderr).toContain("guides/nope.md");
   }, 30_000);
 
-  it("s-60c0 an unknown template part is a usage error", () => {
+  it("s-ce44 a template name that is not plain is refused", () => {
     const d = repo({});
-    const r = preview(d, "template", "bogus");
-    expect(r.status).toBe(2);
-    expect(r.stderr).toContain("parts are body, design, spec, plan");
+    const r = preview(d, "template", "../escape");
+    expect([r.status, r.stdout]).toEqual([1, ""]);
+    expect(r.stderr).toContain("../escape");
   }, 30_000);
 });

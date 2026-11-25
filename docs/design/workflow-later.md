@@ -5,10 +5,9 @@ ticket fl-fu3v; the OpenSpec model these draw on is in `docs/research/openspec.m
 
 ## v1, for reference
 
-- One workflow for every task: five phases in a line (proposal, design, specs, plan,
-  implement). Each phase writes one task part from a built-in template.
-- Agents see the whole workflow with `flume workflow` (or `--json`).
-- The human moves a task to any phase, forwards, backwards or skipping.
+- v1 built five phases (proposal, design, specs, plan, implement) into flume. Ticket fl-94yx
+  removed them: the workflow is now only text in `base/workflow.md`, which flume does not enforce.
+- Bringing the workflow back as config, one step at a time, is ticket fl-4k35.
 
 ## Later
 

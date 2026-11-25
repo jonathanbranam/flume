@@ -111,7 +111,7 @@ describe("task files", () => {
     expect(read(e, "task.yaml")).toContain("title: Brand new title\n");
   });
 
-  it("s-ee5a a new task has the minimal fields", () => {
+  it("s-3f1d a new task has only the minimal fields", () => {
     const e = createTask(root, {
       title: "Add a roadmap",
       kind: "feature",
@@ -123,7 +123,6 @@ describe("task files", () => {
       id: e.nameId,
       title: "Add a roadmap",
       kind: "feature",
-      phase: "proposal",
       created: "2026-11-20",
     });
   });

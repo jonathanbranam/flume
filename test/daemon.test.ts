@@ -727,7 +727,7 @@ describe("flume serve, status and stop", () => {
 
 describe("workflow endpoints", () => {
   const commits = () => git(root, "rev-list", "--count", "HEAD");
-  it("s-409c assign, phase, parts and plan over HTTP", async () => {
+  it("s-1122 assign, parts and plan requests", async () => {
     const t = await create("W");
     const base = `/api/tasks/${t.id}`;
     expect(
@@ -741,7 +741,6 @@ describe("workflow endpoints", () => {
       (await call("POST", `${base}/assign`, { assignee: "rook", actor: "rook", force: true }))
         .status,
     ).toBe(200);
-    expect((await call("POST", `${base}/phase`, { phase: "design" })).body.phase).toBe("design");
     expect(
       (await call("PUT", `${base}/parts/plan`, { text: "## 1. G\n\n- [ ] 1.1 a\n" })).status,
     ).toBe(200);
@@ -750,19 +749,17 @@ describe("workflow endpoints", () => {
     expect(next.body.complete).toBe(true);
     expect((await call("GET", `${base}/parts/plan`)).body.text).toContain("[x] 1.1");
     expect((await call("GET", `${base}/parts/design`)).status).toBe(404);
-    expect(commits()).toBe(String(Number(before) + 4));
+    expect(commits()).toBe(String(Number(before) + 3));
     expect(git(root, "log", "-1", "--format=%s")).toContain(t.id);
     expect(git(root, "status", "--porcelain")).toBe("");
   });
 
-  it("s-07c6 templates and workflow over HTTP", async () => {
+  it("s-223e templates over HTTP", async () => {
     const tpl = await call("GET", "/api/templates/design");
     expect(tpl.status).toBe(200);
     expect(tpl.body.text.length).toBeGreaterThan(0);
-    expect((await call("GET", "/api/templates/comments")).status).toBe(400);
-    const wf = await call("GET", "/api/workflow");
-    expect(wf.status).toBe(200);
-    expect(wf.body).toHaveLength(5);
+    expect((await call("GET", "/api/templates/notes")).body).toEqual({ part: "notes", text: "" });
+    expect((await call("GET", "/api/templates/.hidden")).status).toBe(400);
   });
 });
 
@@ -774,49 +771,46 @@ describe("task history", () => {
       .filter(Boolean)
       .map((l) => JSON.parse(l));
 
-  it("s-2b8c changes are recorded with who and what", async () => {
+  it("s-054e each change is recorded with who and what", async () => {
     const t = (await raw("POST", "/api/tasks", as("scout"), { title: "H" })).body;
     const base = `/api/tasks/${t.id}`;
     const step = (m: string, p: string, b?: unknown, who = "scout") =>
       raw(m, `${base}${p}`, who ? as(who) : {}, b);
     await step("PATCH", "", { title: "H2" });
     await step("POST", "/assign", { assignee: "scout" });
-    await step("POST", "/instructions");
-    await step("POST", "/phase", { phase: "design" });
     await step("PUT", "/parts/plan", { text: "## 1. G\n\n- [ ] 1.1 a\n" });
     await step("POST", "/plan/done", { items: ["1.1"] });
     await step("POST", "/comments", { text: "hi" });
     await step("POST", "/close");
     const re = await step("POST", "/reopen");
-    await step("POST", "/phase", { phase: "plan" }, "");
+    await step("DELETE", "/parts/plan", undefined, "");
     const h = lines(re.body.path);
     expect(h.map((x) => x.action)).toEqual([
       "create",
       "update",
       "assign",
-      "instructions",
-      "phase",
       "write",
       "plan_done",
       "comment",
       "close",
       "reopen",
-      "phase",
+      "remove",
     ]);
     for (const x of h) expect(x.time).toMatch(/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ$/);
-    expect(h.slice(0, 10).every((x) => x.by === "scout")).toBe(true);
-    expect(h[10].by).toBe("human");
+    expect(h.slice(0, 8).every((x) => x.by === "scout")).toBe(true);
+    expect(h[8].by).toBe("human");
     expect(h[1]).toMatchObject({ field: "title", from: "H", to: "H2" });
-    expect(h[5]).toMatchObject({ part: "plan" });
-    expect(JSON.stringify(h[5])).not.toContain("1.1 a");
+    expect(h[3]).toMatchObject({ part: "plan" });
+    expect(JSON.stringify(h[3])).not.toContain("1.1 a");
     expect(re.body.path).toContain("flume/tasks/");
     expect(git(root, "status", "--porcelain")).toBe("");
   });
 
-  it("s-3c9d a refused or empty change adds no line", async () => {
+  it("s-4979 a refused or empty change records nothing", async () => {
     const t = (await raw("POST", "/api/tasks", as("scout"), { title: "H" })).body;
-    await call("POST", `/api/tasks/${t.id}/phase`, { phase: "proposal" });
+    await call("POST", `/api/tasks/${t.id}/assign`, { assignee: "scout" });
+    await call("POST", `/api/tasks/${t.id}/assign`, { assignee: "scout" });
     expect((await call("PATCH", `/api/tasks/${t.id}`, { kind: "nonsense" })).status).toBe(400);
-    expect(lines(t.path)).toHaveLength(1);
+    expect(lines(t.path)).toHaveLength(2);
   });
 });

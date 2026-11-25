@@ -10,7 +10,7 @@ export const SHIPPED_WORKFLOWS = [
     name: "none",
     description: "no workflow: do what the human asks; flume is there for tasks if wanted",
   },
-  { name: "light", description: "a task for each code change, with hardly any phases" },
+  { name: "light", description: "a task for each code change, with hardly any steps" },
 ] as const;
 
 export const isShippedWorkflow = (name: string): boolean =>

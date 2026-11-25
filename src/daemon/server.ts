@@ -13,17 +13,13 @@ import {
   formatGroup,
   groupGuides,
   type HistoryData,
-  instructionsFor,
-  isPhase,
   joinedText,
   listGuides,
   listTaskFiles,
   markPlan,
   nextGroup,
   PATCH_FIELDS,
-  PHASES,
   primeDocuments,
-  pushGuide,
   readGuide,
   readHistory,
   readPart,
@@ -35,12 +31,10 @@ import {
   roadmapPath,
   roadmapView,
   SEGMENT_RE,
-  setPhase,
   type TaskEntry,
   taskObject,
   templateFor,
   updateTask,
-  workflowSteps,
   writePart,
 } from "../core/index.ts";
 import { commitPaths, inRepo } from "./git.ts";
@@ -159,10 +153,6 @@ export function startDaemon(opts: {
       if (!r.ok) throw new HttpError(r.layers ? 422 : 400, r.error);
       return [200, r.guide];
     }
-    if (a === "workflow" && parts.length === 2) {
-      allow("GET");
-      return [200, workflowSteps()];
-    }
     if (a === "templates" && parts.length === 3) {
       allow("GET");
       const part = decodeURIComponent(parts[2] as string);
@@ -217,9 +207,6 @@ export function startDaemon(opts: {
       const kind = url.searchParams.get("kind");
       const parent = url.searchParams.get("parent");
       const assignee = url.searchParams.get("assignee");
-      const phase = url.searchParams.get("phase");
-      if (phase !== null && !isPhase(phase))
-        throw new HttpError(400, `unknown phase '${phase}': phases are ${PHASES.join(", ")}`);
       const entries = listTaskFiles(root);
       const parentId = parent === null ? null : (resolveRef(entries, parent)?.nameId ?? parent);
       const tasks = entries
@@ -236,8 +223,7 @@ export function startDaemon(opts: {
           (t) =>
             (kind === null || t.kind === kind) &&
             (parentId === null || t.parent === parentId) &&
-            (assignee === null || t.assignee === assignee) &&
-            (phase === null || t.phase === phase),
+            (assignee === null || t.assignee === assignee),
         )
         .sort((x, y) => x.created.localeCompare(y.created) || x.id.localeCompare(y.id));
       return [200, tasks];
@@ -349,56 +335,6 @@ export function startDaemon(opts: {
           commit(e.nameId, `assign to ${assignee}`, [e.path]);
         }
         return [200, taskObject(r.entry)];
-      }
-      if (c === "instructions") {
-        allow("POST");
-        const e = find(ref);
-        const r = bad(() => instructionsFor(root, ref));
-        log(e, "instructions", { phase: r.phase });
-        return [200, r];
-      }
-      if (c === "guides") {
-        allow("POST");
-        const e = find(ref);
-        const { guide, phase, remove } = body;
-        if (typeof guide !== "string" || guide === "")
-          throw new HttpError(400, "guide is required");
-        if (typeof phase !== "string") throw new HttpError(400, "phase is required");
-        const r = bad(() => pushGuide(root, ref, guide, phase, remove === true));
-        if (r.changed) {
-          log(r.entry, remove === true ? "guide_remove" : "guide_push", { guide, phase });
-          commit(e.nameId, `${remove === true ? "remove" : "push"} guide ${guide}`, [e.path]);
-        }
-        return [200, taskObject(r.entry)];
-      }
-      if (c === "phase") {
-        allow("POST");
-        const e = find(ref);
-        if (typeof body.phase !== "string") throw new HttpError(400, "phase is required");
-        const was = taskObject(e).phase;
-        if (
-          by !== "human" &&
-          isPhase(body.phase) &&
-          PHASES.indexOf(body.phase) > PHASES.indexOf(was)
-        ) {
-          const h = readHistory(root, e.nameId);
-          let entered = -1;
-          h.forEach((x, i) => {
-            if (x.action === "phase" && x.to === was) entered = i;
-          });
-          const read = h.some(
-            (x, i) => i > entered && x.action === "instructions" && x.by === by && x.phase === was,
-          );
-          if (!read)
-            throw new HttpError(
-              409,
-              `task ${e.nameId} is in phase ${was}, and you have not read its instructions since it entered that phase; run: flume task instructions ${e.nameId}`,
-            );
-        }
-        const u = bad(() => setPhase(root, ref, body.phase as string));
-        if (was !== body.phase) log(u, "phase", { field: "phase", from: was, to: body.phase });
-        commit(e.nameId, `phase ${body.phase}`, [e.path]);
-        return [200, taskObject(u)];
       }
       if (c === "close" || c === "reopen") {
         allow("POST");

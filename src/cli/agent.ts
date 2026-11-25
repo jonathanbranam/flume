@@ -193,7 +193,7 @@ Ask the human to run: flume serve (in ${ws}, in its own pane). Do not start it y
 
 const NOT_SET_UP = `The workflow text is missing, and no flume workspace was found here (no .flume folder in this folder or above it).
 
-Flume manages agents' work with tasks and workflows. Tasks live in a tasks repo; agents work them through flume commands, phase by phase. "flume serve" is the server that agents and the web UI talk to; the human starts it.
+Flume manages agents' work with tasks and workflows. Tasks live in a tasks repo; agents work them through flume commands. "flume serve" is the server that agents and the web UI talk to; the human starts it.
 
 To set up a new workspace, tell the human to do this:
 1. In the workspace folder (a folder of related repos): flume init

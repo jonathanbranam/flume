@@ -236,11 +236,11 @@ You are agent {name}, stored in $AGENT_NAME.
 This repo is documents. When the human asks for an edit, make it directly on
 main. No task, no worktree, unless the human asks for one.
 `;
-const WEB = `# Phases
+const WEB = `# Flume workflow
 
-## Implement
+## Guides @replace
 
-Do the plan, one group at a time. Run \`npm test\` before reporting each item.
+Read the guide testing first.
 
 ## Review @add
 
@@ -248,19 +248,12 @@ Before closing, ask the human to review the change in the browser.
 `;
 
 describe("layers through the commands", () => {
-  it("s-40bc with no layers the shipped documents come out word for word", async () => {
+  it("s-0df4 shipped documents alone come out word for word", async () => {
     const w = await workspace({});
     const out = w.flume("prime", "--name", "a", "--project", "web").stdout;
     const base = shipped("workflow.md").replaceAll("{name}", "a");
     const project = shipped("project.md").replaceAll("{project}", "web");
     expect(out).toContain(`<workflow>\n${base}\n${project}</workflow>\n`);
-    const id = w.flume("task", "new", "T").stdout.trim();
-    const phases = shipped("phases.md").replace(/\bID\b/g, id);
-    const proposal = phases.slice(phases.indexOf("## Proposal"), phases.indexOf("## Design"));
-    const every = phases.slice(phases.indexOf("## Every phase"));
-    expect(w.flume("task", "instructions", id).stdout).toContain(
-      `<steps phase="proposal">\n${proposal}${every}</steps>`,
-    );
     for (const p of ["body", "design", "spec", "plan"])
       expect(w.flume("task", "template", p).stdout).toBe(shipped(`templates/${p}.md`));
     w.flume("agent", "--name", "a");
@@ -269,10 +262,10 @@ describe("layers through the commands", () => {
     w.flume("stop");
   }, 30_000);
 
-  it("s-7fc3 a project can replace the workflow, change a phase and set the first prompt", async () => {
+  it("s-47cb a project can replace or extend the workflow and set the first prompt", async () => {
     const w = await workspace({
       "projects/docs/workflow.md": DOCS,
-      "projects/web/phases.md": WEB,
+      "projects/web/workflow.md": WEB,
       "projects/web/first-prompt.md": "# First prompt\n\nHello {name} of {project}.\n",
     });
     const out = w.flume("prime", "--name", "a", "--project", "docs").stdout;
@@ -280,42 +273,27 @@ describe("layers through the commands", () => {
       `<workflow>\n# Flume workflow\n\n${DOCS.replace("{name}", "a").split("\n").slice(2).join("\n")}\n# Project\n`,
     );
     expect(out).not.toContain("Working a task");
-    const id = w.flume("task", "new", "T", "--project", "web").stdout.trim();
-    w.flume("task", "phase", id, "implement");
-    const i = w.flume("task", "instructions", id).stdout;
-    expect(i).toContain(
-      '<steps phase="implement">\n## Implement\n\nDo the plan, one group at a time. Run `npm test` before reporting each item.\n\n## Every phase\n',
-    );
-    expect(i).not.toContain("git worktree");
-    expect(i).not.toContain("## Review");
+    const web = w.flume("prime", "--name", "a", "--project", "web").stdout;
+    expect(web).toContain("## Guides\n\nRead the guide testing first.\n\n## Review\n");
+    expect(web).toContain("## Working a task");
+    expect(web).not.toContain("Guides are how-to notes");
     w.flume("agent", "--name", "a", "--project", "web");
     expect(readFileSync(join(w.d, "claude.log"), "utf8")).toContain("\n--\nHello a of web.\n");
     expect(w.flume("check").status).toBe(0);
     w.flume("stop");
   }, 30_000);
 
-  it("s-0c09 a phase with no steps left says so", async () => {
-    const w = await workspace({ "base/phases.md": "# Phases\n\n## Proposal @remove\n" });
-    const id = w.flume("task", "new", "T").stdout.trim();
-    const out = w.flume("task", "instructions", id).stdout;
-    expect(out).toContain("The workflow has no steps for the proposal phase.\n\n## Every phase");
-    w.flume("stop");
-  });
-
-  it("s-4592 a broken layer stops prime, agent, instructions and guide", async () => {
+  it("s-2b4e a broken file stops prime, agent, template and guide", async () => {
     const GUIDE = "---\nname: g\ndescription: d\n---\n# G\n\nx\n";
     const w = await workspace({
       "base/guides/g.md": GUIDE,
       "projects/web/guides/g.md": "---\nname: g\ndescription: d\n---\n# G\n\n## Nope\n\ny\n",
       "projects/web/workflow.md": "# Flume workflow\n\n## Nope\n\ny\n",
-      "projects/web/phases.md": "# Phases\n\n## Nope\n\ny\n",
       "projects/web/templates/body.md": "# Body\n\n## Nope\n\ny\n",
     });
-    const id = w.flume("task", "new", "T", "--project", "web").stdout.trim();
     const cases: [string[], string][] = [
       [["prime", "--name", "a", "--project", "web"], "projects/web/workflow.md: line 3"],
       [["agent", "--name", "a", "--project", "web"], "projects/web/workflow.md: line 3"],
-      [["task", "instructions", id], "projects/web/phases.md: line 3"],
       [["task", "template", "body", "--project", "web"], "projects/web/templates/body.md: line 3"],
       [["guide", "g", "--project", "web"], "projects/web/guides/g.md: line 7"],
     ];
@@ -325,7 +303,6 @@ describe("layers through the commands", () => {
       expect(r.stderr).toContain(`flume/${where}: heading "## Nope"`);
     }
     expect(() => readFileSync(join(w.d, "claude.log"))).toThrow();
-    expect(w.flume("task", "history", id).stdout).not.toContain("instructions");
     w.flume("stop");
   }, 30_000);
 

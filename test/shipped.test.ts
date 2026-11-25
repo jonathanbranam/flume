@@ -75,7 +75,7 @@ async function serve(d: string): Promise<void> {
 }
 
 describe("shipped workflows", { timeout: 30_000 }, () => {
-  it("s-458f an installed workflow replaces the standard one", async () => {
+  it("s-322f each installed workflow is what prime shows", async () => {
     const repo = project();
     await serve(repo);
     expect(flume(repo, "workflow", "install", "none").status).toBe(0);
@@ -88,10 +88,6 @@ describe("shipped workflows", { timeout: 30_000 }, () => {
     expect(light).toContain("need no task: just do them.");
     expect(light).not.toContain("## The human is in control");
     expect(light).not.toContain("@replace");
-    const id = flume(repo, "task", "new", "A task").stdout.trim();
-    const steps = flume(repo, "task", "instructions", id).stdout;
-    expect(steps).toContain("Move straight to implement");
-    expect(steps).not.toContain("Check that the task has a clear proposal");
     expect(flume(repo, "check").status).toBe(0);
   });
 
@@ -108,12 +104,11 @@ describe("shipped workflows", { timeout: 30_000 }, () => {
     expect(flume(d, "workflow", "install", "none", "--list").status).toBe(2);
   });
 
-  it("s-9d18 install into the workspace", () => {
+  it("s-c080 install light into the workspace", () => {
     const repo = project();
     const before = Number(count(repo));
     expect(flume(repo, "workflow", "install", "light").status).toBe(0);
-    for (const f of ["workflow.md", "phases.md"])
-      expect(read(repo, `base/${f}`)).toBe(shipped(`light/${f}`));
+    expect(read(repo, "base/workflow.md")).toBe(shipped("light/workflow.md"));
     expect(Number(count(repo))).toBe(before + 1);
     expect(git(repo, "status", "--porcelain")).toBe("");
   });
@@ -130,21 +125,20 @@ describe("shipped workflows", { timeout: 30_000 }, () => {
     expect(there(repo, "base/workflow.md")).toBe(false);
   });
 
-  it("s-8750 an existing file is kept unless forced", () => {
+  it("s-4319 a file already there is kept unless forced", () => {
     const repo = project();
     mkdirSync(join(repo, "flume/base"), { recursive: true });
-    writeFileSync(join(repo, "flume/base/phases.md"), "# Phases\n");
+    writeFileSync(join(repo, "flume/base/workflow.md"), "# Flume workflow\n");
     git(repo, "add", "-A");
     git(repo, "commit", "-qm", "mine");
     const before = Number(count(repo));
     const r = flume(repo, "workflow", "install", "light");
     expect(r.status).toBe(1);
-    expect(r.stderr).toContain("phases.md");
-    expect(there(repo, "base/workflow.md")).toBe(false);
-    expect(read(repo, "base/phases.md")).toBe("# Phases\n");
+    expect(r.stderr).toContain("workflow.md");
+    expect(read(repo, "base/workflow.md")).toBe("# Flume workflow\n");
     expect(Number(count(repo))).toBe(before);
     expect(flume(repo, "workflow", "install", "light", "--force").status).toBe(0);
-    expect(read(repo, "base/phases.md")).toBe(shipped("light/phases.md"));
+    expect(read(repo, "base/workflow.md")).toBe(shipped("light/workflow.md"));
     expect(Number(count(repo))).toBe(before + 1);
   });
 
@@ -157,11 +151,10 @@ describe("shipped workflows", { timeout: 30_000 }, () => {
     expect(count(repo)).toBe(before);
   });
 
-  it("s-249d init with a workflow", () => {
+  it("s-637a init installs a workflow", () => {
     const repo = repository();
     expect(flume(repo, "init", "--workflow", "light").status).toBe(0);
-    for (const f of ["workflow.md", "phases.md"])
-      expect(read(repo, `base/${f}`)).toBe(shipped(`light/${f}`));
+    expect(read(repo, "base/workflow.md")).toBe(shipped("light/workflow.md"));
     expect(git(repo, "status", "--porcelain")).toBe("");
   });
 
