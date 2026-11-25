@@ -2,11 +2,14 @@
 id = "fl-vpvk"
 title = "Standard workflows: install a shipped none or light workflow at init or later"
 kind = "feature"
-state = "planned"
+state = "claimed"
 created_at = "2026-11-25T12:08:54.578Z"
-updated_at = "2026-11-25T12:22:42.729829582Z"
+updated_at = "2026-11-25T12:35:32.338634078Z"
 created_by = "external:advisor"
-watchers = ["external:advisor"]
+watchers = [
+    "external:advisor",
+    "agent:vpvk",
+]
 ticket = "vpvk"
 +++
 
