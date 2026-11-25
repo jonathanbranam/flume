@@ -41,7 +41,7 @@ files in the tasks repo. Pending: drafts for the human's review.
 - Install copies the files and commits them. If a target file exists, it changes nothing and exits
   1 naming the file; `--force` overwrites.
 - The copied files are the project's own from then on: the human can edit them, and a flume update
-  does not change them.
+  does not change them (reinstall with --force to take a newer version).
 
 ### Blocked by fl-mv4r
 
@@ -113,10 +113,6 @@ For a change to code:
 
 ### Assumed (advisor; change if wrong)
 
-- Install copies files rather than a setting that points at a shipped workflow. The human said
-  "installed as a project workflow". Tradeoff: the project can edit its copy, but it does not get
-  fixes from flume updates; reinstall with --force to take them. Alternative: a `workflow: light`
-  line in flume.yaml that reads the shipped files at run time, with project files layered on top.
 - Without --project, install goes to the workspace layer (base/). The human named projects; a
   notes or dotfiles workspace is often one project, but the workspace layer is the natural place
   when every project there is the same kind.
@@ -145,3 +141,6 @@ The human, 2026-11-25 (to advisor), verbatim:
 > I guess the question I don't know about is this: I think, let's do the easiest thing first, which is that this just gets installed as a project workflow, and there's just one standard Flume workflow. Just clarifying there: let's keep the fact that we have one standard Flume workflow that lives in Flume, and then we want to provide both during `init` or a later command: "Please install one of the base workflows that ship with Flume."
 >
 > One of them is essentially no workflow, and I want a very light workflow that uses tickets. The no workflow would be used for a lot of no-code workspaces or workspaces that just don't need to work in tickets, tasks, and code. I would have a light one that would work with a coding repo, and I think later I'll add an official kind of document-based workflow.
+
+The human, 2026-11-25, verbatim, on copy vs a setting: "Yes it is a copy onto the project or
+workspace chosen by the user". And: "We need to ship workflow layers now then." (fl-mv4r)
