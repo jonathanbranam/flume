@@ -303,3 +303,4 @@
 {"actor":"external:orchestrator","at":"2026-11-25T12:22:42.729829582Z","from":"open","task":"fl-vpvk","to":"planned"}
 {"actor":"external:orchestrator","at":"2026-11-25T12:22:42.741605592Z","queue":"reprioritized"}
 {"actor":"external:orchestrator","at":"2026-11-25T12:22:42.750693363Z","queue":"reprioritized"}
+{"actor":"agent:mv4r","at":"2026-11-25T12:32:39.063501754Z","from":"claimed","task":"fl-mv4r","to":"built"}
