@@ -2,11 +2,14 @@
 id = "fl-94yx"
 title = "Phases optional: tasks in a project or workspace need not go through the base workflow's phases"
 kind = "feature"
-state = "open"
+state = "claimed"
 created_at = "2026-11-25T12:16:02.311Z"
-updated_at = "2026-11-25T15:00:01.830678517Z"
+updated_at = "2026-11-25T15:05:55.032573389Z"
 created_by = "external:advisor"
-watchers = ["external:advisor"]
+watchers = [
+    "external:advisor",
+    "agent:p94yx",
+]
 ticket = "94yx"
 +++
 
@@ -28,3 +31,6 @@ readied by external:advisor
 
 ### note · external:advisor · 2026-11-25T15:00:01.830Z
 human via advisor: readied. The human approved the rip-out ("I would approve a full rip-out of everything") and decided each point (Discussion). Design is final; Guide: lines kept is an advisor assumption (see Assumed).
+
+### note · external:orchestrator · 2026-11-25T15:05:45.652Z
+From orchestrator: fl-94yx planned and queued; start it. Sonnet, one ticket (mostly removal; the Design's Analysis lists the files). Done when everything under Remove is gone, everything under Change is changed, everything under Keep still works, the specs and tests are updated, and the check is green. Existing tasks' phase and guides fields stay on disk and are ignored; no migration.
