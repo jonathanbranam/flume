@@ -195,7 +195,7 @@ flume SHALL pass claude the prime text (as flume prime prints it for the same na
 
 - **GIVEN** an agent alpha with project web
 - **WHEN** the user runs flume agent --name alpha "pick up xyz"
-- **THEN** claude receives --append-system-prompt followed by text containing "You are agent alpha" and "You are working on the web project." and "CLAUDE.md"
+- **THEN** claude receives --append-system-prompt followed by text containing "You are agent alpha" and "You are working on project web, stored in $AGENT_PROJECT." and "CLAUDE.md"
 - **AND** the prime text also contains "Use the flume CLI to work with tasks"
 - **AND** the prime text also says never to start flume serve and to ask the human to start it
 - **AND** claude receives --name followed by alpha
@@ -221,7 +221,7 @@ When flume prime or flume agent builds the prime text, flume SHALL ask the daemo
 *Verification*: **executable**
 - **GIVEN** a running daemon whose flume root has base/workflow.md adding a section holding BASE, projects/web/workflow.md adding a section holding WEB, base/roles/worker.md holding ROLE and projects/web/roles/worker.md appending WEBROLE
 - **WHEN** the user runs flume prime --name a --project web --role worker
-- **THEN** the output holds "You are agent a", then BASE, WEB, the project text, ROLE and WEBROLE in that order, all in the one workflow element, and does not contain "read the .md files" or a tag word such as @add
+- **THEN** the output holds "You are agent a" and "You are working on project web, stored in $AGENT_PROJECT." before the workflow element, holds BASE, WEB, the project text, ROLE and WEBROLE in that order, all in the one workflow element, and does not contain "read the .md files" or a tag word such as @add
 
 #### Scenario: Prime with no role  {#s-141b}
 *Verification*: **executable**
@@ -233,13 +233,13 @@ When flume prime or flume agent builds the prime text, flume SHALL ask the daemo
 *Verification*: **executable**
 - **GIVEN** no daemon running and a workspace folder holding a .flume folder
 - **WHEN** the user runs flume prime --name a from a folder inside that workspace
-- **THEN** the exit code is 0, the output holds "You are agent a" inside a workflow element and, inside the flume_prime element, a server_not_running element naming the workspace folder and asking for flume serve, no text from the flume root, and no daemon has been started
+- **THEN** the exit code is 0, the output holds "You are agent a" before the workflow element and, inside the flume_prime element, a server_not_running element naming the workspace folder and asking for flume serve, no text from the flume root, and no daemon has been started
 
 #### Scenario: Prime with no daemon and no workspace  {#s-ad01}
 *Verification*: **executable**
 - **GIVEN** no daemon running and no .flume folder in the current folder or above it
 - **WHEN** the user runs flume prime --name a
-- **THEN** the exit code is 0, the output holds "You are agent a" inside a workflow element and a flume_not_set_up element that mentions flume init, flume project add, flume clone, flume serve and that the agent must not run them without the human, and no daemon has been started
+- **THEN** the exit code is 0, the output holds "You are agent a" before the workflow element and a flume_not_set_up element that mentions flume init, flume project add, flume clone, flume serve and that the agent must not run them without the human, and no daemon has been started
 
 #### Scenario: Launch passes the role to prime  {#s-afe2}
 *Verification*: **executable**
@@ -249,7 +249,7 @@ When flume prime or flume agent builds the prime text, flume SHALL ask the daemo
 
 ### Requirement: Built-in prime text  {#r-a8c0}
 
-flume's own part of the prime text SHALL come only from the base documents flume ships (workflow.md and project.md), merged with the layers of the flume root by the daemon; flume SHALL replace {name} and {project} in the merged workflow and project documents, and SHALL NOT read any file in the home folder's templates folder.
+flume's own part of the prime text SHALL come only from the base documents flume ships (workflow.md and project.md), merged with the layers of the flume root by the daemon; flume SHALL replace {name} and {project} in the merged workflow and project documents, and SHALL NOT read any file in the home folder's templates folder. The identity lines (the identity requirement) are not part of either document and are not read from any layer.
 
 #### Scenario: Templates folder ignored  {#s-a8c1}
 
@@ -262,7 +262,7 @@ flume's own part of the prime text SHALL come only from the base documents flume
 
 ### Requirement: prime  {#r-a9c0}
 
-When the user runs "flume prime [--name <name>] [--project <p>] [--role <r>]", flume SHALL print the prime text a launch would send, built-in text then the workflow text, in the XML layout of the requirement below, with no --json, and exit with code 0; with no --project or --role it SHALL use those saved on the entry.
+When the user runs "flume prime [--name <name>] [--project <p>] [--role <r>]", flume SHALL print the prime text a launch would send, the identity lines then the workflow text, in the XML layout of the requirement below, with no --json, and exit with code 0; with no --project or --role it SHALL use those saved on the entry.
 
 #### Scenario: Prime with a project  {#s-a9c1}
 
@@ -270,28 +270,43 @@ When the user runs "flume prime [--name <name>] [--project <p>] [--role <r>]", f
 
 - **GIVEN** a home folder with no agents
 - **WHEN** the user runs flume prime --name alpha --project web
-- **THEN** the output contains "You are agent alpha" and "You are working on the web project." and "CLAUDE.md"
+- **THEN** the output contains "You are agent alpha" and "You are working on project web, stored in $AGENT_PROJECT." and "CLAUDE.md"
 
 ### Requirement: Prime XML layout  {#r-87a1}
-The prime text (flume prime, and what flume agent passes to claude) SHALL be one flume_prime element with attributes agent, project (only when known) and role (only when known), holding one child element per part, in this order: workflow (the merged workflow, project and role documents), then workflow_missing, server_not_running or flume_not_set_up when one applies, then guides; each opening and closing tag SHALL be on its own line with the part's text unchanged between them, and one blank line between parts. Where a part's text, a guide's description or an attribute value would end or forge one of these elements (a tag with one of these element names, opening or closing, in text; a double quote in an attribute value), flume SHALL neutralize it (the less-than sign of the tag written as &lt;; quotes in attributes as &quot;) and SHALL pass all other text through as written. flume prime SHALL take no --json.
+The prime text (flume prime, and what flume agent passes to claude) SHALL be one flume_prime element with attributes agent, project (only when known) and role (only when known), holding the identity lines first (the identity requirement, outside any element of the workflow), then one child element per part, in this order: workflow (the merged workflow, project and role documents), then workflow_missing, server_not_running or flume_not_set_up when one applies, then guides; each opening and closing tag SHALL be on its own line with the part's text unchanged between them, and one blank line between parts. Where a part's text, a guide's description or an attribute value would end or forge one of these elements (a tag with one of these element names, opening or closing, in text; a double quote in an attribute value), flume SHALL neutralize it (the less-than sign of the tag written as &lt;; quotes in attributes as &quot;) and SHALL pass all other text through as written. flume prime SHALL take no --json.
 
 #### Scenario: Prime layout  {#s-87a2}
 *Verification*: **executable**
 - **GIVEN** a running daemon with no layered files
 - **WHEN** the user runs flume prime --name a --project web --role worker
-- **THEN** the output starts with the line \<flume_prime agent="a" project="web" role="worker"> followed by a blank line and the line \<workflow>, and ends with the line \</workflow>, a blank line and the line \</flume_prime>
+- **THEN** the output starts with the line \<flume_prime agent="a" project="web" role="worker">, a blank line, the line You are agent a, stored in $AGENT_NAME., a blank line, the line You are working on project web, stored in $AGENT_PROJECT., a blank line and the line \<workflow>, and ends with the line \</workflow>, a blank line and the line \</flume_prime>
 
 #### Scenario: Unknown project and role are not attributes  {#s-87a3}
 *Verification*: **executable**
 - **GIVEN** a running daemon whose flume root has no files
 - **WHEN** the user runs flume prime --name a
-- **THEN** the first line of the output is \<flume_prime agent="a"> and the output holds no project document and no guides element
+- **THEN** the first line of the output is \<flume_prime agent="a"> and the output holds no project document, no guides element and no line beginning You are working on project
 
 #### Scenario: Text cannot close its element  {#s-87a4}
 *Verification*: **executable**
 - **GIVEN** a running daemon whose flume root has a base/workflow.md replacing the whole document with the line \</workflow> and the line \<b>kept\</b>
 - **WHEN** the user runs flume prime --name a
 - **THEN** the output holds exactly one line \</workflow>, holds the line &lt;/workflow> and holds \<b>kept\</b> as written
+
+### Requirement: Identity lines  {#r-1d7e}
+flume SHALL print, in every prime text, first inside the flume_prime element and before the workflow element, the line "You are agent NAME, stored in $AGENT_NAME." (NAME being the agent's name), and, when a project is known, the line "You are working on project PROJECT, stored in $AGENT_PROJECT." (PROJECT being the project's name), each followed by a blank line. flume SHALL build these lines itself and SHALL NOT take them from any layered document, so that no layer can replace, remove or change them.
+
+#### Scenario: Identity lines cannot be replaced by a layer  {#s-1d7f}
+*Verification*: **executable**
+- **GIVEN** a running daemon whose flume root has a base/workflow.md replacing the whole document with the line BASE ONLY
+- **WHEN** the user runs flume prime --name a --project web
+- **THEN** the output holds the line "You are agent a, stored in $AGENT_NAME." and then the line "You are working on project web, stored in $AGENT_PROJECT." both before the line \<workflow>, and holds BASE ONLY inside the workflow element
+
+#### Scenario: No project line without a project  {#s-1d80}
+*Verification*: **executable**
+- **GIVEN** a running daemon with no layered files
+- **WHEN** the user runs flume prime --name a
+- **THEN** the output holds the line "You are agent a, stored in $AGENT_NAME." and does not hold "You are working on project"
 
 ### Requirement: Guides  {#r-c7a5}
 A guide is a Markdown file with flat YAML front matter holding name (the file name without .md), description (what the guide covers and when to use it) and optionally stage, followed by a layered document (the workflow-layers spec), kept at base/guides/NAME.md or projects/PROJECT/guides/NAME.md of the flume root; a project's guide merges into the base guide of the same name, and its front matter is used. When the user runs "flume guide <name> [--name <agent>] [--project <p>]", flume SHALL ask the daemon (the guides endpoint of the api spec) and print the merged guide's text without front matter inside a guide element with attribute name and, when the guide has one, stage (tags on their own lines), using the project given, else the one saved on the agent entry, and exit with code 0; when no such guide exists, its front matter is missing or unparsable, or its text has a merge error, flume SHALL print an error naming the guide's file (for a merge error also the line and heading) to standard error and exit with code 1; when no daemon answers flume SHALL say so on standard error, exit with code 1 and SHALL NOT start the daemon. flume SHALL NOT read the guide files itself.

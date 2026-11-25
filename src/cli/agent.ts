@@ -171,6 +171,17 @@ function parse(args: string[]): Parsed | string {
   return p;
 }
 
+/**
+ * The lines that tell an agent who it is and which project it is on. flume builds them itself, not
+ * in any layered document, so no workflow or project layer can replace or remove them. The project
+ * line is left out when there is no project.
+ */
+function identityLines(name: string, project: string): string {
+  const lines = [`You are agent ${name}, stored in $AGENT_NAME.`];
+  if (project) lines.push(`You are working on project ${project}, stored in $AGENT_PROJECT.`);
+  return lines.join("\n\n");
+}
+
 function fill(text: string, vars: Record<string, string>): string {
   return text.replace(/\{(name|project)\}/g, (_, k: string) => vars[k] ?? "");
 }
@@ -198,7 +209,8 @@ interface Prime {
 }
 
 /**
- * The prime text: one flume_prime element holding a workflow element (the merged workflow.md,
+ * The prime text: one flume_prime element holding the identity lines (built here, first, outside
+ * every layer) and then a workflow element (the merged workflow.md,
  * project.md and role, which the daemon builds from flume's shipped files and the flume-root's),
  * then the guides. With no daemon (or a refusal) the workflow element holds the shipped documents
  * alone, followed by a server_not_running element (a workspace was found), a flume_not_set_up
@@ -243,7 +255,7 @@ async function primeText(name: string, project: string, role: string): Promise<P
   const parts = [...(body ? [xmlBlock("workflow", {}, body)] : []), ...after];
   const root = xmlOpen("flume_prime", { agent: name, project, role });
   return {
-    text: `${root}\n\n${parts.join("\n")}\n</flume_prime>\n`,
+    text: `${root}\n\n${identityLines(name, project)}\n\n${parts.join("\n")}\n</flume_prime>\n`,
     firstPrompt: fill(docs.first_prompt, vars),
   };
 }

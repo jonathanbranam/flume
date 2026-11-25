@@ -434,7 +434,8 @@ describe("prime text", { timeout: 30_000 }, () => {
     const r = flume(d, ["prime", "--name", "scout"]);
     expect(r.status).toBe(0);
     const base = /<workflow>([\s\S]*?)<\/workflow>/.exec(r.stdout)?.[1] ?? "";
-    expect(base).toContain("You are agent scout, stored in $AGENT_NAME");
+    expect(r.stdout).toContain("You are agent scout, stored in $AGENT_NAME.");
+    expect(base).not.toContain("You are agent scout");
     for (const c of [
       "flume task claim",
       "flume task instructions",

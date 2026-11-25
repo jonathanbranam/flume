@@ -175,9 +175,8 @@ describe("flume agent specs", () => {
     expect(prime).toContain(
       "- Never start `flume serve` yourself; only the human does. If flume says the\n  server is not running, ask the human to start it.",
     );
-    expect(prime).toContain(
-      "You are working on the web project. Read that project's CLAUDE.md and\nfollow its instructions.",
-    );
+    expect(prime).toContain("You are working on project web, stored in $AGENT_PROJECT.");
+    expect(prime).toContain("Read that project's CLAUDE.md and follow its instructions.");
     expect(a[a.indexOf("--name") + 1]).toBe("alpha");
     expect(a.at(-1)).toBe("pick up xyz");
   });
@@ -279,9 +278,8 @@ describe("flume agent specs", () => {
     expect(r.out).toContain(
       "Use the flume CLI to work with tasks; run `flume --help` to learn it.",
     );
-    expect(r.out).toContain(
-      "You are working on the web project. Read that project's CLAUDE.md and\nfollow its instructions.",
-    );
+    expect(r.out).toContain("You are working on project web, stored in $AGENT_PROJECT.");
+    expect(r.out).toContain("Read that project's CLAUDE.md and follow its instructions.");
   });
 
   it("s-b1c1 list live column", () => {

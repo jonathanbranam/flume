@@ -40,7 +40,7 @@ describe("preview prints a merged document", () => {
     expect(r.status).toBe(0);
     expect(r.stdout).toContain("## Extra\n\nProject text.");
     expect(r.stdout).not.toContain("Base text.");
-    expect(r.stdout).toContain("You are agent {name}");
+    expect(r.stdout).not.toContain("You are agent");
   }, 30_000);
 
   it("s-d4a8 each other target prints its document", () => {

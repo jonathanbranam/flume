@@ -366,7 +366,9 @@ describe("daemon api", () => {
     expect(r.status).toBe(200);
     const { workflow, project, role } = r.body.parts;
     expect(workflow).toMatch(/^# Flume workflow\n[\s\S]*## Base\n\nBASE\n\n## Web\n\nWEB\n$/);
-    expect(project).toMatch(/^# Project\n\nYou are working on the \{project\} project/);
+    expect(project).toBe(
+      "# Project\n\nRead that project's CLAUDE.md and follow its instructions.\n",
+    );
     expect(role).toBe("# Worker\n\nROLE\n\nWEBROLE\n");
     expect(r.body.text).toBe([workflow, project, role].join("\n"));
     expect(r.body.first_prompt).toBe(

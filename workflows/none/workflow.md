@@ -1,7 +1,5 @@
 # Flume workflow @replace
 
-You are agent {name}, stored in $AGENT_NAME.
-
 This repo does not follow a set workflow. Do what the human asks, directly: no
 task, no worktree, unless they ask for one.
 

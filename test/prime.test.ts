@@ -22,6 +22,13 @@ const base = {
   GIT_COMMITTER_EMAIL: "t@example.com",
   FLUME_URL: "",
 };
+/** The identity line for agent a comes first, before the workflow element and outside it. */
+const identityBeforeWorkflow = (out: string, name: string) => {
+  const at = out.indexOf(`You are agent ${name}, stored in $AGENT_NAME.`);
+  const wf = out.indexOf("<workflow>\n");
+  return at >= 0 && wf > at && !out.slice(wf).includes("You are agent ");
+};
+
 const dirs: string[] = [];
 const pids: number[] = [];
 afterAll(() => {
@@ -76,9 +83,10 @@ describe("prime prints the workflow", () => {
     const r = flume(w, "prime", "--name", "a", "--project", "web", "--role", "worker");
     expect(r.status).toBe(0);
     const order = [
-      "You are agent a",
+      "You are agent a, stored in $AGENT_NAME.",
+      "You are working on project web, stored in $AGENT_PROJECT.",
       "## Base\n\nBASE\n\n## Web\n\nWEB\n",
-      "# Project\n\nYou are working on the web project.",
+      "# Project\n\nRead that project's CLAUDE.md",
       "# Worker\n\nROLE\n\nWEBROLE\n</workflow>\n",
     ].map((x) => r.stdout.indexOf(x));
     expect(order.every((i) => i >= 0)).toBe(true);
@@ -86,6 +94,30 @@ describe("prime prints the workflow", () => {
     expect(r.stdout).not.toContain("read the .md files");
     expect(r.stdout).not.toContain("@add");
     expect(r.stdout.match(/^<workflow>$/gm)).toHaveLength(1);
+    flume(w, "stop");
+  });
+
+  it("s-1d7f identity lines cannot be replaced by a layer", async () => {
+    const w = workspace();
+    put(w, "base/workflow.md", "# Flume workflow @replace\n\nBASE ONLY\n");
+    await serve(w);
+    const r = flume(w, "prime", "--name", "a", "--project", "web");
+    expect(r.status).toBe(0);
+    expect(identityBeforeWorkflow(r.stdout, "a")).toBe(true);
+    expect(r.stdout).toContain(
+      "You are working on project web, stored in $AGENT_PROJECT.\n\n<workflow>\n",
+    );
+    expect(r.stdout).toMatch(/<workflow>\n[\s\S]*BASE ONLY[\s\S]*<\/workflow>/);
+    flume(w, "stop");
+  });
+
+  it("s-1d80 no project line without a project", async () => {
+    const w = workspace();
+    await serve(w);
+    const r = flume(w, "prime", "--name", "a");
+    expect(r.status).toBe(0);
+    expect(r.stdout).toContain("You are agent a, stored in $AGENT_NAME.");
+    expect(r.stdout).not.toContain("You are working on project");
     flume(w, "stop");
   });
 
@@ -107,7 +139,7 @@ describe("prime prints the workflow", () => {
     put(w, "base/workflow.md", "# Flume workflow\n\n## Mine @add\n\nBASE\n");
     const r = flume(w, "prime", "--name", "a");
     expect(r.status).toBe(0);
-    expect(r.stdout).toMatch(/<workflow>\n[\s\S]*You are agent a[\s\S]*<\/workflow>/);
+    expect(identityBeforeWorkflow(r.stdout, "a")).toBe(true);
     expect(r.stdout).toMatch(
       new RegExp(
         `<server_not_running>\\n[^\\n]*${w.d}[\\s\\S]*flume serve[\\s\\S]*</server_not_running>`,
@@ -127,7 +159,7 @@ describe("prime prints the workflow", () => {
       env: w.env,
     });
     expect(r.status).toBe(0);
-    expect(r.stdout).toMatch(/<workflow>\n[\s\S]*You are agent a[\s\S]*<\/workflow>/);
+    expect(identityBeforeWorkflow(r.stdout, "a")).toBe(true);
     const m = r.stdout.match(/<flume_not_set_up>\n([\s\S]*)<\/flume_not_set_up>/);
     expect(m).not.toBeNull();
     for (const t of [
@@ -166,7 +198,11 @@ describe("prime layout", () => {
     const r = flume(w, "prime", "--name", "a", "--project", "web", "--role", "worker");
     expect(r.status).toBe(0);
     expect(
-      r.stdout.startsWith('<flume_prime agent="a" project="web" role="worker">\n\n<workflow>\n'),
+      r.stdout.startsWith(
+        '<flume_prime agent="a" project="web" role="worker">\n\n' +
+          "You are agent a, stored in $AGENT_NAME.\n\n" +
+          "You are working on project web, stored in $AGENT_PROJECT.\n\n<workflow>\n",
+      ),
     ).toBe(true);
     expect(r.stdout.endsWith("\n</flume_prime>\n")).toBe(true);
     expect(r.stdout).toContain("</workflow>\n\n</flume_prime>\n");

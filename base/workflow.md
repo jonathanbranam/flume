@@ -1,7 +1,5 @@
 # Flume workflow
 
-You are agent {name}, stored in $AGENT_NAME.
-
 ## Using flume
 
 - Use the flume CLI to work with tasks; run `flume --help` to learn it.
