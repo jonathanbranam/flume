@@ -45,8 +45,8 @@ review; nothing is in force until the human confirms each principle.
 Flume is a tool for working with coding agents through tasks. It keeps the work as tasks, plain
 files in a git repo, and gives agents (Claude Code sessions) a command-line tool to find, claim,
 write up and close that work, guided by a workflow the human controls. It serves one human working
-across several projects, and is built first for the human's work computers, where agents run under
-a Claude Code sandbox.
+across several projects, and is designed to work within the constraints of a Claude Code sandbox,
+such as one an enterprise might put in place.
 
 Flume is made of:
 
@@ -94,10 +94,10 @@ project can specify its own workflow, and in time each task. Flume provides the 
 parts, comments, assignment, history, plans) and enforces a workflow rule only when the workflow's
 own configuration asks for it.
 
-## P4 Works in the work sandbox
+## P4 Works in an enterprise sandbox
 
-Flume supports the Claude Code sandbox on the human's work computers, and most capabilities should
-work inside it. A capability that cannot run in the sandbox must not break flume as a whole: the
+Flume is designed to work within the constraints of a Claude Code sandbox, such as one an
+enterprise might put in place, and most capabilities should work inside it. A capability that cannot run in the sandbox must not break flume as a whole: the
 rest of flume still works, and where it is possible that capability gets a fallback, or a separate
 option with a different implementation that does work there.
 
@@ -169,7 +169,7 @@ tickets, and how it changed. For reference; the principles stand without it.
   says the workflow is not hard-coded. The workflow is determined by the system dynamically.
   "Workflows are dynamic" might be the headline there."
 
-## P4 Works in the work sandbox
+## P4 Works in an enterprise sandbox
 
 - 2026-11-16 (fl-jc84): "I can directly reach public github and clone, but I'm not allowed to push
   at all".
@@ -180,6 +180,12 @@ tickets, and how it changed. For reference; the principles stand without it.
   able to run in the work sandbox, Flume as a whole should still work, or it should have a fallback
   or a separate option for those that are possible to work but need a different implementation."
 - The specific constraints stay in the project rule built-for-the-work-sandbox.
+- First titled "Works in the work sandbox", naming the human's work computers. The human,
+  2026-11-26: "Let's also rephrase the work sandbox to be a little more generic. Let's say an
+  enterprise sandbox. Don't say "the humans work computers." Make it more generic, as if we're
+  describing this to an audience on the internet, to say that it's designed to work within the
+  constraints of the Claude Coast sandbox that might be in place in an enterprise setting."
+  ("Claude Coast" read as Claude Code.)
 
 ## P5 Flume is self-describing
 
@@ -297,3 +303,8 @@ The human, 2026-11-26, verbatim:
 > I think of a short sentence here. We'll work out the exact sentence, but the idea is not to say "Flume does not own the workflow," but that each project, each workspace and project, can specify their own workflow. "Workflows project-specific" might be the right way to put that. It could actually be task-specific.
 >
 > I'm trying to think of a general phrase that says the workflow is not hard-coded. The workflow is determined by the system dynamically. "Workflows are dynamic" might be the headline there.
+
+The human, 2026-11-26, verbatim: "Let's also rephrase the work sandbox to be a little more generic.
+Let's say an enterprise sandbox. Don't say "the humans work computers." Make it more generic, as if
+we're describing this to an audience on the internet, to say that it's designed to work within the
+constraints of the Claude Coast sandbox that might be in place in an enterprise setting."
