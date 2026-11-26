@@ -58,7 +58,7 @@ much."
 
 The human can override the system: any rule, step or gate that flume or a workflow sets gives way
 when the human says so. Some decisions are the human's alone, and agents are not allowed to make
-them (for example, changing a principle or an intent: P8).
+them.
 
 Source: 2026-11-17 (fl-fu3v): "Overall guidance: the human is in control. They can ask you to move
 between phases and go backwards or forwards."
@@ -73,15 +73,19 @@ Source: 2026-11-25 (fl-94yx): "The workflow should not be assumed by flume." "fl
 workflows, but the user can fully override any part of the workflow system and replace it with
 their own. That means that flume cannot make strong assumptions about the workflow itself."
 
-## P4 Built for the work sandbox
+## P4 Works in the work sandbox
 
-Flume runs under a Claude Code sandbox on the human's work computers: no Claude Code hooks, never
-starts its own daemon, packages through a mirror, updates by git pull from the public repo only,
-every bug traceable to a version.
+Flume supports the Claude Code sandbox on the human's work computers, and most capabilities should
+work inside it. A capability that cannot run in the sandbox must not break flume as a whole: the
+rest of flume still works, and where it is possible that capability gets a fallback, or a separate
+option with a different implementation that does work there.
 
 Source: 2026-11-16 (fl-jc84): "I can directly reach public github and clone, but I'm not allowed
-to push at all". 2026-11-17 (fl-qgr7): "don't start a daemon ever". (Full rule:
-built-for-the-work-sandbox.)
+to push at all". 2026-11-17 (fl-qgr7): "don't start a daemon ever". 2026-11-26: "Flume supports
+the work sandbox and is what most capabilities should work in [...] if certain capabilities are not
+able to run in the work sandbox, Flume as a whole should still work, or it should have a fallback
+or a separate option for those that are possible to work but need a different implementation."
+(The specific constraints stay in the rule built-for-the-work-sandbox.)
 
 ## P5 Flume teaches itself
 
@@ -125,6 +129,10 @@ principles will not be violated unless explicitly requested, confirmed by me."
 ### Assumed (advisor; change if wrong)
 
 - P6 is the advisor's reading of the brief; the human has not said it as a principle.
+- P4 is the general stance; the specific sandbox constraints (no Claude Code hooks, never start
+  the daemon, updates by git pull) stay in the project rule built-for-the-work-sandbox, unchanged.
+- The decisions that are the human's alone are not listed in P2; each area's intent names its own
+  (the human).
 - P8 is the governance rule itself, kept as a principle so it lives with the others.
 - How tickets are checked against principles (an Intent section in the ticket layout, who
   checks, what blocks readying) goes in a follow-up once the principles are agreed.
@@ -165,3 +173,10 @@ decides"): "P2 is not correct. "The human is in control" is true. "The human can
 system" is what this should say. The way you worded this, it says, "agents propose, the human
 decides." Absolutely not. That's not the right wording for this at all. "The human is in control"
 means the human can make certain decisions that the agents are not allowed to make."
+
+The human, 2026-11-26, verbatim: "P4 is also too strong, so let's temper this. It should say that
+Flume supports the work sandbox and is what most capabilities should work in (the working work
+sandbox). But if certain capabilities are not able to run in the work sandbox, Flume as a whole
+should still work, or it should have a fallback or a separate option for those that are possible to
+work but need a different implementation." And: "P2 should not list the decisions that are mine
+alone. That is an implementation detail specific to individual intents."
