@@ -87,10 +87,10 @@ able to run in the work sandbox, Flume as a whole should still work, or it shoul
 or a separate option for those that are possible to work but need a different implementation."
 (The specific constraints stay in the rule built-for-the-work-sandbox.)
 
-## P5 Flume teaches itself
+## P5 Flume is self-describing
 
-An agent learns flume from flume: --help, flume help and flume prime explain it well enough that
-an agent with no knowledge of flume can use it and explain it.
+An agent can discover from the flume CLI itself how flume works, how to use it, and how the
+current repository and workspace are set up, with no other knowledge of flume.
 
 Source: 2026-11-19 (fl-q6cm): "agents start with '<command> --help' so the main thing is getting
 the description right there; I want an agent with NO knowledge of flume to respond intelligently
@@ -180,3 +180,9 @@ sandbox). But if certain capabilities are not able to run in the work sandbox, F
 should still work, or it should have a fallback or a separate option for those that are possible to
 work but need a different implementation." And: "P2 should not list the decisions that are mine
 alone. That is an implementation detail specific to individual intents."
+
+The human, 2026-11-26, verbatim, on the first P5 draft ("Flume teaches itself"): "P5: The
+principle and the expansion on it don't match. I guess maybe I'm not understanding the phrase
+"Flume teaches itself." It's too ambiguous. I think what you mean to say is "Flume is
+self-describing," and then I would agree. Agents should be able to discover how Flume works, how
+to use it, including how the current repository is set up, directly from the CLI."
