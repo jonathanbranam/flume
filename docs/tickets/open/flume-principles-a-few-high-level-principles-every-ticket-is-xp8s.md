@@ -52,8 +52,8 @@ Flume is made of:
 
 - **Tasks**: one folder per task, of Markdown and YAML files, in a tasks repo shared by the
   workspace's projects. Kinds, epics and a roadmap organize them.
-- **Agents**: Claude Code sessions started with flume agent, given the workflow and their identity
-  when they start (flume prime).
+- **Agents**: Claude Code sessions started with flume agent, given the workflow, their identity
+  and a role when they start (flume prime).
 - **Workflows**: text that tells agents how to work a task. Flume ships some; a workspace or project
   can change or replace them.
 - **Guides**: how-to notes an agent reads when they apply.
@@ -87,11 +87,12 @@ The human can override the system: any rule, step or gate that flume or a workfl
 when the human says so. Some decisions are the human's alone, and agents are not allowed to make
 them.
 
-## P3 Flume does not own the workflow
+## P3 Workflows are dynamic
 
-Flume provides the mechanics (tasks, parts, comments, assignment, history, layered text, plans);
-the workflow is text or configuration the user can replace whole. Flume enforces a workflow rule
-only when the workflow's own configuration asks for it.
+The workflow is not hard-coded in flume: it is fully configurable or overridable. Each workspace and
+project can specify its own workflow, and in time each task. Flume provides the mechanics (tasks,
+parts, comments, assignment, history, plans) and enforces a workflow rule only when the workflow's
+own configuration asks for it.
 
 ## P4 Works in the work sandbox
 
@@ -154,7 +155,7 @@ tickets, and how it changed. For reference; the principles stand without it.
 - The human, 2026-11-26: "P2 should not list the decisions that are mine alone. That is an
   implementation detail specific to individual intents."
 
-## P3 Flume does not own the workflow
+## P3 Workflows are dynamic
 
 - 2026-11-25 (fl-94yx), after the built-in five phases and the forward gate turned out more rigid
   than planned: "The workflow should not be assumed by flume." "flume ships several workflows, but
@@ -162,6 +163,11 @@ tickets, and how it changed. For reference; the principles stand without it.
   means that flume cannot make strong assumptions about the workflow itself."
 - The rigid phases were removed (fl-94yx); workflow as configuration comes back one step at a time
   (fl-4k35).
+- First drafted as "Flume does not own the workflow". The human, 2026-11-26: "the workflow is fully
+  configurable or overridable. [...] each project, each workspace and project, can specify their own
+  workflow. [...] It could actually be task-specific. I'm trying to think of a general phrase that
+  says the workflow is not hard-coded. The workflow is determined by the system dynamically.
+  "Workflows are dynamic" might be the headline there."
 
 ## P4 Works in the work sandbox
 
@@ -282,3 +288,12 @@ The human, 2026-11-26, verbatim:
 
 Advisor: there was no such document; the README says only "A workflow tool for agents", and flume
 --help has one paragraph. Drafted docs/flume.md.
+
+The human, 2026-11-26, verbatim:
+
+> * add "and a role" to flume intro agents
+> * P3, I want to change the wording there. Instead of saying "Flume does not own the workflow," it should say "the workflow is fully configurable or overridable."
+>
+> I think of a short sentence here. We'll work out the exact sentence, but the idea is not to say "Flume does not own the workflow," but that each project, each workspace and project, can specify their own workflow. "Workflows project-specific" might be the right way to put that. It could actually be task-specific.
+>
+> I'm trying to think of a general phrase that says the workflow is not hard-coded. The workflow is determined by the system dynamically. "Workflows are dynamic" might be the headline there.
