@@ -56,8 +56,9 @@ much."
 
 ## P2 The human is in control
 
-Flume and its agents propose; the human decides. Flume never blocks the human, and agents do what
-the human asks, even when it skips or reverses a step.
+The human can override the system: any rule, step or gate that flume or a workflow sets gives way
+when the human says so. Some decisions are the human's alone, and agents are not allowed to make
+them (for example, changing a principle or an intent: P8).
 
 Source: 2026-11-17 (fl-fu3v): "Overall guidance: the human is in control. They can ask you to move
 between phases and go backwards or forwards."
@@ -158,3 +159,9 @@ tool with per-type workflows "probably not here"; fl-fu3v (approved) made five f
 forward gate came in fl-4tx8 under the overnight "make assumptions" go; each later ticket built on
 the specs before it, and none was checked against "light, and flume does not own the workflow",
 which was written nowhere a worker reads.
+
+The human, 2026-11-26, verbatim, on the first P2 draft ("Flume and its agents propose; the human
+decides"): "P2 is not correct. "The human is in control" is true. "The human can override the
+system" is what this should say. The way you worded this, it says, "agents propose, the human
+decides." Absolutely not. That's not the right wording for this at all. "The human is in control"
+means the human can make certain decisions that the agents are not allowed to make."
