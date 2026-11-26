@@ -99,8 +99,8 @@ to this question: "i want to use flume, explain how it works.""
 ## P6 Plain files are the record
 
 Tasks and their history are plain Markdown and YAML files in a git repo, readable without flume
-(in Obsidian, on GitHub). The daemon, CLI and UI read and write those files; they hold no record
-of their own.
+(in Obsidian, on GitHub). The daemon, CLI and UI read and write those files; they should hold no
+independent record of their own.
 
 Source: tickets lite (the brief): "Everything is plain files you can browse in Obsidian or on
 GitHub, and a small local daemon does the mechanical writes". (Advisor's wording of the principle;
@@ -128,7 +128,7 @@ principles will not be violated unless explicitly requested, confirmed by me."
 
 ### Assumed (advisor; change if wrong)
 
-- P6 is the advisor's reading of the brief; the human has not said it as a principle.
+- P6 is the advisor's reading of the brief; the human reviewed it and softened the last sentence.
 - P4 is the general stance; the specific sandbox constraints (no Claude Code hooks, never start
   the daemon, updates by git pull) stay in the project rule built-for-the-work-sandbox, unchanged.
 - The decisions that are the human's alone are not listed in P2; each area's intent names its own
@@ -186,3 +186,6 @@ principle and the expansion on it don't match. I guess maybe I'm not understandi
 "Flume teaches itself." It's too ambiguous. I think what you mean to say is "Flume is
 self-describing," and then I would agree. Agents should be able to discover how Flume works, how
 to use it, including how the current repository is set up, directly from the CLI."
+
+The human, 2026-11-26, verbatim: "For P6, I want to soften the final sentence a little bit: that
+they should hold no independent record of their own."
