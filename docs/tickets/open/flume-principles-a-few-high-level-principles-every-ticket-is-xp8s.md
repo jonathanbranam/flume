@@ -36,7 +36,8 @@ review; nothing is in force until the human confirms each principle.
 Each principle: an ID, one sentence, what it means in practice, and the human's words as its
 source. The words are verbatim unless marked.
 
-````markdown
+---
+
 # Flume principles
 
 These govern every change to flume: its process, its architecture and its decisions. A ticket
@@ -117,7 +118,8 @@ or built until the human confirms the change explicitly, quoted on the ticket.
 
 Source: 2026-11-26: "Those high-level brief, high-level intent specifications or guiding
 principles will not be violated unless explicitly requested, confirmed by me."
-````
+
+---
 
 ### Assumed (advisor; change if wrong)
 
