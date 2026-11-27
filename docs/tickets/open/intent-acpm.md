@@ -109,6 +109,21 @@ settings.
 Why: an agent outlives any one session; the human can stop and restart it without saying again
 who it is (i-8716).
 
+## i-fe40 Settings change only when given
+
+At a relaunch, a project or role given changes what flume remembers for the agent; anything not
+given stays as it was.
+
+Why: a relaunch must never lose an agent's settings by accident; changing one is always explicit.
+
+## i-a058 Agent records and configuration are human-readable
+
+The registry of agents, and flume's configuration as a whole, are kept in a form a human can read
+and edit. The human manages the registry through flume's CLI, which has commands for it.
+
+Why: nothing about the agents or how flume is set up is hidden from the human, who can always
+inspect it (P2). The CLI is the normal way to change the registry.
+
 ## i-8716 Launching is short for the common case
 
 Most launches never give a name, a project, a role or a prompt: the human relaunches the agent,
@@ -216,6 +231,18 @@ Where each intent item in [agents](../intent/agents.md) came from. For reference
   that session is ended. Later, if it is relaunched from the same terminal (or CLI, or same
   terminal window), it will come back as the same agent with the same settings."
 
+## i-fe40 Settings change only when given
+
+- 2026-11-27 (fl-acpm review), on advisor's candidate "settings change only when given": "Agree:
+  settings only change when given."
+
+## i-a058 Agent records and configuration are human-readable
+
+- 2026-11-27 (fl-acpm review): "the registry should really be managed through the CLI. Yes, there
+  are CLI commands for the human to interact with the registry, and yes, I do prefer even
+  configuration to be human-readable. ... Let's say that the Flume configuration as well should
+  all be human-readable and editable." And: "For 5, yes, let's store it as human-readable config."
+
 ## i-8716 Launching is short for the common case
 
 - 2026-11-17 (fl-xv3z): "I don't want a CLI guessing about the meaning of a parameter based on
@@ -236,12 +263,16 @@ Where each intent item in [agents](../intent/agents.md) came from. For reference
 
 ### Also in this change
 
-- docs/intent/.ids: the twelve IDs above, one per line.
+- docs/intent/.ids: the fourteen IDs above, one per line.
 - No *Intent* lines in design/specs/agent.md yet: that follows the rules of fl-srst.
 
 ### Open for the human
 
 - i-1e7a's why is advisor's inference; no recorded reason found.
+- i-a058 covers all of flume's configuration, not only agents; it may move to the setup intent
+  when that is written.
+- Declined as intent (2026-11-27): the human names agents (open for later), a record ends only
+  on the human's word, resuming the last conversation (not wanted).
 - i-8484: project and role are now required, with a default role. Today both are optional, and
   flume prints identity lines for the name and project only. Follow-up once approved: a ticket
   that makes them required, adds the default role and a role line.
@@ -294,3 +325,12 @@ that when an agent is launched from the CLI, Flume stores an association with th
 role and project in the registry. If the agent is exited, that session is ended. Later, if it is
 relaunched from the same terminal (or CLI, or same terminal window), it will come back as the same
 agent with the same settings."
+
+The human, 2026-11-27 (review of advisor's five candidates), verbatim, as corrected: "1. Agree:
+settings only change when given. 2. I don't want to record this yet in intent. Currently, the
+human names agents, but that's something that's open for discussion later." Then: "4: no, that's
+not intent. I don't want resume." "3: no, don't update that, and then don't mark 3 as an intent."
+"For 5, yes, let's store it as human-readable config." And on 5: "the registry should really be
+managed through the CLI. Yes, there are CLI commands for the human to interact with the registry,
+and yes, I do prefer even configuration to be human-readable. ... Let's say that the Flume
+configuration as well should all be human-readable and editable."
