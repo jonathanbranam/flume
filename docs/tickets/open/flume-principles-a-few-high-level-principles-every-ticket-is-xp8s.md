@@ -44,7 +44,7 @@ review; nothing is in force until the human confirms each principle.
 
 Flume is a tool for orchestrating work between multiple coding agents by
 organizing work into discrete tasks that follow a prescribed workflow. Flume
-prioritizing transparency and human oversight by storing the workflow
+prioritizes transparency and human oversight by storing the workflow
 configuration, agent instructions, and tasks as plain text files that can be
 inspected and updated at any time. History is tracked in git. Agents interact
 with the task system through a CLI to create, find, and claim tasks. The CLI
@@ -61,13 +61,17 @@ place.
 
 Flume is made of:
 
-- **Tasks**: one folder per task, of Markdown and YAML files, in a tasks repo shared by the
-  workspace's projects. Kinds, epics and a roadmap organize them.
+- **Tasks**: a task is made of one or more artifacts stored together. Artifacts are plain text:
+  Markdown for prose, YAML for structured data (in files or front matter). Tasks live in a tasks
+  repo shared by the workspace's projects. Kinds, epics and a roadmap organize them.
 - **Agents**: Claude Code sessions started with flume agent, given the workflow, their identity
   and a role when they start (flume prime).
-- **Workflows**: text that tells agents how to work a task. Flume ships some; a workspace or project
-  can change or replace them.
-- **Guides**: how-to notes an agent reads when they apply.
+- **Workflows**: text for agents, and enforcement by the CLI of the workflow's steps, which can
+  include required gates and reviews. Each step has instructions and names its required
+  artifacts, each with a template. Flume ships some; a workspace or project can change or replace
+  them.
+- **Guides**: specific instructions for an agent doing a specific kind of work, such as adding a
+  CLI command, building a UI component or doing a security review.
 - **The daemon**, started by the human, which writes the task files and commits every change; the
   **CLI** agents and the human use; and a **web UI** to see the tasks.
 
@@ -319,3 +323,17 @@ The human, 2026-11-26, verbatim: "Let's also rephrase the work sandbox to be a l
 Let's say an enterprise sandbox. Don't say "the humans work computers." Make it more generic, as if
 we're describing this to an audience on the internet, to say that it's designed to work within the
 constraints of the Claude Coast sandbox that might be in place in an enterprise setting."
+
+The human, 2026-11-27, verbatim (on flume.md): "It should say "flume prioritizes transparency"
+instead of "prioritizing," so please fix that. And then, per "flume is made of under tasks," I
+don't really feel like we need to specify here that it's one folder per task. ... I would like it
+to say that a task can be made of multiple artifacts that are stored together. Those artifacts are
+plain text and configuration, or the format for plain text is Markdown, and for structured text,
+structured data is YAML in files or front matter. And then workflow needs to be updated to say that
+workflow includes both text for an agent as well as enforcement by the CLI for the steps in a
+workflow (which can include required gates and reviews). Each step in the workflow has
+instructions, and they include required artifacts, which have a template. For guides, I wanted to
+say that these are specific instructions for an agent that is completing a specific task, such as
+adding a CLI command, building a UI component, or doing a security review."
+
+Advisor: chose "artifacts" (the human's first word) over "documents"; open to change.
