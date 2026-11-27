@@ -26,6 +26,8 @@ the human approves it. With it: docs/intent/.ids (the ledger) and docs/provenanc
 
 # Intent: agents
 
+"Layered" is defined in the layers intent (docs/intent/layers.md).
+
 How flume launches, names, instructs and tracks the coding agents that work on tasks. Agents are
 Claude Code sessions. What they do on a task belongs to the tasks and workflow areas; this area is
 about the agents themselves.
@@ -143,7 +145,7 @@ However it is launched, every agent receives:
 
 1. its name;
 2. its project's name;
-3. its role's instructions, resolved by flume's layers (base, then workspace, then project);
+3. its layered role instructions;
 4. flume's instructions: a brief account of how flume works and its core commands, pointing the
    agent to the flume CLI for the details.
 
@@ -178,8 +180,7 @@ Why: an agent's understanding of its work would otherwise be lost when its sessi
 
 ## i-3316 Start-up instructions start an agent with no brief
 
-With neither a prompt nor a handover note, the agent gets the start-up instructions, resolved by
-flume's layers (base, then workspace, then project).
+With neither a prompt nor a handover note, the agent gets the layered start-up instructions.
 
 Why: an agent with no brief starts working at once, and each workspace and project can say what
 starting work means for it.
@@ -442,3 +443,12 @@ one intent each for the three types of prompts"
 
 The human, 2026-11-27, verbatim: "also, yes a handover note is consumed when it is used. We haven't
 built that yet, AFAIK."
+
+Terms agreed, 2026-11-27: layers (the subsystem), layer (built-in, workspace, project), overlay (a
+workspace or project file changing the layer below), layered document; intent text says "layered"
+and the levels are listed only in docs/intent/layers.md. The human, verbatim: "for the "flume
+layers" thing i repeated it multiple times for clarity. But, really this should be a named
+subsystem / module / solution within flume and we don't repeat the details of it every place (b/c
+those details may change then we have to update every place we list base, workspace, project)."
+And: "yes approved... and we're renaming base/ to workspace/ right? I think that's a good move.
+Don't worry about migrations. there are no flume projects yet to migrate"

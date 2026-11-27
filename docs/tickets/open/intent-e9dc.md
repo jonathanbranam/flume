@@ -28,7 +28,7 @@ To draft (advisor with the human):
 - The decisions and their why: merge by heading; an overlay can add, append, remove or replace;
   a missing overlay is not an error; an error names the file, the line and the heading, and
   explains the fix; identity lines are never layered (agents intent, i-8484).
-- Sources: design/specs/workflow-layers.md (layers.md after fl-the rename ticket), fl-mv4r,
+- Sources: design/specs/workflow-layers.md (layers.md after fl-8g3x), fl-mv4r,
   fl-a5vb, fl-hq8k, fl-vpvk.
 
 ## Discussion (for reference, not authoritative)
