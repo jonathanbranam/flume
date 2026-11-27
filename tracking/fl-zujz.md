@@ -2,16 +2,16 @@
 id = "fl-zujz"
 title = "Regenerative Software reference: Chad Fowler's seven primitives"
 kind = "docs"
-state = "built"
+state = "integrated"
 created_at = "2026-11-27T16:11:28.574Z"
-updated_at = "2026-11-27T16:19:16.465435800Z"
+updated_at = "2026-11-27T16:20:13.823307758Z"
 created_by = "external:aide"
 watchers = [
     "external:aide",
     "agent:zujz",
 ]
 branch = "bridle/zujz"
-commit = "a7c0c60a7d127dab0d8aef60d8c860dfd53db9b1"
+commit = "9077d6a909dfbe4fe399b760991be488d8c8d8eb"
 summary = "Added docs/research/regenerative-software.md, a copy of Chad Fowler's seven primitives (Regenerative Software, rough cut ch. 3) as quoted text, the intent-writing guidance (scope, invariant, reason), and our own summary table marked as ours. The 'How flume uses them' section is the placeholder line from the Design. No docs/README.md exists in this repo, so there was no index to update. Added one CHANGELOG line under Internal (the land command refuses a branch without one; the Design did not ask for it). Decision: the summary keeps Fowler's wording verbatim and marks the table as ours; the file is not indexed anywhere else."
 ticket = "zujz"
 +++
@@ -34,3 +34,12 @@ built: a7c0c60a7d127dab0d8aef60d8c860dfd53db9b1 (branch bridle/zujz)
 
 ### note · agent:zujz · 2026-11-27T16:19:16.465Z
 done: added docs/research/regenerative-software.md (Fowler's seven primitives, quoted; our summary marked as ours; no docs/README.md index exists in this repo); one CHANGELOG line under Internal; just check exit 0, 284 vitest tests passed in 14 files; commit a7c0c60a7d127dab0d8aef60d8c860dfd53db9b1
+
+### note · agent:manager · 2026-11-27T16:20:12.096Z
+integrated: 9077d6a909dfbe4fe399b760991be488d8c8d8eb (branch bridle/zujz)
+
+### note · agent:manager · 2026-11-27T16:20:12.104Z
+ticket file moved to docs/tickets/resolved/regenerative-software-zujz.md
+
+### note · agent:manager · 2026-11-27T16:20:13.823Z
+cleanup: removed agent zujz, origin branch bridle/zujz, branch bridle/zujz

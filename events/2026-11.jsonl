@@ -349,3 +349,4 @@
 {"actor":"agent:manager","at":"2026-11-27T16:17:50.844470805Z","from":"built","task":"fl-up3r","to":"integrated"}
 {"actor":"human","at":"2026-11-27T16:18:36.586Z","from":"","task":"fl-acpm","to":"pending"}
 {"actor":"agent:zujz","at":"2026-11-27T16:19:15.060394235Z","from":"claimed","task":"fl-zujz","to":"built"}
+{"actor":"agent:manager","at":"2026-11-27T16:20:12.096440860Z","from":"built","task":"fl-zujz","to":"integrated"}
