@@ -64,9 +64,12 @@ place.
 
 Flume is made of:
 
+- **Projects and workspaces**: a project is a single git repository; a workspace is a collection
+  of related projects. Flume keeps its files (tasks, workflows, configuration) in a repository the
+  user chooses, which can be the project's own repository when there is no workspace.
 - **Tasks**: a task is made of one or more artifacts stored together. Artifacts are plain text:
-  Markdown for prose, YAML for structured data (in files or front matter). Tasks live in a tasks
-  repo shared by the workspace's projects. Kinds, epics and a roadmap organize them.
+  Markdown for prose, YAML for structured data (in files or front matter). Kinds, epics and a
+  roadmap organize them.
 - **Agents**: Claude Code sessions started with flume agent, given the workflow, their identity
   and a role when they start (flume prime).
 - **Workflows**: text for agents, and enforcement by the CLI of the workflow's steps, which can
@@ -344,3 +347,13 @@ Advisor: chose "artifacts" (the human's first word) over "documents"; open to ch
 Advisor asked whether flume.md describing more than is built would confuse agents; recommended a
 line at the top pointing to the specs and CLI help for current behaviour. The human, 2026-11-27,
 verbatim: "Sure, let's add that sentence as well."
+
+The human, 2026-11-27, verbatim: "tasks do not necessarily live in a separate repo. Just drop the
+tasks live in a tasks repo section. What you're describing is a workspace ... I do still have a
+desire for Flume to work in single-project repos without a separate workspace, without a separate
+Flume repo. I'm not sure if that's implemented or not. Let's not worry about that too much. I
+think, really, the primary use case is going to be for a workspace ... but I do really want to use
+it as well for single-repo projects where I don't have a separate workspace ... Flume is made of
+projects and workspaces. They say a workspace is a collection of related projects. A project is a
+single Git repository, and Flume can store all of its system, all of its documents, maybe, in a
+user-specified repository."
