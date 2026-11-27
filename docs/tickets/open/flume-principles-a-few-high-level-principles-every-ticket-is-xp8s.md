@@ -67,9 +67,9 @@ Flume is made of:
 - **Projects and workspaces**: a project is a single git repository; a workspace is a collection
   of related projects. Flume keeps its files (tasks, workflows, configuration) in a repository the
   user chooses, which can be the project's own repository when there is no workspace.
-- **Tasks**: a task is made of one or more artifacts stored together. Artifacts are plain text:
-  Markdown for prose, YAML for structured data (in files or front matter). Kinds, epics and a
-  roadmap organize them.
+- **Tasks**: a task is made of one or more artifacts stored together. Documents are stored as
+  Markdown, and structured data as YAML (in files or front matter). Kinds, epics and a roadmap
+  organize them.
 - **Agents**: Claude Code sessions started with flume agent, given the workflow, their identity
   and a role when they start (flume prime).
 - **Workflows**: text for agents, and enforcement by the CLI of the workflow's steps, which can
@@ -357,3 +357,10 @@ it as well for single-repo projects where I don't have a separate workspace ... 
 projects and workspaces. They say a workspace is a collection of related projects. A project is a
 single Git repository, and Flume can store all of its system, all of its documents, maybe, in a
 user-specified repository."
+
+The human, 2026-11-27, verbatim: "I don't think there's a reason to stay in what Flume is, that
+artifacts are plain text documents. I think in the future I would be okay having images in there,
+specifically for UI-related work, or diagrams of some kind ... We don't need to say that Flume
+supports images right now ... What I want to say is that artifacts that are documents are stored
+as Markdown, and artifacts that are structured data are stored as YAML. Just don't say anything
+about that artifacts must be plain text."
