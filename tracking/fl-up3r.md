@@ -2,11 +2,14 @@
 id = "fl-up3r"
 title = "Guides: remove the stage field"
 kind = "fix"
-state = "planned"
+state = "claimed"
 created_at = "2026-11-27T16:02:47.986Z"
-updated_at = "2026-11-27T16:10:02.729213717Z"
+updated_at = "2026-11-27T16:13:03.320876891Z"
 created_by = "external:advisor"
-watchers = ["external:advisor"]
+watchers = [
+    "external:advisor",
+    "agent:up3r",
+]
 ticket = "up3r"
 +++
 
