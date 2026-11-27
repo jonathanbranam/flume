@@ -5,7 +5,7 @@ These govern every change to flume: its process, its architecture and its decisi
 without the human's explicit confirmation, quoted on the ticket.
 
 Each principle has a provenance, how it was decided and the history behind it, kept separately for
-reference in [principles-provenance.md](principles-provenance.md). You do not need it to follow the principles.
+reference in [provenance/principles.md](provenance/principles.md). You do not need it to follow the principles.
 
 ## P1 Small and simple
 

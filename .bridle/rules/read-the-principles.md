@@ -7,7 +7,7 @@ Before you start work on flume, read `docs/flume.md` (what flume is meant to be)
 `docs/principles.md` (the principles every change is checked against). Read them again when you
 restart or hand over.
 
-- `docs/principles-provenance.md` is for reference only: read it when you need to know why a
+- `docs/provenance/principles.md` is for reference only: read it when you need to know why a
   principle says what it says.
 - A ticket or change that would change or bend a principle says so at the top, and waits for the
   human's explicit confirmation (P8).

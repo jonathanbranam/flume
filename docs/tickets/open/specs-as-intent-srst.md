@@ -22,6 +22,11 @@ development under bridle now, through a bridle rule, until flume can run itself.
 
 ## Design
 
+### Where things live
+
+Everything of flume's own is under docs/; design/ holds only design/specs/, which bridle's spec
+tools read. docs/flume.md, docs/principles.md, docs/intent/, docs/provenance/.
+
 ### The pyramid
 
 Fewer things at the top, more at the bottom; each layer is checked against the ones above it.
@@ -57,8 +62,9 @@ long as they still serve the intent they name.
 
 ### Provenance
 
-- For intent: docs/intent/provenance/AREA.md, same name as the intent file, one section per item
-  that has provenance, headed by its ID and title. Optional: only items that need it or where we
+- All provenance lives in docs/provenance/: principles.md for the principles (moved there from
+  docs/principles-provenance.md), and AREA.md for each intent file, same name, one section per
+  item that has provenance, headed by its ID and title. Optional: only items that need it or where we
   have it now. Dated entries: the human's words verbatim, the ticket, what changed.
 - An agent reads provenance only when it needs to know how a decision was made, or is about to
   change one.
@@ -127,3 +133,7 @@ the things at the bottom."
 
 Advisor (superseded design): a *Why* line in each requirement and provenance per requirement in
 design/provenance/; replaced by separate intent at the human's word above.
+
+The human, 2026-11-27, verbatim: "Yeah, let's, I guess, put all of these in. Are we putting
+everything in docs? Should we move Providence, Intent, and anything that's not part of Bridle?
+Should live in docs? I think that makes sense to me."

@@ -1,6 +1,6 @@
 # Flume principles: provenance
 
-Where each principle in [principles.md](principles.md) came from: the human's words (verbatim unless marked), the
+Where each principle in [principles.md](../principles.md) came from: the human's words (verbatim unless marked), the
 tickets, and how it changed. For reference; the principles stand without it.
 
 ## P1 Small and simple
