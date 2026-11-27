@@ -42,11 +42,22 @@ review; nothing is in force until the human confirms each principle.
 
 # What flume is
 
-Flume is a tool for working with coding agents through tasks. It keeps the work as tasks, plain
-files in a git repo, and gives agents (Claude Code sessions) a command-line tool to find, claim,
-write up and close that work, guided by a workflow the human controls. It serves one human working
-across several projects, and is designed to work within the constraints of a Claude Code sandbox,
-such as one an enterprise might put in place.
+Flume is a tool for orchestrating work between multiple coding agents by
+organizing work into discrete tasks that follow a prescribed workflow. Flume
+prioritizing transparency and human oversight by storing the workflow
+configuration, agent instructions, and tasks as plain text files that can be
+inspected and updated at any time. History is tracked in git. Agents interact
+with the task system through a CLI to create, find, and claim tasks. The CLI
+implements the task workflow and system rules are enforced through the CLI
+instead of depending on agents to follow written instructions. Individual
+projects (git repos) can be managed in a workspace.
+
+The expected use case is for a single person working on a single workspace on a
+single computer (one file system). Flume is not designed for multiple people
+collaborating or to sync work between multiple checkouts of the workspace on
+different computers. Flume has flexible capabilities so that it can work within
+the constraints of a Claude Code sandbox, such as one an enterprise might put in
+place.
 
 Flume is made of:
 
