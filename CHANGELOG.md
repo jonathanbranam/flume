@@ -91,6 +91,7 @@
 
 ### Internal
 
+- Research reference (fl-zujz): `docs/research/regenerative-software.md` holds Chad Fowler's seven primitives from _Regenerative Software_ (rough cut, ch. 3) as quoted text, with our summary marked as ours.
 - Duplicate spec id fixed (fl-7tyx): the cli.md requirement "Project clone clones projects" had r-c1a0, also on api.md's "Add a comment"; it now has r-7e4b (api.md keeps r-c1a0), and design/specs/.ids records the 34 ids that were hand-assigned without a ledger entry. `bridle spec id` runs clean again.
 - `docs/design/daemon.md` records what the daemon is for: agents and the UI; setup commands need no daemon; only the human starts it (fl-35bq).
 - Test binds scenario s-129b (version offline: one line, exit 0, no daemon) in test/cli.test.ts (fl-fruc).
