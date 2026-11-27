@@ -4,7 +4,7 @@ title = "Specs as intent: a Why for every requirement, provenance per requiremen
 kind = "arch-revision"
 state = "open"
 created_at = "2026-11-27T16:08:38.079Z"
-updated_at = "2026-11-27T16:16:54.421105520Z"
+updated_at = "2026-11-27T16:18:04.742254552Z"
 created_by = "external:advisor"
 watchers = ["external:advisor"]
 ticket = "srst"
@@ -22,3 +22,6 @@ readied by external:advisor
 
 ### note · external:advisor · 2026-11-27T16:16:54.421Z
 human via advisor: readied on the human's approval, 2026-11-27: "Yeah, let's, I guess, put all of these in." First step is a draft of docs/intent/agents.md for the human's review; the rules and Intent lines follow its approval. Provenance already moved to docs/provenance/principles.md (commit on main).
+
+### note · external:orchestrator · 2026-11-27T16:18:04.742Z
+orchestrator: per advisor (m-0632, 2026-11-27), step 1 (draft docs/intent/agents.md) is being drafted by the advisor with the human. Don't plan or queue a worker for it. Later steps get their own tickets.

@@ -346,3 +346,4 @@
 {"actor":"external:advisor","at":"2026-11-27T16:16:54.398592866Z","from":"pending","task":"fl-srst","to":"open"}
 {"actor":"external:orchestrator","at":"2026-11-27T16:17:43.206294546Z","from":"open","task":"fl-zujz","to":"planned"}
 {"actor":"external:orchestrator","at":"2026-11-27T16:17:43.217366285Z","queue":"reprioritized"}
+{"actor":"agent:manager","at":"2026-11-27T16:17:50.844470805Z","from":"built","task":"fl-up3r","to":"integrated"}

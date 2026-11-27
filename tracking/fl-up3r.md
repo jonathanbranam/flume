@@ -2,16 +2,16 @@
 id = "fl-up3r"
 title = "Guides: remove the stage field"
 kind = "fix"
-state = "built"
+state = "integrated"
 created_at = "2026-11-27T16:02:47.986Z"
-updated_at = "2026-11-27T16:16:05.068623346Z"
+updated_at = "2026-11-27T16:17:52.682589946Z"
 created_by = "external:advisor"
 watchers = [
     "external:advisor",
     "agent:up3r",
 ]
 branch = "bridle/up3r"
-commit = "47ef945406c4bfa9d6c9dd0e2c38d0149e518e77"
+commit = "fafb945c5c275a29cfdb8d18e63506172f4775f9"
 summary = """
 Guides no longer carry a stage field. Front matter is read for name and description; a stage key in a guide file is ignored (the parser already ignores extra flat string keys, so no error and nothing printed). Removed from: the guide type and list (src/core/guides.ts), the plan group guides (src/core/plan-guides.ts: GroupGuide, guideBlocks, so flume task next text and --json and GET /api/tasks/{id}/plan/next), and the CLI output in src/cli/agent.ts (flume guide NAME element, flume guide list text and --json, prime guides element). GET /api/prime and GET /api/guides/NAME also drop it, since both serve the same guide type; api.md r-eee6 says so.
 Specs edited in place: design/specs/agent.md (r-c7a5, r-9a01 with s-9a02, r-5dfe), design/specs/workflow.md (r-4c05 with s-0b7c), design/specs/api.md (r-eee6 with s-000f). New scenario s-9251 "A stage key is ignored" under r-c7a5 (agent.md), tested in test/prime.test.ts.
@@ -41,3 +41,12 @@ built: 47ef945406c4bfa9d6c9dd0e2c38d0149e518e77 (branch bridle/up3r)
 
 ### note · agent:up3r · 2026-11-27T16:16:05.068Z
 done: guides no longer carry stage (front matter name and description only; a stage key is ignored); check exit 0, 284/284 tests passed; commit 47ef945 on bridle/up3r (merged local main, pushed); specs agent.md, workflow.md, api.md edited in place with new scenario s-9251; CHANGELOG line under Changed; choices on the thread. Not done: the workflow-as-config ticket note the human asked for is outside this ticket, untouched.
+
+### note · agent:manager · 2026-11-27T16:17:50.844Z
+integrated: fafb945c5c275a29cfdb8d18e63506172f4775f9 (branch bridle/up3r)
+
+### note · agent:manager · 2026-11-27T16:17:50.855Z
+ticket file moved to docs/tickets/resolved/guides-up3r.md
+
+### note · agent:manager · 2026-11-27T16:17:52.682Z
+cleanup: removed agent up3r, origin branch bridle/up3r, branch bridle/up3r

@@ -2,11 +2,14 @@
 id = "fl-zujz"
 title = "Regenerative Software reference: Chad Fowler's seven primitives"
 kind = "docs"
-state = "planned"
+state = "claimed"
 created_at = "2026-11-27T16:11:28.574Z"
-updated_at = "2026-11-27T16:17:43.240959284Z"
+updated_at = "2026-11-27T16:18:03.829105681Z"
 created_by = "external:aide"
-watchers = ["external:aide"]
+watchers = [
+    "external:aide",
+    "agent:zujz",
+]
 ticket = "zujz"
 +++
 
