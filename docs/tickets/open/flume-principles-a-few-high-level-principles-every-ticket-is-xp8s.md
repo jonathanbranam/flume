@@ -71,14 +71,15 @@ Flume is made of:
   Markdown, and structured data as YAML (in files or front matter). Kinds, epics and a roadmap
   organize them.
 - **Agents**: Claude Code sessions started with flume agent, given the workflow, their identity
-  and a role when they start (flume prime).
+  and a role when they start (flume prime). Agents work with flume through its CLI, and flume
+  tracks them: which agents exist, what each is working on and its state.
 - **Workflows**: text for agents, and enforcement by the CLI of the workflow's steps, which can
   include required gates and reviews. Each step has instructions and names its required
   artifacts, each with a template. Flume ships some; a workspace or project can change or replace
   them.
 - **Guides**: specific instructions for an agent doing a specific kind of work, such as adding a
   CLI command, building a UI component or doing a security review.
-- **The daemon**, started by the human, which writes the task files and commits every change; the
+- **The daemon**, started by the human, which writes the task files and commits changes to git; the
   **CLI** agents and the human use; and a **web UI** to see the tasks.
 
 ---
@@ -364,3 +365,12 @@ specifically for UI-related work, or diagrams of some kind ... We don't need to 
 supports images right now ... What I want to say is that artifacts that are documents are stored
 as Markdown, and artifacts that are structured data are stored as YAML. Just don't say anything
 about that artifacts must be plain text."
+
+The human, 2026-11-27, verbatim: "under the daemon, we don't need to specify in what Flume is that
+it commits every change. That's an early implementation decision. Whether we batch changes or
+commit every change is not part of what Flume is. What we want to say there instead is: Flume
+writes the task files and commits changes to Git. Under agents, I think it's worth saying here that
+Flume agents interact with Flume through the CLI, and that Flume does track and manage the agents.
+... I think tracking the agents is a good thing to say for sure. Regardless of the sandbox
+restrictions, Flume should be at least observing the agents and tracking them, even if it's not
+maybe actively managing them."
