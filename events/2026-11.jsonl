@@ -361,3 +361,4 @@
 {"actor":"external:advisor","at":"2026-11-27T17:25:20.866192489Z","from":"pending","task":"fl-2962","to":"open"}
 {"actor":"external:orchestrator","at":"2026-11-27T17:31:05.032850357Z","from":"open","task":"fl-2962","to":"planned"}
 {"actor":"external:orchestrator","at":"2026-11-27T17:31:05.042762127Z","queue":"reprioritized"}
+{"actor":"agent:t2962","at":"2026-11-27T17:32:37.860862420Z","from":"claimed","task":"fl-2962","to":"built"}
