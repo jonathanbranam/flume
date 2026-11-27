@@ -68,7 +68,9 @@ in one place avoids two records that disagree.
 ## i-8484 An agent always knows who it is
 
 Every agent has a name, a project and a role, and is told all three at launch and in its
-instructions. An agent given no other role has the default role, general. Flume writes these lines itself; no workflow or overlay can change or remove them.
+instructions. An agent given no other role has the default role, general. An agent working on
+the workspace itself has the workspace's name as its project; in a single-project setup every
+agent's project is that project. Flume writes these lines itself; no workflow or overlay can change or remove them.
 
 Why: the identity is universal, and there is no good reason to override it; an agent that loses
 it acts under the wrong name.
@@ -219,8 +221,6 @@ Where each intent item in [agents](../intent/agents.md) came from. For reference
 - i-8484: project and role are now required, with a default role. Today both are optional, and
   flume prints identity lines for the name and project only. Follow-up once approved: a ticket
   that makes them required, adds the default role and a role line.
-- A required project: what is the project of an agent working on the workspace itself (its
-  tasks repo, setup), or in a single-project setup? Perhaps the workspace counts as a project.
 - Left out as mechanics, not intent: the option rules, the conflict list, the XML layout details,
   the list and show columns, --json.
 
@@ -250,3 +250,7 @@ just have a role that is the role that an agent without another role has."
 
 The human, 2026-11-27 (review), verbatim: "Sorry, that got mungled a little bit. An agent's role
 could just be "agent," or it could be the name "General." Yeah, that's right." (Kept: general.)
+
+The human, 2026-11-27 (review), verbatim: "I don't know if an agent can work in the workspace
+itself, but an agent then would be given the name of the workspace. If there's a single project
+setup, then every agent is just given the name of the project."
