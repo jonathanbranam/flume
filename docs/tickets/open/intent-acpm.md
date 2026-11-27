@@ -219,7 +219,6 @@ Where each intent item in [agents](../intent/agents.md) came from. For reference
 - i-8484: project and role are now required, with a default role. Today both are optional, and
   flume prints identity lines for the name and project only. Follow-up once approved: a ticket
   that makes them required, adds the default role and a role line.
-- The default role's name: general (advisor's choice; the human: "age generic or something").
 - A required project: what is the project of an agent working on the workspace itself (its
   tasks repo, setup), or in a single-project setup? Perhaps the workspace counts as a project.
 - Left out as mechanics, not intent: the option rules, the conflict list, the XML layout details,
@@ -248,3 +247,6 @@ The human, 2026-11-27 (review), verbatim: "No, every agent is going to have a pr
 I think. I'm okay with that. That was optional before, but it should just be a requirement. An
 agent without a role can just have the role of "age generic" or something. I don't know. We should
 just have a role that is the role that an agent without another role has."
+
+The human, 2026-11-27 (review), verbatim: "Sorry, that got mungled a little bit. An agent's role
+could just be "agent," or it could be the name "General." Yeah, that's right." (Kept: general.)
