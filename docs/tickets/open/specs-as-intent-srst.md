@@ -1,6 +1,6 @@
 ---
 id: fl-srst
-title: "Specs as intent: a Why for every requirement, provenance per requirement in design/provenance"
+title: "Intent per area, separate from specs: the pyramid, durable intent IDs, requirements name the intent they check"
 kind: arch-revision
 created: 2026-11-27
 created_by: external:advisor
@@ -13,71 +13,80 @@ related: [fl-xp8s, fl-b2yb]
 
 ## The ask
 
-Treat every spec requirement as intent: record the why behind it, so an agent (or the human)
-reading a requirement knows the reason and can tell a deliberate decision from an accident (e.g.
-agent names are unique on the machine because Claude Code messaging addresses agents by name).
-Keep the history behind each requirement (the human's words, tickets, how it changed) in separate,
-optional provenance files that an agent does not read with the spec. Applied to flume's own
+Record flume's intent, per area, separate from the specs: the decisions and the why behind each,
+so an agent (or the human) can tell a deliberate decision from an accident (e.g. agent names are
+unique on the machine because Claude Code messaging addresses agents by name). The specs are the
+evaluations that check the intent; each requirement names the intent items it checks. Keep the
+history behind each intent item in separate, optional provenance. Applied to flume's own
 development under bridle now, through a bridle rule, until flume can run itself.
 
 ## Design
 
-### Three layers per requirement
+### The pyramid
 
-- **Requirement** (design/specs/NAME.md, unchanged): the EARS sentence. What flume does.
-- **Why** (in the spec, under the requirement): one or two sentences, a paragraph starting
-  *Why*: right after the requirement sentence, before its scenarios. The reason, stated as it
-  stands now; no history, no quotes. bridle spec check accepts it (checked 2026-11-27).
-- **Scenarios** (unchanged): the evaluations. Each executable one has a test naming its ID.
-- **Provenance** (design/provenance/NAME.md, optional): where the requirement came from.
+Fewer things at the top, more at the bottom; each layer is checked against the ones above it.
 
-An agent building or reviewing reads the spec (requirement, why, scenarios). It reads provenance
-only when it needs to know how a decision was made or is about to change one.
+1. **What flume is** (docs/flume.md): one document.
+2. **Principles** (docs/principles.md): a few, for all of flume.
+3. **Intent** (docs/intent/AREA.md): per area, the decisions and their why.
+4. **Requirements** (design/specs/): the evaluations; EARS requirements with scenarios and tests.
 
-### Provenance files
+Principles and intent change only on the human's word (P8). Requirements change by tickets, as
+long as they still serve the intent they name.
 
-- One file per spec, same name: design/provenance/agent.md for design/specs/agent.md. Created
-  when the first entry is written; a spec with no provenance has no file.
-- One section per requirement that has provenance, headed by its ID and title:
-  "## r-a3c0 Registry entry". Requirements with nothing to record are left out.
-- Each section: dated entries, oldest first: the human's words verbatim (marked if not), the
-  ticket, and what changed. Same style as docs/principles-provenance.md.
-- Keyed by the requirement ID, which bridle spec id keeps stable, so a renamed requirement keeps
-  its provenance. A section whose ID no longer exists in the spec is an error to fix (the
-  requirement was removed: delete the section, or keep it under a heading "Removed" with the
-  date and ticket).
+### Intent files
 
-### The spec's opening paragraph is the area's intent
+- One file per area. Areas so far: agents, tasks, workflow, setup.
+- A short opening paragraph: what the area is for.
+- Then one section per intent item: "## i-XXXX Title", a short statement and its why, in plain
+  words (no CLI syntax, no file formats; those belong in the requirements).
+- IDs are durable, like bridle's spec IDs: "i-" and four hex digits, never reused or renumbered.
+  A removed item moves under a "Retired" heading with the date and ticket, so its ID stays taken.
+- bridle spec id cannot mint them (it needs a Scenario under each heading; checked 2026-11-27).
+  Until it can, mint one by hand (four random hex digits), check it is not in docs/intent/.ids,
+  and append it there.
 
-Each spec already opens with a paragraph saying what it covers. That paragraph becomes the area's
-intent: what this part of flume is for and its main decisions, checked against docs/flume.md and
-docs/principles.md. This replaces the separate per-area intent files (docs/intent/*.md) planned
-in fl-xp8s: one place per area instead of two.
+### Requirements name the intent they check
+
+- A requirement lists every intent item it checks, on a line right after the requirement
+  sentence: "*Intent*: i-XXXX, i-YYYY". bridle spec check accepts an extra paragraph there
+  (checked 2026-11-27).
+- A requirement may name none: mechanics (argument parsing, output layout) that serve no
+  decision.
+- An intent item with no requirement yet is allowed: it is a target, like docs/flume.md.
+
+### Provenance
+
+- For intent: docs/intent/provenance/AREA.md, same name as the intent file, one section per item
+  that has provenance, headed by its ID and title. Optional: only items that need it or where we
+  have it now. Dated entries: the human's words verbatim, the ticket, what changed.
+- An agent reads provenance only when it needs to know how a decision was made, or is about to
+  change one.
+- Requirements get no provenance of their own: their why is the intent they name.
 
 ### Rules (bridle overlay, now)
 
-A project rule, spec-why-and-provenance, for workers, reviewers and the manager:
+- read-the-principles grows: read docs/intent/AREA.md for each area a task touches.
+- A new project rule, intent-and-evaluations, for every role:
+  - A requirement added or changed names the intent items it checks.
+  - A change that would add, change or retire an intent item says so at the top of its ticket and
+    waits for the human's explicit confirmation (P8).
+  - When the human's words decide an intent item, add them to its provenance in the same change.
 
-- A requirement added or changed has a *Why*. Missing *Why* on an untouched requirement is not
-  a defect; it is filled when the requirement is next touched or by a backfill ticket.
-- When the human's words decide or change a requirement, add them to the provenance file under
-  its ID, in the same change.
-- A change that contradicts a requirement's *Why* says so at the top of its ticket, like a change
-  to a principle (P8 in spirit; the human confirms).
+### First steps
 
-### Backfill
-
-One docs ticket per spec, starting with agent.md: write the *Why* of each requirement and seed
-provenance only for requirements that need it or where we have it now, from the tickets the spec
-names (their Discussion sections hold the human's words).
-Where the why cannot be found, write "Why: not recorded" and list it for the human, rather than
-inventing one.
+1. Draft docs/intent/agents.md for the human's review, from the agent spec review of 2026-11-27
+   and the tickets the agent spec names. Known items: agent names unique on the machine; flume
+   tracks only the agents it spawned; what an agent works on is tracked by its tickets, not the
+   agent registry; flume never starts the daemon; identity lines no layer can change.
+2. Once approved: the rules above, then *Intent* lines in design/specs/agent.md.
+3. The other areas one at a time, the same way.
 
 ### Not in this ticket
 
-- A checker (orphan provenance IDs, missing *Why*): by hand and review first; a script or a
-  bridle feature if it proves needed (P1).
-- Flume's own support for this (a spec or task format): later, when flume runs itself.
+- A checker (unknown or retired IDs named by a requirement, items no requirement checks): by hand
+  first; a script or a bridle feature if it proves needed (P1).
+- Flume's own support for intent: later, when flume runs itself.
 
 ## Discussion (for reference, not authoritative)
 
@@ -107,3 +116,14 @@ the evaluations, provenance is the record of how they came to be.
 The human, 2026-11-27, verbatim (clarifying): "And just to be clear, in case I overstated that,
 the provenance for every requirement that needs provenance or that we have provenance for right
 now"
+
+The human, 2026-11-27, verbatim: "Yes, requirements should name all of the intents that it checks,
+and that could be multiple. For intent, every intent should be labeled using the same durable IDs
+that we use in Bridle, not increasing numbers. Right, intent. I think we're following a pyramid
+kind of principle here, right, like the testing pyramid a little bit. We've got: * At the very
+top, what Flume is * Guiding principles * Intent * Requirements or specifications or evaluations
+that we're calling them. We should have fewer of the things at the top, and we may have more of
+the things at the bottom."
+
+Advisor (superseded design): a *Why* line in each requirement and provenance per requirement in
+design/provenance/; replaced by separate intent at the human's word above.
