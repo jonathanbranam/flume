@@ -67,8 +67,8 @@ in one place avoids two records that disagree.
 
 ## i-8484 An agent always knows who it is
 
-Every agent is told its name and, when it has them, its project and its role, at launch and in
-its instructions. Flume writes these lines itself; no workflow or overlay can change or remove them.
+Every agent has a name, a project and a role, and is told all three at launch and in its
+instructions. An agent given no other role has the default role, general. Flume writes these lines itself; no workflow or overlay can change or remove them.
 
 Why: the identity is universal, and there is no good reason to override it; an agent that loses
 it acts under the wrong name.
@@ -172,6 +172,9 @@ Where each intent item in [agents](../intent/agents.md) came from. For reference
   user cannot override it; there is no good reason to override that text, IMO."
 - 2026-11-27 (fl-acpm review): the role added: ""An agent knows who he is" is missing the
   agent's role."
+  Then: "every agent is going to have a project and a role ... That was optional before, but it
+  should just be a requirement. ... We should just have a role that is the role that an agent
+  without another role has."
 
 ## i-a530 An agent is never recorded as the human
 
@@ -213,9 +216,12 @@ Where each intent item in [agents](../intent/agents.md) came from. For reference
 ### Open for the human
 
 - i-1e7a's why is advisor's inference; no recorded reason found.
-- i-8484 now names the role. Today flume prints identity lines for the name and project only;
-  the role shows as an attribute of the prime text and as the role's own text. A role line is a
-  follow-up once this intent is approved.
+- i-8484: project and role are now required, with a default role. Today both are optional, and
+  flume prints identity lines for the name and project only. Follow-up once approved: a ticket
+  that makes them required, adds the default role and a role line.
+- The default role's name: general (advisor's choice; the human: "age generic or something").
+- A required project: what is the project of an agent working on the workspace itself (its
+  tasks repo, setup), or in a single-project setup? Perhaps the workspace counts as a project.
 - Left out as mechanics, not intent: the option rules, the conflict list, the XML layout details,
   the list and show columns, --json.
 
@@ -237,3 +243,8 @@ also say that they're unique so that remote code and remote control sessions als
 names."
 
 The human, 2026-11-27 (review), verbatim: ""An agent knows who he is" is missing the agent's role."
+
+The human, 2026-11-27 (review), verbatim: "No, every agent is going to have a project and a role,
+I think. I'm okay with that. That was optional before, but it should just be a requirement. An
+agent without a role can just have the role of "age generic" or something. I don't know. We should
+just have a role that is the role that an agent without another role has."
