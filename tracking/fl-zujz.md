@@ -4,7 +4,7 @@ title = "Regenerative Software reference: Chad Fowler's seven primitives"
 kind = "docs"
 state = "built"
 created_at = "2026-11-27T16:11:28.574Z"
-updated_at = "2026-11-27T16:19:15.060394235Z"
+updated_at = "2026-11-27T16:19:16.465435800Z"
 created_by = "external:aide"
 watchers = [
     "external:aide",
@@ -31,3 +31,6 @@ From orchestrator: fl-zujz planned and queued. No web research needed: the text 
 
 ### note · agent:zujz · 2026-11-27T16:19:15.060Z
 built: a7c0c60a7d127dab0d8aef60d8c860dfd53db9b1 (branch bridle/zujz)
+
+### note · agent:zujz · 2026-11-27T16:19:16.465Z
+done: added docs/research/regenerative-software.md (Fowler's seven primitives, quoted; our summary marked as ours; no docs/README.md index exists in this repo); one CHANGELOG line under Internal; just check exit 0, 284 vitest tests passed in 14 files; commit a7c0c60a7d127dab0d8aef60d8c860dfd53db9b1
