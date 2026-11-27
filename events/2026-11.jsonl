@@ -363,3 +363,4 @@
 {"actor":"external:orchestrator","at":"2026-11-27T17:31:05.042762127Z","queue":"reprioritized"}
 {"actor":"agent:t2962","at":"2026-11-27T17:32:37.860862420Z","from":"claimed","task":"fl-2962","to":"built"}
 {"actor":"agent:manager","at":"2026-11-27T17:32:47.256649553Z","from":"built","task":"fl-2962","to":"integrated"}
+{"actor":"system","at":"2026-11-27T20:18:21.579038836Z","from":"open","task":"fl-srst","to":"pending"}
