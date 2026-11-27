@@ -170,7 +170,9 @@ early, most valuable part of its context window searching for tasks and working 
 
 An agent can record a handover note through the CLI before it stops (the human can record one
 too). The human can ask an agent to write one, and flume provides the instructions (a guide or
-the CLI's help) for writing it.
+the CLI's help) for writing it. A note is consumed when it is used: the launch that gives it to
+the agent uses it up, and a launch that does not use it (one with a given prompt) leaves it for
+the next.
 
 Why: an agent's understanding of its work would otherwise be lost when its session ends.
 
@@ -336,6 +338,8 @@ Where each intent item in [agents](../intent/agents.md) came from. For reference
 - 2026-11-27 (fl-acpm review): "A "handover note" - recorded by agent using the cli (usually by an
   agent, but the human could also record one); this allows the user to prompt the agent: "write a
   hand-over note" and the CLI / guide should exist to instruct the agent how to write one".
+- 2026-11-27 (fl-acpm review): "yes a handover note is consumed when it is used. We haven't built
+  that yet, AFAIK."
 
 ## i-3316 Start-up instructions start an agent with no brief
 
@@ -355,9 +359,9 @@ Where each intent item in [agents](../intent/agents.md) came from. For reference
 ### Open for the human
 
 - i-1e7a's why is advisor's inference; no recorded reason found.
-- i-7693: handover notes do not exist in flume today; a build ticket follows approval. Open: is
-  a handover note used once (consumed by the launch that reads it) or kept until replaced? And
-  does a given prompt leave the note for the next launch?
+- i-7693: handover notes do not exist in flume today; a build ticket follows approval. That a
+  launch with a given prompt leaves the note for the next is advisor's reading of "consumed when
+  it is used".
 - i-a058 covers all of flume's configuration, not only agents; it may move to the setup intent
   when that is written.
 - Declined as intent (2026-11-27): the human names agents (open for later), a record ends only
@@ -435,3 +439,6 @@ The human, 2026-11-27 (review), verbatim: "I think i-899c How an agent starts is
 single intent though, can we split it? hmmm.... I was thinking intents as follows: 1. what every
 agent received no matter what on launch 2. how flume decided which prompt to give an agent Then
 one intent each for the three types of prompts"
+
+The human, 2026-11-27, verbatim: "also, yes a handover note is consumed when it is used. We haven't
+built that yet, AFAIK."
