@@ -67,8 +67,8 @@ in one place avoids two records that disagree.
 
 ## i-8484 An agent always knows who it is
 
-Every agent is told its name and, when it has one, its project, at launch and in its
-instructions. Flume writes these lines itself; no workflow or overlay can change or remove them.
+Every agent is told its name and, when it has them, its project and its role, at launch and in
+its instructions. Flume writes these lines itself; no workflow or overlay can change or remove them.
 
 Why: the identity is universal, and there is no good reason to override it; an agent that loses
 it acts under the wrong name.
@@ -170,6 +170,8 @@ Where each intent item in [agents](../intent/agents.md) came from. For reference
 
 - 2026-11-25 (fl-hq8k): "we should move that critical text outside of the workflow.md so that a
   user cannot override it; there is no good reason to override that text, IMO."
+- 2026-11-27 (fl-acpm review): the role added: ""An agent knows who he is" is missing the
+  agent's role."
 
 ## i-a530 An agent is never recorded as the human
 
@@ -211,6 +213,9 @@ Where each intent item in [agents](../intent/agents.md) came from. For reference
 ### Open for the human
 
 - i-1e7a's why is advisor's inference; no recorded reason found.
+- i-8484 now names the role. Today flume prints identity lines for the name and project only;
+  the role shows as an attribute of the prime text and as the role's own text. A role line is a
+  follow-up once this intent is approved.
 - Left out as mechanics, not intent: the option rules, the conflict list, the XML layout details,
   the list and show columns, --json.
 
@@ -230,3 +235,5 @@ Code, so we're not overriding those things. One of the things we're not overridi
 additional CLI arguments. And also, for agent names that are unique on the machine, this should
 also say that they're unique so that remote code and remote control sessions also have unique
 names."
+
+The human, 2026-11-27 (review), verbatim: ""An agent knows who he is" is missing the agent's role."
