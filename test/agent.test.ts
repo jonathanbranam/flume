@@ -124,16 +124,6 @@ describe("flume agent specs", () => {
     expect(entry("alpha").project).toBe("web");
   });
 
-  it("s-a3c3 a JSON entry is not read", () => {
-    mkdirSync(join(dir, "home", ".flume", "agents"), { recursive: true });
-    writeFileSync(
-      join(dir, "home", ".flume", "agents", "old.json"),
-      JSON.stringify({ name: "old", project: "web", pane: "", created: "x", last_launch: "x" }),
-    );
-    expect(flume(["agent", "list"]).out).not.toContain("old");
-    expect(flume(["agent", "show", "old"]).code).toBe(1);
-  });
-
   it("s-a4c1 name read from the pane", () => {
     flume(["agent"], { TMUX_PANE: "%1", FAKE_PANE_OPT: "alpha" });
     expect(claudeRuns()[0]).toContain("AGENT_NAME=alpha");
@@ -263,12 +253,9 @@ describe("flume agent specs", () => {
     expect(r.out).toContain("[-- <claude-arg>...]");
   });
 
-  it("s-a8c1 templates folder ignored", () => {
-    mkdirSync(join(dir, "home", ".flume", "templates"), { recursive: true });
-    writeFileSync(join(dir, "home", ".flume", "templates", "base.md"), "Hello {name}");
+  it("s-a8c2 shipped workflow in the prime text", () => {
     const out = flume(["prime", "--name", "alpha"]).out;
-    expect(out).not.toContain("Hello alpha");
-    expect(out).toContain("You are agent alpha");
+    expect(out).toContain("# Flume workflow");
   });
 
   it("s-a9c1 prime with a project", () => {

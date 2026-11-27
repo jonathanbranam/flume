@@ -36,6 +36,8 @@
 
 ### Changed
 
+- Agent spec (fl-b2yb): the opening line now says which commands ask the daemon (`flume agent`, `flume prime`, `flume guide`) and that flume never starts it; the requirements for the removed `.json` registry entries and the templates folder are dropped (with their scenarios and tests). Spec: `design/specs/agent.md`.
+
 - Flume no longer builds in or enforces a workflow (fl-94yx): the task phase, `flume task phase`, `task instructions`, `task guide`, bare `flume workflow` and `phases.md` are gone; the steps are plain text in `workflow.md`, and a part may have any plain name.
 
 - Identity lines (fl-hq8k): `flume prime` and `flume agent` print "You are agent NAME, stored in $AGENT_NAME." and, with a project, "You are working on project P, stored in $AGENT_PROJECT." first, outside every layer, so no overlay can replace them. Removed from base `workflow.md`, `project.md` and the shipped none and light `workflow.md`. Spec: `design/specs/agent.md`.

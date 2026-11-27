@@ -1,6 +1,6 @@
 # Agent launcher
 
-flume launches Claude Code as a named agent, keeps a machine-wide registry of agents, and prints the prime text it sends. No command here needs the daemon. Tickets: fl-macf, fl-xv3z.
+flume launches Claude Code as a named agent, keeps a machine-wide registry of agents, and prints the prime text it sends. flume agent and flume prime ask the daemon for the workflow text (with a fallback when none answers), flume guide needs it, and the daemon sets last_seen. flume never starts it. Tickets: fl-macf, fl-xv3z.
 
 Assumptions (recorded on fl-macf and fl-xv3z): the name is given only by --name; the one bare argument is the prompt; exit code 2 is wrong usage, 1 a refusal or failure.
 
@@ -107,7 +107,7 @@ flume SHALL parse the arguments for claude by claude's own option rules: an opti
 
 ### Requirement: Registry entry  {#r-a3c0}
 
-flume SHALL store one YAML file per agent name at .flume/agents/<name>.yaml in the home folder, a flat mapping of string values holding name, project (empty when none), role (empty when none), pane, created and last_launch (and last_seen once the daemon has set it), and when "--project" is not given SHALL use the project saved on the entry, and likewise when "--role" is not given SHALL use the role saved on the entry. flume SHALL NOT read a .json file in that folder, and SHALL ignore it in list and show. flume SHALL accept only a name of lowercase letters, digits and dashes that starts with a letter or digit, and SHALL refuse any other name with exit code 2, naming the name and the allowed pattern on standard error, before it reads or writes the registry or runs claude.
+flume SHALL store one YAML file per agent name at .flume/agents/<name>.yaml in the home folder, a flat mapping of string values holding name, project (empty when none), role (empty when none), pane, created and last_launch (and last_seen once the daemon has set it), and when "--project" is not given SHALL use the project saved on the entry, and likewise when "--role" is not given SHALL use the role saved on the entry. flume SHALL accept only a name of lowercase letters, digits and dashes that starts with a letter or digit, and SHALL refuse any other name with exit code 2, naming the name and the allowed pattern on standard error, before it reads or writes the registry or runs claude.
 
 #### Scenario: Project is saved and reused  {#s-a3c1}
 
@@ -134,14 +134,6 @@ flume SHALL store one YAML file per agent name at .flume/agents/<name>.yaml in t
 - **THEN** the exit code is 2 and standard error names ../evil and the allowed pattern
 - **AND** claude does not run
 - **AND** the home folder holds no .flume folder
-
-#### Scenario: A JSON entry is not read  {#s-a3c3}
-
-*Verification*: **executable**
-
-- **GIVEN** a home folder with the file agents/old.json holding a valid entry for old with project web
-- **WHEN** the user runs flume agent list, and then flume agent show old
-- **THEN** list does not show old and show exits 1
 
 ### Requirement: Name from the pane  {#r-a4c0}
 
@@ -249,16 +241,15 @@ When flume prime or flume agent builds the prime text, flume SHALL ask the daemo
 
 ### Requirement: Built-in prime text  {#r-a8c0}
 
-flume's own part of the prime text SHALL come only from the base documents flume ships (workflow.md and project.md), merged with the layers of the flume root by the daemon; flume SHALL replace {name} and {project} in the merged workflow and project documents, and SHALL NOT read any file in the home folder's templates folder. The identity lines (the identity requirement) are not part of either document and are not read from any layer.
+flume's own part of the prime text SHALL come only from the base documents flume ships (workflow.md and project.md), merged with the layers of the flume root by the daemon; flume SHALL replace {name} and {project} in the merged workflow and project documents. The identity lines (the identity requirement) are not part of either document and are not read from any layer.
 
-#### Scenario: Templates folder ignored  {#s-a8c1}
+#### Scenario: Shipped workflow in the prime text  {#s-a8c2}
 
 *Verification*: **executable**
 
-- **GIVEN** a file base.md in the templates folder of the home folder holding "Hello {name}"
+- **GIVEN** no layered files in the flume root
 - **WHEN** the user runs flume prime --name alpha
-- **THEN** the output contains "You are agent alpha"
-- **AND** the output does not contain "Hello alpha"
+- **THEN** the output contains "# Flume workflow" (the first heading of the shipped workflow.md)
 
 ### Requirement: prime  {#r-a9c0}
 
