@@ -42,6 +42,9 @@ review; nothing is in force until the human confirms each principle.
 
 # What flume is
 
+This describes what flume is meant to be, not all of what is built today. What flume does now
+is in its specs (design/specs/) and its CLI help.
+
 Flume is a tool for orchestrating work between multiple coding agents by
 organizing work into discrete tasks that follow a prescribed workflow. Flume
 prioritizes transparency and human oversight by storing the workflow
@@ -337,3 +340,7 @@ say that these are specific instructions for an agent that is completing a speci
 adding a CLI command, building a UI component, or doing a security review."
 
 Advisor: chose "artifacts" (the human's first word) over "documents"; open to change.
+
+Advisor asked whether flume.md describing more than is built would confuse agents; recommended a
+line at the top pointing to the specs and CLI help for current behaviour. The human, 2026-11-27,
+verbatim: "Sure, let's add that sentence as well."
