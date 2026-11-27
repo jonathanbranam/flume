@@ -21,7 +21,7 @@ listed; other intent says "layered" and points here. Drafted for the human's rev
 
 To draft (advisor with the human):
 
-- The terms: layers, layer (built-in, workspace, project, in that order), overlay, layered
+- The terms: layers, layer (base, workspace, project, in that order; base was "built-in" until fl-2962), overlay, layered
   document.
 - Which documents are layered (workflow, project, role, guides, templates, start-up
   instructions), stated so the list can grow without editing other intent.
