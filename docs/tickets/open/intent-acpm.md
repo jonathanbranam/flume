@@ -137,7 +137,7 @@ Why: about 90% of launches are a bare relaunch in the same pane, so that must be
 command, with everything else known. A command that guesses from content (spaces, quotes)
 surprises.
 
-## i-899c How an agent starts
+## i-899c What every agent receives at launch
 
 However it is launched, every agent receives:
 
@@ -147,19 +147,40 @@ However it is launched, every agent receives:
 4. flume's instructions: a brief account of how flume works and its core commands, pointing the
    agent to the flume CLI for the details.
 
-Then flume gives the agent the first of these that exists:
+Why: whatever else it is given, an agent always knows who it is, what its role is and how to use
+flume (P5).
 
-1. **A prompt the human gave** at launch: given to the agent as is.
-2. **A handover note** recorded for the agent through the CLI, usually by the agent itself before
-   it stopped (the human can record one too). The human can ask an agent to write one, and flume
-   provides the instructions (a guide or the CLI's help) for writing it.
-3. **The start-up instructions**, resolved by flume's layers (base, then workspace, then project):
-   when there is neither a prompt nor a handover note.
+## i-7df3 Flume chooses one first prompt
 
-Why: a given prompt is a specific brief, and the agent goes straight to it, without spending the
-early, most valuable part of its context window searching for tasks and working out what to do. A
-handover note carries an agent's work across a restart. The start-up instructions set an agent
-with no brief working at once. Every case starts the agent working.
+After what every agent receives, flume gives the agent exactly one first prompt, the first of
+these that exists: a prompt the human gave at launch (i-72d8), else a handover note (i-7693), else the
+start-up instructions (i-3316).
+
+Why: the most specific brief wins, and every launch starts the agent working.
+
+## i-72d8 A given prompt is the whole brief
+
+A prompt the human gives at launch is given to the agent as is, and the agent gets no start-up
+instructions.
+
+Why: a given prompt is a specific brief; the agent goes straight to it, without spending the
+early, most valuable part of its context window searching for tasks and working out what to do.
+
+## i-7693 A handover note carries work across a restart
+
+An agent can record a handover note through the CLI before it stops (the human can record one
+too). The human can ask an agent to write one, and flume provides the instructions (a guide or
+the CLI's help) for writing it.
+
+Why: an agent's understanding of its work would otherwise be lost when its session ends.
+
+## i-3316 Start-up instructions start an agent with no brief
+
+With neither a prompt nor a handover note, the agent gets the start-up instructions, resolved by
+flume's layers (base, then workspace, then project).
+
+Why: an agent with no brief starts working at once, and each workspace and project can say what
+starting work means for it.
 
 ## i-1e7a One agent runs in one place at a time
 
@@ -287,39 +308,54 @@ Where each intent item in [agents](../intent/agents.md) came from. For reference
   "90% of the time, we can just say "Flume agent" is what we're getting at here, and everything
   about that is known from that Tmux pane."
 
-## i-899c How an agent starts
+## i-899c What every agent receives at launch
 
-- 2026-11-27 (fl-acpm review), retitled from "Every launch starts work" and widened: "I think we
-  need a specific intent for the unique ways that an agent can be started. No matter what the
-  launch, every agent receives: 1. it's name 2. it's project name 3. role instructions (resolved
-  by flume: base->workspace->project) 4. flume instructions - how flume works and core CLI
-  commands; brief and points agent to flume CLI for details. Then flume checks these in order:
-  1. A user-supplied prompt - if supplied, this is given to the agent directly 2. A "handover
-  note" - recorded by agent using the cli (usually by an agent, but the human could also record
-  one); this allows the user to prompt the agent: "write a hand-over note" and the CLI / guide
-  should exist to instruct the agent how to write one 3. No prompt, no hand-over note: start up
-  instructions are given to the agent (resolved by flume layering: base->workspace->project
-  overrides)"
-- 2026-11-27, on the given prompt: "i have found this very useful in my work context. What i'm
-  doing is starting an agent with a specific brief for what is should work on. the agent still
-  gets its name, role, project, and flume instructions, and then is given the prompt to work on.
-  This skips the start-up prompt entirely." Why: "to preserve context; an agent that spends
-  crucial tokens in its early context window to search for tasks and figure what to do".
+- 2026-11-27 (fl-acpm review): "No matter what the launch, every agent receives: 1. it's name
+  2. it's project name 3. role instructions (resolved by flume: base->workspace->project) 4. flume
+  instructions - how flume works and core CLI commands; brief and points agent to flume CLI for
+  details". Split out of a longer item at the human's word: "I think i-899c How an agent starts is
+  too long for a single intent though, can we split it?"
+
+## i-7df3 Flume chooses one first prompt
+
+- 2026-11-27 (fl-acpm review): "Then flume checks these in order: 1. A user-supplied prompt ...
+  2. A "handover note" ... 3. No prompt, no hand-over note: start up instructions".
+
+## i-72d8 A given prompt is the whole brief
+
+- 2026-11-27: "i have found this very useful in my work context. What i'm doing is starting an
+  agent with a specific brief for what is should work on. the agent still gets its name, role,
+  project, and flume instructions, and then is given the prompt to work on. This skips the
+  start-up prompt entirely." Why: "to preserve context; an agent that spends crucial tokens in its
+  early context window to search for tasks and figure what to do".
+- 2026-11-17 (fl-xv3z): "If I'm passing a prompt in ... I don't want the agent to go spend a lot
+  of tokens and attention pulling up other tickets and things".
+
+## i-7693 A handover note carries work across a restart
+
+- 2026-11-27 (fl-acpm review): "A "handover note" - recorded by agent using the cli (usually by an
+  agent, but the human could also record one); this allows the user to prompt the agent: "write a
+  hand-over note" and the CLI / guide should exist to instruct the agent how to write one".
+
+## i-3316 Start-up instructions start an agent with no brief
+
+- 2026-11-27 (fl-acpm review): "No prompt, no hand-over note: start up instructions are given to
+  the agent (resolved by flume layering: base->workspace->project overrides)".
 - 2026-11-17 (fl-xv3z): "if there's no prompt, then I think Flume should send an interactive
-  suggestion, because that kicks off Claude working." "If I'm passing a prompt in ... I don't want
-  the agent to go spend a lot of tokens and attention pulling up other tickets and things".
+  suggestion, because that kicks off Claude working. ... "Read the status of your tickets, suggest
+  next steps, follow up, whatever.""
 
 ---
 
 ### Also in this change
 
-- docs/intent/.ids: the fourteen IDs above, one per line.
+- docs/intent/.ids: the eighteen IDs above, one per line.
 - No *Intent* lines in design/specs/agent.md yet: that follows the rules of fl-srst.
 
 ### Open for the human
 
 - i-1e7a's why is advisor's inference; no recorded reason found.
-- i-899c: handover notes do not exist in flume today; a build ticket follows approval. Open: is
+- i-7693: handover notes do not exist in flume today; a build ticket follows approval. Open: is
   a handover note used once (consumed by the launch that reads it) or kept until replaced? And
   does a given prompt leave the note for the next launch?
 - i-a058 covers all of flume's configuration, not only agents; it may move to the setup intent
@@ -394,3 +430,8 @@ is just provenance and ideas for the future, not anything we're doing today."
 
 The human, 2026-11-27 (review), verbatim: "I think we need a specific intent for the unique ways
 that an agent can be started." (Full text in the provenance draft under i-899c.)
+
+The human, 2026-11-27 (review), verbatim: "I think i-899c How an agent starts is too long for a
+single intent though, can we split it? hmmm.... I was thinking intents as follows: 1. what every
+agent received no matter what on launch 2. how flume decided which prompt to give an agent Then
+one intent each for the three types of prompts"
