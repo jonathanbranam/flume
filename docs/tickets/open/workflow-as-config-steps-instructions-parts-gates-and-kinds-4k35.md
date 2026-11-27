@@ -40,7 +40,11 @@ is designed:
 5. **Workflow per kind and per task.** A project's default workflow and a map from kind to
    workflow (fl-h8ty); a task may name its own workflow.
 6. **Guides and steps** (open): whether guides attach to steps again (they were pushed to phases
-   before fl-94yx) and how they relate to the plan's Guide: lines.
+   before fl-94yx) and how they relate to the plan's Guide: lines. Guides need revisiting here as
+   a whole. Taken out before this step (fl-up3r): the guide's optional stage field (front matter,
+   the stage attribute in guide elements, the stage column of flume guide, stage in the JSON),
+   because it was a leftover of the phases and had no defined meaning. If guides attach to steps,
+   this is where something like it comes back, designed.
 
 Open, to settle in step 1 or later: whether users can configure plans (the plan form stays as
 flume defines it for now); the workflow file's format (YAML like OpenSpec's schema.yaml, or
@@ -72,3 +76,8 @@ Then, on removing the rigid phases (fl-94yx):
 > I'm not sure exactly how to decide about (4) the guide and phases and plan relationship
 
 (The numbers refer to the analysis on fl-94yx.)
+
+The human, 2026-11-27 (agent spec review), verbatim: "I don't know what a stage is. I thought we
+had workflow steps, workflow stages, workflow phases. Let's go ahead and take that out of the
+guides for now, and please update the workflow as config ticket to indicate that. Guides will need
+to be revisited later and explain what we took out here." (fl-up3r)
