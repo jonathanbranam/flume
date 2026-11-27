@@ -32,18 +32,22 @@ about the agents themselves.
 
 ## i-bf0d Flume launches agents
 
-An agent is a Claude Code session the human starts through flume, which sets its identity and
-gives it flume's instructions; everything else is passed to Claude Code unchanged.
+An agent is a Claude Code session the human starts through flume. Flume adds only the agent's
+identity and flume's instructions, appended to Claude Code's own system prompt. Claude Code
+otherwise starts as it normally would on that computer: its standard system prompt, its settings
+and configuration, and its CLAUDE.md files are used as they are, and any other command-line
+arguments the human gives are passed to it unchanged.
 
-Why: one command gives every agent the same start, and the human keeps every Claude Code option
-without flume having to know about it.
+Why: one command gives every agent the same start, while the Claude Code setup of the computer
+that launches it stays in charge; flume overrides none of it.
 
 ## i-631d Agent names are unique on the machine
 
 An agent's name is unique across the whole computer, not only within a workspace or project.
 
-Why: Claude Code messaging addresses agents by name, so two agents on one machine can never share
-a name, even in different workspaces.
+Why: Claude Code messaging addresses agents by name, and Claude Code's Remote Control and remote
+sessions are named by it too, so two agents on one machine can never share a name, even in
+different workspaces.
 
 ## i-ad05 Flume tracks only the agents it launched
 
@@ -133,6 +137,11 @@ Where each intent item in [agents](../intent/agents.md) came from. For reference
 - 2026-11-17 (fl-macf): flume agent replaces the human's own claude-as launcher. "i'll use 'flume
   agent' immediately; don't need backwards compat"; "consume args that flume agent recognizes.
   Unrecognized args pass to 'claude'".
+- 2026-11-27 (fl-acpm review): "the overall point here actually is that Claude Code is launched as
+  normal and that it reads the standard system prompt. It reads any file setting, any Claude Code
+  settings or config. All of that is managed and used as is from the computer that launches
+  Claude Code, so we're not overriding those things. One of the things we're not overriding as
+  well is additional CLI arguments."
 - 2026-11-17 (fl-xv3z), on parsing Claude's options by Claude's rules: "We know exactly how Claude
   behaves ... I don't think we're guessing at all."
 
@@ -142,6 +151,8 @@ Where each intent item in [agents](../intent/agents.md) came from. For reference
   because if we're using Claude Code messaging, every agent on the machine has to have a unique
   name. Even if we're not using it in remote control, every agent needs to have a separate name.
   That is definitely true."
+- 2026-11-27 (fl-acpm review): "for agent names that are unique on the machine, this should also
+  say that they're unique so that remote code and remote control sessions also have unique names."
 
 ## i-ad05 Flume tracks only the agents it launched
 
@@ -210,3 +221,12 @@ the intent. Use the same approach we have with HRs, dividing it from the rest of
 
 Sources: design/specs/agent.md and the tickets it names (fl-macf, fl-xv3z), fl-hq8k, fl-6hkt,
 fl-87h9, fl-qgr7, and the agent spec review of 2026-11-27 (fl-b2yb, fl-xp8s threads).
+
+The human, 2026-11-27 (review), verbatim: "For Flume launches agents, the comment "everything else"
+is a little bit vague. ... The overall point here actually is that Claude Code is launched as
+normal and that it reads the standard system prompt. It reads any file setting, any Claude Code
+settings or config. All of that is managed and used as is from the computer that launches Claude
+Code, so we're not overriding those things. One of the things we're not overriding as well is
+additional CLI arguments. And also, for agent names that are unique on the machine, this should
+also say that they're unique so that remote code and remote control sessions also have unique
+names."
