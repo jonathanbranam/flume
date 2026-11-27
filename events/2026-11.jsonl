@@ -328,3 +328,4 @@
 {"actor":"agent:p94yx","at":"2026-11-25T15:11:12.611750360Z","from":"claimed","task":"fl-94yx","to":"built"}
 {"actor":"agent:manager","at":"2026-11-25T15:12:12.845045615Z","from":"built","task":"fl-94yx","to":"integrated"}
 {"actor":"human","at":"2026-11-26T15:46:44.388Z","from":"","task":"fl-xp8s","to":"pending"}
+{"actor":"external:advisor","at":"2026-11-27T15:52:56.169380127Z","from":"pending","task":"fl-xp8s","to":"integrated"}
