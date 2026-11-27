@@ -345,7 +345,7 @@ describe("layers through the commands", () => {
     });
     const r = w.flume("guide", "g", "--project", "web");
     expect(r.stdout).toBe('<guide name="g">\n# G\n\n## A\n\nBASE A\n\n## B\n\nWEB B\n</guide>\n');
-    expect(w.flume("guide", "--project", "web").stdout).toBe("g\t-\tweb\n");
+    expect(w.flume("guide", "--project", "web").stdout).toBe("g\tweb\n");
     w.flume("stop");
   });
 });

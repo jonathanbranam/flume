@@ -227,11 +227,11 @@ async function primeText(name: string, project: string, role: string): Promise<P
   const after: string[] = [];
   if (r?.status === 200) {
     docs = { ...r.body.parts, first_prompt: r.body.first_prompt };
-    const guides = (r.body.guides ?? []) as { name: string; description: string; stage?: string }[];
+    const guides = (r.body.guides ?? []) as { name: string; description: string }[];
     if (guides.length > 0) {
       let g = "<guides>\n<!-- Print one with: flume guide <name> -->\n";
       for (const x of guides)
-        g += `${xmlOpen("guide", { name: x.name, stage: x.stage })}${xmlText(x.description)}</guide>\n`;
+        g += `${xmlOpen("guide", { name: x.name })}${xmlText(x.description)}</guide>\n`;
       after.push(`${g}</guides>\n`);
     }
   } else {
@@ -349,13 +349,11 @@ export async function guide(
       process.stderr.write(`flume: ${l.body?.error ?? `request failed (${l.status})`}\n`);
       return 1;
     }
-    const list = (l.body.guides ?? []) as { name: string; description: string; stage?: string }[];
+    const list = (l.body.guides ?? []) as { name: string; description: string }[];
     if (json) process.stdout.write(`${JSON.stringify(list)}\n`);
     else
       for (const g of list)
-        process.stdout.write(
-          `${g.name}\t${g.stage ?? "-"}\t${g.description.replace(/\s+/g, " ")}\n`,
-        );
+        process.stdout.write(`${g.name}\t${g.description.replace(/\s+/g, " ")}\n`);
     return 0;
   }
   const r = await request(url, "GET", `/api/guides/${encodeURIComponent(bare[0] as string)}?${q}`);
@@ -367,13 +365,7 @@ export async function guide(
     process.stderr.write(`flume: ${r.body?.error ?? `request failed (${r.status})`}\n`);
     return 1;
   }
-  process.stdout.write(
-    xmlBlock(
-      "guide",
-      { name: r.body.name as string, stage: r.body.stage as string | undefined },
-      r.body.body as string,
-    ),
-  );
+  process.stdout.write(xmlBlock("guide", { name: r.body.name as string }, r.body.body as string));
   return 0;
 }
 

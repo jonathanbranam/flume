@@ -36,6 +36,8 @@
 
 ### Changed
 
+- Guides drop the `stage` field (fl-up3r): front matter holds name and description; a stage key in an existing guide is ignored, and `flume guide`, `flume guide --json`, prime, `flume task next` and `GET /api/prime` no longer show it. Guide relations to workflow steps are revisited in fl-4k35. Specs: `design/specs/agent.md`, `design/specs/workflow.md`, `design/specs/api.md`.
+
 - Agent spec (fl-b2yb): the opening line now says which commands ask the daemon (`flume agent`, `flume prime`, `flume guide`) and that flume never starts it; the requirements for the removed `.json` registry entries and the templates folder are dropped (with their scenarios and tests). Spec: `design/specs/agent.md`.
 
 - Flume no longer builds in or enforces a workflow (fl-94yx): the task phase, `flume task phase`, `task instructions`, `task guide`, bare `flume workflow` and `phases.md` are gone; the steps are plain text in `workflow.md`, and a part may have any plain name.

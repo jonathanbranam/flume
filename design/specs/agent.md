@@ -300,7 +300,7 @@ flume SHALL print, in every prime text, first inside the flume_prime element and
 - **THEN** the output holds the line "You are agent a, stored in $AGENT_NAME." and does not hold "You are working on project"
 
 ### Requirement: Guides  {#r-c7a5}
-A guide is a Markdown file with flat YAML front matter holding name (the file name without .md), description (what the guide covers and when to use it) and optionally stage, followed by a layered document (the workflow-layers spec), kept at base/guides/NAME.md or projects/PROJECT/guides/NAME.md of the flume root; a project's guide merges into the base guide of the same name, and its front matter is used. When the user runs "flume guide <name> [--name <agent>] [--project <p>]", flume SHALL ask the daemon (the guides endpoint of the api spec) and print the merged guide's text without front matter inside a guide element with attribute name and, when the guide has one, stage (tags on their own lines), using the project given, else the one saved on the agent entry, and exit with code 0; when no such guide exists, its front matter is missing or unparsable, or its text has a merge error, flume SHALL print an error naming the guide's file (for a merge error also the line and heading) to standard error and exit with code 1; when no daemon answers flume SHALL say so on standard error, exit with code 1 and SHALL NOT start the daemon. flume SHALL NOT read the guide files itself.
+A guide is a Markdown file with flat YAML front matter holding name (the file name without .md) and description (what the guide covers and when to use it), followed by a layered document (the workflow-layers spec), kept at base/guides/NAME.md or projects/PROJECT/guides/NAME.md of the flume root; a project's guide merges into the base guide of the same name, and its front matter is used. When the user runs "flume guide <name> [--name <agent>] [--project <p>]", flume SHALL ask the daemon (the guides endpoint of the api spec) and print the merged guide's text without front matter inside a guide element with attribute name only (tags on their own lines), using the project given, else the one saved on the agent entry, and exit with code 0; when no such guide exists, its front matter is missing or unparsable, or its text has a merge error, flume SHALL print an error naming the guide's file (for a merge error also the line and heading) to standard error and exit with code 1; when no daemon answers flume SHALL say so on standard error, exit with code 1 and SHALL NOT start the daemon. flume SHALL NOT read the guide files itself.
 
 #### Scenario: Print a base guide  {#s-7c2b}
 *Verification*: **executable**
@@ -327,16 +327,22 @@ A guide is a Markdown file with flat YAML front matter holding name (the file na
 - **THEN** the exit code is 1, standard error says the server is not running and no daemon was started
 
 ### Requirement: Guide with no name lists the guides  {#r-9a01}
-When the user runs "flume guide" with no guide name (and optionally --project and --name as above), flume SHALL ask the daemon for the guides available to the project and print one line per guide, tab separated: name, stage (a dash when it has none) and description, ordered by name; with --json flume SHALL print one JSON list of objects holding name, description and, when present, stage, and nothing else; a guide with missing or unparsable front matter SHALL NOT be listed; with no guides nothing is printed (an empty list for --json); when no daemon answers flume SHALL say so on standard error and exit with code 1. Giving --json together with a guide name SHALL be a usage error (exit code 2).
+When the user runs "flume guide" with no guide name (and optionally --project and --name as above), flume SHALL ask the daemon for the guides available to the project and print one line per guide, tab separated: name and description, ordered by name; with --json flume SHALL print one JSON list of objects holding name and description, and nothing else; a guide with missing or unparsable front matter SHALL NOT be listed; with no guides nothing is printed (an empty list for --json); when no daemon answers flume SHALL say so on standard error and exit with code 1. Giving --json together with a guide name SHALL be a usage error (exit code 2).
 
 #### Scenario: List the guides as text and JSON  {#s-9a02}
 *Verification*: **executable**
-- **GIVEN** a running daemon whose flume root has base/guides/deploy.md (description Ship it, stage build), base/guides/lint.md (description Tidy, no stage) and base/guides/bad.md with no front matter
+- **GIVEN** a running daemon whose flume root has base/guides/deploy.md (description Ship it), base/guides/lint.md (description Tidy) and base/guides/bad.md with no front matter
 - **WHEN** the user runs flume guide, then flume guide --json, then flume guide deploy --json
-- **THEN** the first prints the two lines deploy, build, Ship it and lint, a dash, Tidy (tab separated) and nothing about bad; the second prints a JSON list of two objects with the same names, descriptions and the stage of deploy; the third exits with code 2
+- **THEN** the first prints the two lines deploy, Ship it and lint, Tidy (tab separated) and nothing about bad; the second prints a JSON list of two objects holding name and description only; the third exits with code 2
 
 ### Requirement: Prime lists the guides  {#r-5dfe}
-When flume prime or flume agent builds the prime text and the daemon returns guides, flume SHALL print after the workflow text a guides element whose first line is the XML comment "Print one with: flume guide <name>", then one guide element per guide on one line, with attributes name and stage (only when it has one) and its description as the text; guides with missing or unparsable front matter SHALL NOT be listed; with no guides flume SHALL print no guides element.
+When flume prime or flume agent builds the prime text and the daemon returns guides, flume SHALL print after the workflow text a guides element whose first line is the XML comment "Print one with: flume guide <name>", then one guide element per guide on one line, with attribute name only and its description as the text; guides with missing or unparsable front matter SHALL NOT be listed; with no guides flume SHALL print no guides element.
+
+#### Scenario: A stage key is ignored  {#s-9251}
+*Verification*: **executable**
+- **GIVEN** a running daemon whose flume root has base/guides/deploy.md with description Ship it and a stage key build in its front matter
+- **WHEN** the user runs flume guide, then flume guide --json, then flume guide deploy
+- **THEN** the first prints deploy, Ship it (tab separated) with no stage column, the JSON list holds the object with name and description only and no stage key, and the third prints a guide element with attribute name only, and every exit code is 0
 
 #### Scenario: Prime lists guides  {#s-193a}
 *Verification*: **executable**

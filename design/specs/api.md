@@ -187,13 +187,13 @@ When GET /api/prime is requested with the optional query parameters project and 
 - **THEN** the status is 400 and the body has an error message
 
 ### Requirement: Guides  {#r-eee6}
-When GET /api/prime is requested, the daemon SHALL also answer in the object a list guides with one object per guide available to the project (those of base/guides and, when project is given, projects/PROJECT/guides, a project's guide taking the place of the base one of the same name in the list) holding name, description and, when the guide has one, stage, ordered by name; a guide whose front matter is missing, unparsable, has a name differing from the file name or no description is left out. When GET /api/guides/NAME is requested with the optional query parameter project, the daemon SHALL answer 200 with an object holding name, description, stage (when present) and body (the text after the front matter, the project's guide merged into the base one as the workflow-layers spec says; the other fields those of the project's guide if its file exists, else the base guide); 404 with an error message when neither file exists; 400 with an error message when the guide's front matter is missing or unparsable or when NAME or project is not one plain name; 422 when its text has a merge error.
+When GET /api/prime is requested, the daemon SHALL also answer in the object a list guides with one object per guide available to the project (those of base/guides and, when project is given, projects/PROJECT/guides, a project's guide taking the place of the base one of the same name in the list) holding name and description, ordered by name; a guide whose front matter is missing, unparsable, has a name differing from the file name or no description is left out. When GET /api/guides/NAME is requested with the optional query parameter project, the daemon SHALL answer 200 with an object holding name, description and body (the text after the front matter, the project's guide merged into the base one as the workflow-layers spec says; the other fields those of the project's guide if its file exists, else the base guide); 404 with an error message when neither file exists; 400 with an error message when the guide's front matter is missing or unparsable or when NAME or project is not one plain name; 422 when its text has a merge error.
 
 #### Scenario: Prime lists guides  {#s-000f}
 *Verification*: **executable**
-- **GIVEN** a flume root with base/guides/deploy.md (description Ship it, stage build), projects/web/guides/deploy.md (description Ship web) and base/guides/bad.md with no front matter
-- **WHEN** GET /api/prime is requested with project web
-- **THEN** the status is 200 and guides holds one guide, deploy, with description Ship web
+- **GIVEN** a flume root with base/guides/deploy.md (description Ship it, stage key build), projects/web/guides/deploy.md (description Ship web) and base/guides/bad.md with no front matter
+- **WHEN** GET /api/prime is requested with project web, then GET /api/prime with no project
+- **THEN** the status is 200 and guides holds one guide, deploy, with description Ship web and no stage key; the second answer holds deploy with description Ship it and no stage key
 
 #### Scenario: Read a guide  {#s-e610}
 *Verification*: **executable**

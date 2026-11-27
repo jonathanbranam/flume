@@ -409,7 +409,7 @@ describe("daemon api", () => {
     expect(r.status).toBe(200);
     expect(r.body.guides).toEqual([{ name: "deploy", description: "Ship web" }]);
     const b = await call("GET", "/api/prime");
-    expect(b.body.guides).toEqual([{ name: "deploy", description: "Ship it", stage: "build" }]);
+    expect(b.body.guides).toEqual([{ name: "deploy", description: "Ship it" }]);
   });
 
   it("s-e610 read a guide", async () => {

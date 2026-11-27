@@ -8,7 +8,6 @@ import { fields } from "./taskfile.ts";
 /** A guide a plan group names, as found: its text, or why it is not available. */
 export interface GroupGuide {
   name: string;
-  stage?: string;
   body?: string;
   missing?: string;
 }
@@ -31,9 +30,7 @@ export function groupGuides(root: string, ref: string, group: PlanGroup): GroupG
       if (e instanceof BrokenLayers) throw e;
       why = (e as Error).message;
     }
-    return g
-      ? { name, ...(g.stage ? { stage: g.stage } : {}), body: g.body }
-      : { name, missing: `Guide ${name} is not available: ${why}` };
+    return g ? { name, body: g.body } : { name, missing: `Guide ${name} is not available: ${why}` };
   });
 }
 
@@ -42,6 +39,6 @@ export function guideBlocks(guides: GroupGuide[]): string[] {
   return guides.map((g) =>
     g.body === undefined
       ? xmlBlock("guide_missing", { name: g.name }, g.missing ?? "")
-      : xmlBlock("guide", { name: g.name, stage: g.stage }, g.body),
+      : xmlBlock("guide", { name: g.name }, g.body),
   );
 }

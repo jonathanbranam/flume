@@ -12,11 +12,10 @@ import {
 import { flumeRoot, rel } from "./layout.ts";
 import { SEGMENT_RE } from "./prime.ts";
 
-/** What a guide's front matter says about it. */
+/** What a guide's front matter says about it. A stage key, if a file has one, is ignored. */
 export interface GuideInfo {
   name: string;
   description: string;
-  stage?: string;
 }
 
 export interface Guide extends GuideInfo {
@@ -53,7 +52,6 @@ export function parseGuide(name: string, text: string): Parsed {
   if (typeof r.description !== "string" || r.description === "")
     return { ok: false, error: "front matter field description missing" };
   const guide: Guide = { name, description: r.description, body: m[2] as string };
-  if (typeof r.stage === "string" && r.stage !== "") guide.stage = r.stage;
   const before = text.slice(0, text.length - guide.body.length);
   return { ok: true, guide, offset: before.split("\n").length - 1 };
 }

@@ -111,10 +111,11 @@ describe("plan groups name guides", () => {
     const n1 = next().stdout;
     expect(n1).toMatch(/^## 1\. First\n/);
     expect(names(n1)).toEqual(["api-conventions", "testing"]);
-    expect(n1).toContain('<guide name="api-conventions" stage="build">\n');
+    expect(n1).toContain('<guide name="api-conventions">\n');
+    expect(n1).not.toContain("stage");
     const j = JSON.parse(flume(repo, ["task", "next", id, "--json"]).stdout);
     expect(j.guides).toEqual([
-      { name: "api-conventions", stage: "build", body: "# api-conventions\n\nAPI BODY\n" },
+      { name: "api-conventions", body: "# api-conventions\n\nAPI BODY\n" },
       { name: "testing", body: "# testing\n\nTESTING TEXT\n" },
     ]);
     rmSync(join(repo, "flume/base/guides/testing.md"));

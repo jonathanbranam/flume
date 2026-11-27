@@ -287,22 +287,39 @@ describe("guides", () => {
 
   it("s-9a02 list the guides as text and JSON", async () => {
     const w = workspace();
-    put(
-      w,
-      "base/guides/deploy.md",
-      `---\nname: deploy\ndescription: Ship it\nstage: build\n---\nS\n`,
-    );
+    put(w, "base/guides/deploy.md", GUIDE("deploy", "Ship it", "S"));
     put(w, "base/guides/lint.md", GUIDE("lint", "Tidy", "T"));
     put(w, "base/guides/bad.md", "no front matter\n");
     await serve(w);
-    expect(flume(w, "guide").stdout).toBe("deploy\tbuild\tShip it\nlint\t-\tTidy\n");
+    expect(flume(w, "guide").stdout).toBe("deploy\tShip it\nlint\tTidy\n");
     expect(JSON.parse(flume(w, "guide", "--json").stdout)).toEqual([
-      { name: "deploy", description: "Ship it", stage: "build" },
+      { name: "deploy", description: "Ship it" },
       { name: "lint", description: "Tidy" },
     ]);
     expect(flume(w, "guide", "deploy", "--json").status).toBe(2);
     flume(w, "stop");
-  });
+  }, 30_000);
+
+  it("s-9251 a stage key is ignored", async () => {
+    const w = workspace();
+    put(
+      w,
+      "base/guides/deploy.md",
+      `---\nname: deploy\ndescription: Ship it\nstage: build\n---\n# deploy\n\nSTEPS\n`,
+    );
+    await serve(w);
+    const list = flume(w, "guide");
+    expect(list.status).toBe(0);
+    expect(list.stdout).toBe("deploy\tShip it\n");
+    const json = flume(w, "guide", "--json");
+    expect(json.status).toBe(0);
+    expect(JSON.parse(json.stdout)).toEqual([{ name: "deploy", description: "Ship it" }]);
+    const one = flume(w, "guide", "deploy");
+    expect(one.status).toBe(0);
+    expect(one.stdout).toContain('<guide name="deploy">\n');
+    expect(one.stdout).not.toContain("stage");
+    flume(w, "stop");
+  }, 30_000);
 
   it("s-0630 check reports a guide without front matter", () => {
     const w = workspace();
