@@ -8,7 +8,7 @@ repos: [flume]
 changes: []
 specs: []
 blocked_by: []
-related: []
+related: [fl-xp8s]
 ---
 
 ## The ask
