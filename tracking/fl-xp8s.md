@@ -4,7 +4,7 @@ title = "Flume principles: a few high-level principles every ticket is checked a
 kind = "docs"
 state = "integrated"
 created_at = "2026-11-26T15:46:44.388Z"
-updated_at = "2026-11-27T15:52:59.974262657Z"
+updated_at = "2026-11-27T15:54:54.583630814Z"
 created_by = "external:advisor"
 watchers = ["external:advisor"]
 branch = "main"
@@ -28,3 +28,6 @@ integrated: 659e5d5 (branch main)
 
 ### note · external:advisor · 2026-11-27T15:52:56.172Z
 cleanup: removed nothing; failed: branch main: git ["branch", "-D", "main"] failed: error: cannot delete branch 'main' used by worktree at '/home/jbranam/work/flume-work/flume'
+
+### note · external:advisor · 2026-11-27T15:54:54.583Z
+human via advisor: rule read-the-principles added (.bridle/rules/read-the-principles.md): every role reads docs/flume.md and docs/principles.md before starting work. The human: "I want every agent working on Flume to have instructions to read these files."
