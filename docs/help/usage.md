@@ -59,10 +59,11 @@ holds the merged workflow, project and role documents (see below).
 
 ## Changing the workflow
 
-Flume ships `workflow.md` (the workflow, as text), `project.md`, `first-prompt.md` and
-`templates/{body,design,spec,plan}.md`. A file of the same name in the flume-root's `base/`, then
-in `projects/<project>/`, merges into it by heading. `roles/<role>.md` and `guides/<name>.md`
-merge the same way. Every such file has exactly one `# H1` (a guide's comes after its front
+The built-in layer holds `workflow.md` (the workflow, as text), `project.md`, `first-prompt.md`
+and `templates/{body,design,spec,plan}.md`. A file of the same name in the workspace layer
+(the flume-root's `workspace/`), then in the project layer (`projects/<project>/`), is an overlay:
+it merges into the one below by heading. `roles/<role>.md` and `guides/<name>.md` merge the same
+way. Every such file has exactly one `# H1` (a guide's comes after its front
 matter), and it must match the H1 below.
 
 - A heading with no tag replaces that section's own text; sub-sections you don't mention stay.
@@ -94,11 +95,11 @@ flume preview guide NAME --json             # the sections as JSON, each with it
 
 `preview` takes `workflow`, `project`, `first-prompt`, `role R`, `guide G` and
 `template PART`. A layer error prints its file, line and heading and exits 1.
-Flume also ships whole workflows to use instead of its standard one, for repos that need less:
+Flume also has built-in whole workflows to use instead of its standard one, for repos that need less:
 
 ```sh
 flume workflow install --list     # none, light (--json too)
-flume workflow install light [--project P]   # copy into base/ (or projects/P/) and commit
+flume workflow install light [--project P]   # copy into workspace/ (or projects/P/) and commit
 ```
 
 The copies are yours to edit; a flume update does not change them. An existing file stops the

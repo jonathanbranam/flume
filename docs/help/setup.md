@@ -17,9 +17,9 @@ the task root). If the task repo has no `flume.yaml`, it writes one at its top, 
 flume-root folder (`flume` by default; `--dir .` uses the repo top) and commits it. It never
 pushes and never starts the daemon.
 
-Inside the flume-root folder of the tasks repo live your own files: `base/` and
+Inside the flume-root folder of the tasks repo live your own files: `workspace/` and
 `projects/<project>/` (workflow text, roles, guides, templates) and `roadmap.md`. Agents receive
-them through `flume prime`, never by reading the files. How your files change flume's own is in
+them through `flume prime`, never by reading the files. How your files change the built-in ones is in
 `flume help usage` under "Changing the workflow".
 
 ## A new project

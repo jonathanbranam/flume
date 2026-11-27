@@ -50,7 +50,7 @@ export function init(cwd: string, o: { root?: string; dir?: string; workflow?: s
   }
   if (workflow !== undefined) {
     // Refuse before anything is set up.
-    const there = existingTargets(join(taskRoot, use), "base", workflow);
+    const there = existingTargets(join(taskRoot, use), "workspace", workflow);
     if (there.length > 0) {
       err(`flume: already there, nothing set up: ${there.join(", ")}`);
       err(`to overwrite: run flume init, then flume workflow install ${workflow} --force`);
@@ -84,7 +84,7 @@ export function initCommand(): Command {
     .description("set up this workspace folder")
     .option("--root <path>", "the task root (a git repository)")
     .option("--dir <name>", "the folder for flume's files in the task root")
-    .option("--workflow <name>", "install a shipped workflow (flume workflow install --list)")
+    .option("--workflow <name>", "install a built-in workflow (flume workflow install --list)")
     .action(function (o) {
       return act(this, () => init(process.cwd(), o));
     });

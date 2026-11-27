@@ -57,7 +57,7 @@ const put = (repo: string, rel: string, text: string) => {
 const guide = (repo: string, name: string, body = `${name.toUpperCase()} TEXT`, stage = "") =>
   put(
     repo,
-    `base/guides/${name}.md`,
+    `workspace/guides/${name}.md`,
     `---\nname: ${name}\ndescription: About ${name}\n${stage ? `stage: ${stage}\n` : ""}---\n# ${name}\n\n${body}\n`,
   );
 
@@ -118,7 +118,7 @@ describe("plan groups name guides", () => {
       { name: "api-conventions", body: "# api-conventions\n\nAPI BODY\n" },
       { name: "testing", body: "# testing\n\nTESTING TEXT\n" },
     ]);
-    rmSync(join(repo, "flume/base/guides/testing.md"));
+    rmSync(join(repo, "flume/workspace/guides/testing.md"));
     const gone = next();
     expect(gone.status).toBe(0);
     expect(gone.stdout).toContain('<guide_missing name="testing">');

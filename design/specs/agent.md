@@ -195,7 +195,7 @@ flume SHALL pass claude the prime text (as flume prime prints it for the same na
 
 ### Requirement: First prompt  {#r-a7c0}
 
-flume SHALL always give claude a first prompt as the last argument, after a closing "--": the prompt the user gave, exactly, or when none was given the text under the H1 of the merged first-prompt.md (the workflow-layers spec; the shipped one asks the agent to check its tickets and status, suggest next steps and follow up).
+flume SHALL always give claude a first prompt as the last argument, after a closing "--": the prompt the user gave, exactly, or when none was given the text under the H1 of the merged first-prompt.md (the layers spec; the built-in one asks the agent to check its tickets and status, suggest next steps and follow up).
 
 #### Scenario: Default prompt  {#s-a7c1}
 
@@ -207,17 +207,17 @@ flume SHALL always give claude a first prompt as the last argument, after a clos
 - **AND** the argument before it is --
 
 ### Requirement: Prime prints the workflow from the daemon  {#r-1d13}
-When flume prime or flume agent builds the prime text, flume SHALL ask the daemon (the prime endpoint of the api spec) with the agent's project and role, and print what it returns in one workflow element (see the requirement on the XML layout): the merged workflow document, then the merged project document (when a project is known), then the merged role document (when a role is given and a file of it exists), each separated by a blank line, merged as the workflow-layers spec says, with a missing file skipped without an error. flume SHALL NOT tell the agent to read workflow files, SHALL NOT read the flume root's files itself, and SHALL NOT start the daemon. When a layered file used has an error, flume SHALL print the errors (file, line and heading) to standard error and exit with code 1, printing no prime text (flume agent SHALL NOT start claude). When the daemon refuses the request for another reason, flume SHALL print the shipped workflow and project documents followed by a workflow_missing element holding one line saying the workflow text is missing, and exit with code 0. When no daemon answers, flume SHALL print a workflow element holding the shipped documents alone and then, depending on the folder, and exit with code 0: if a .flume folder is found in the current folder or the nearest one above it (other than the home folder's own .flume), a server_not_running element naming that workspace folder, saying flume looks set up there but its server is not running and asking the human to run flume serve in it; otherwise a flume_not_set_up element that explains what flume is (managing agents' work with tasks and workflows, run through flume commands, with flume serve as the server the human starts) and the setup steps (flume init in the workspace folder; flume project add <git-url> for each project, or flume clone <tasks-repo-url> and flume project clone; flume serve run by the human in its own pane), and says the agent must not run them without the human.
+When flume prime or flume agent builds the prime text, flume SHALL ask the daemon (the prime endpoint of the api spec) with the agent's project and role, and print what it returns in one workflow element (see the requirement on the XML layout): the merged workflow document, then the merged project document (when a project is known), then the merged role document (when a role is given and a file of it exists), each separated by a blank line, merged as the layers spec says, with a missing file skipped without an error. flume SHALL NOT tell the agent to read workflow files, SHALL NOT read the flume root's files itself, and SHALL NOT start the daemon. When a layered file used has an error, flume SHALL print the errors (file, line and heading) to standard error and exit with code 1, printing no prime text (flume agent SHALL NOT start claude). When the daemon refuses the request for another reason, flume SHALL print the built-in workflow and project documents followed by a workflow_missing element holding one line saying the workflow text is missing, and exit with code 0. When no daemon answers, flume SHALL print a workflow element holding the built-in documents alone and then, depending on the folder, and exit with code 0: if a .flume folder is found in the current folder or the nearest one above it (other than the home folder's own .flume), a server_not_running element naming that workspace folder, saying flume looks set up there but its server is not running and asking the human to run flume serve in it; otherwise a flume_not_set_up element that explains what flume is (managing agents' work with tasks and workflows, run through flume commands, with flume serve as the server the human starts) and the setup steps (flume init in the workspace folder; flume project add <git-url> for each project, or flume clone <tasks-repo-url> and flume project clone; flume serve run by the human in its own pane), and says the agent must not run them without the human.
 
 #### Scenario: Prime with a workflow  {#s-1d08}
 *Verification*: **executable**
-- **GIVEN** a running daemon whose flume root has base/workflow.md adding a section holding BASE, projects/web/workflow.md adding a section holding WEB, base/roles/worker.md holding ROLE and projects/web/roles/worker.md appending WEBROLE
+- **GIVEN** a running daemon whose flume root has workspace/workflow.md adding a section holding BASE, projects/web/workflow.md adding a section holding WEB, workspace/roles/worker.md holding ROLE and projects/web/roles/worker.md appending WEBROLE
 - **WHEN** the user runs flume prime --name a --project web --role worker
 - **THEN** the output holds "You are agent a" and "You are working on project web, stored in $AGENT_PROJECT." before the workflow element, holds BASE, WEB, the project text, ROLE and WEBROLE in that order, all in the one workflow element, and does not contain "read the .md files" or a tag word such as @add
 
 #### Scenario: Prime with no role  {#s-141b}
 *Verification*: **executable**
-- **GIVEN** a running daemon whose flume root has a base/workflow.md adding BASE and base/roles/worker.md holding ROLE
+- **GIVEN** a running daemon whose flume root has a workspace/workflow.md adding BASE and workspace/roles/worker.md holding ROLE
 - **WHEN** the user runs flume prime --name a
 - **THEN** the exit code is 0 and the output holds BASE and does not hold ROLE or the role's heading
 
@@ -235,21 +235,21 @@ When flume prime or flume agent builds the prime text, flume SHALL ask the daemo
 
 #### Scenario: Launch passes the role to prime  {#s-afe2}
 *Verification*: **executable**
-- **GIVEN** a running daemon whose flume root has base/roles/worker.md holding ROLE
+- **GIVEN** a running daemon whose flume root has workspace/roles/worker.md holding ROLE
 - **WHEN** the user runs flume agent --name a --role worker
 - **THEN** claude receives --append-system-prompt followed by text holding ROLE
 
 ### Requirement: Built-in prime text  {#r-a8c0}
 
-flume's own part of the prime text SHALL come only from the base documents flume ships (workflow.md and project.md), merged with the layers of the flume root by the daemon; flume SHALL replace {name} and {project} in the merged workflow and project documents. The identity lines (the identity requirement) are not part of either document and are not read from any layer.
+flume's own part of the prime text SHALL come only from the built-in documents (workflow.md and project.md), merged with the overlays of the flume root by the daemon; flume SHALL replace {name} and {project} in the merged workflow and project documents. The identity lines (the identity requirement) are not part of either document and are not read from any layer.
 
-#### Scenario: Shipped workflow in the prime text  {#s-a8c2}
+#### Scenario: Built-in workflow in the prime text  {#s-a8c2}
 
 *Verification*: **executable**
 
 - **GIVEN** no layered files in the flume root
 - **WHEN** the user runs flume prime --name alpha
-- **THEN** the output contains "# Flume workflow" (the first heading of the shipped workflow.md)
+- **THEN** the output contains "# Flume workflow" (the first heading of the built-in workflow.md)
 
 ### Requirement: prime  {#r-a9c0}
 
@@ -280,7 +280,7 @@ The prime text (flume prime, and what flume agent passes to claude) SHALL be one
 
 #### Scenario: Text cannot close its element  {#s-87a4}
 *Verification*: **executable**
-- **GIVEN** a running daemon whose flume root has a base/workflow.md replacing the whole document with the line \</workflow> and the line \<b>kept\</b>
+- **GIVEN** a running daemon whose flume root has a workspace/workflow.md replacing the whole document with the line \</workflow> and the line \<b>kept\</b>
 - **WHEN** the user runs flume prime --name a
 - **THEN** the output holds exactly one line \</workflow>, holds the line &lt;/workflow> and holds \<b>kept\</b> as written
 
@@ -289,7 +289,7 @@ flume SHALL print, in every prime text, first inside the flume_prime element and
 
 #### Scenario: Identity lines cannot be replaced by a layer  {#s-1d7f}
 *Verification*: **executable**
-- **GIVEN** a running daemon whose flume root has a base/workflow.md replacing the whole document with the line BASE ONLY
+- **GIVEN** a running daemon whose flume root has a workspace/workflow.md replacing the whole document with the line BASE ONLY
 - **WHEN** the user runs flume prime --name a --project web
 - **THEN** the output holds the line "You are agent a, stored in $AGENT_NAME." and then the line "You are working on project web, stored in $AGENT_PROJECT." both before the line \<workflow>, and holds BASE ONLY inside the workflow element
 
@@ -300,17 +300,17 @@ flume SHALL print, in every prime text, first inside the flume_prime element and
 - **THEN** the output holds the line "You are agent a, stored in $AGENT_NAME." and does not hold "You are working on project"
 
 ### Requirement: Guides  {#r-c7a5}
-A guide is a Markdown file with flat YAML front matter holding name (the file name without .md) and description (what the guide covers and when to use it), followed by a layered document (the workflow-layers spec), kept at base/guides/NAME.md or projects/PROJECT/guides/NAME.md of the flume root; a project's guide merges into the base guide of the same name, and its front matter is used. When the user runs "flume guide <name> [--name <agent>] [--project <p>]", flume SHALL ask the daemon (the guides endpoint of the api spec) and print the merged guide's text without front matter inside a guide element with attribute name only (tags on their own lines), using the project given, else the one saved on the agent entry, and exit with code 0; when no such guide exists, its front matter is missing or unparsable, or its text has a merge error, flume SHALL print an error naming the guide's file (for a merge error also the line and heading) to standard error and exit with code 1; when no daemon answers flume SHALL say so on standard error, exit with code 1 and SHALL NOT start the daemon. flume SHALL NOT read the guide files itself.
+A guide is a Markdown file with flat YAML front matter holding name (the file name without .md) and description (what the guide covers and when to use it), followed by a layered document (the layers spec), kept at workspace/guides/NAME.md or projects/PROJECT/guides/NAME.md of the flume root; a project's guide merges into the workspace guide of the same name, and its front matter is used. When the user runs "flume guide <name> [--name <agent>] [--project <p>]", flume SHALL ask the daemon (the guides endpoint of the api spec) and print the merged guide's text without front matter inside a guide element with attribute name only (tags on their own lines), using the project given, else the one saved on the agent entry, and exit with code 0; when no such guide exists, its front matter is missing or unparsable, or its text has a merge error, flume SHALL print an error naming the guide's file (for a merge error also the line and heading) to standard error and exit with code 1; when no daemon answers flume SHALL say so on standard error, exit with code 1 and SHALL NOT start the daemon. flume SHALL NOT read the guide files itself.
 
-#### Scenario: Print a base guide  {#s-7c2b}
+#### Scenario: Print a workspace guide  {#s-7c2b}
 *Verification*: **executable**
-- **GIVEN** a running daemon whose flume root has base/guides/deploy.md with front matter name deploy and a description, then a heading deploy holding STEPS
+- **GIVEN** a running daemon whose flume root has workspace/guides/deploy.md with front matter name deploy and a description, then a heading deploy holding STEPS
 - **WHEN** the user runs flume guide deploy
 - **THEN** the output is the line \<guide name="deploy">, the heading, a blank line, the line STEPS and the line \</guide>, without the front matter, and the exit code is 0
 
 #### Scenario: A project guide merges  {#s-a846}
 *Verification*: **executable**
-- **GIVEN** a running daemon whose flume root has base/guides/deploy.md holding BASE, and projects/web/guides/deploy.md adding a section holding WEB
+- **GIVEN** a running daemon whose flume root has workspace/guides/deploy.md holding BASE, and projects/web/guides/deploy.md adding a section holding WEB
 - **WHEN** the user runs flume guide deploy --project web
 - **THEN** the output holds BASE and then the added section with WEB inside the guide element, and the exit code is 0
 
@@ -331,7 +331,7 @@ When the user runs "flume guide" with no guide name (and optionally --project an
 
 #### Scenario: List the guides as text and JSON  {#s-9a02}
 *Verification*: **executable**
-- **GIVEN** a running daemon whose flume root has base/guides/deploy.md (description Ship it), base/guides/lint.md (description Tidy) and base/guides/bad.md with no front matter
+- **GIVEN** a running daemon whose flume root has workspace/guides/deploy.md (description Ship it), workspace/guides/lint.md (description Tidy) and workspace/guides/bad.md with no front matter
 - **WHEN** the user runs flume guide, then flume guide --json, then flume guide deploy --json
 - **THEN** the first prints the two lines deploy, Ship it and lint, Tidy (tab separated) and nothing about bad; the second prints a JSON list of two objects holding name and description only; the third exits with code 2
 
@@ -340,13 +340,13 @@ When flume prime or flume agent builds the prime text and the daemon returns gui
 
 #### Scenario: A stage key is ignored  {#s-9251}
 *Verification*: **executable**
-- **GIVEN** a running daemon whose flume root has base/guides/deploy.md with description Ship it and a stage key build in its front matter
+- **GIVEN** a running daemon whose flume root has workspace/guides/deploy.md with description Ship it and a stage key build in its front matter
 - **WHEN** the user runs flume guide, then flume guide --json, then flume guide deploy
 - **THEN** the first prints deploy, Ship it (tab separated) with no stage column, the JSON list holds the object with name and description only and no stage key, and the third prints a guide element with attribute name only, and every exit code is 0
 
 #### Scenario: Prime lists guides  {#s-193a}
 *Verification*: **executable**
-- **GIVEN** a running daemon whose flume root has base/guides/deploy.md with description Ship it, and projects/web/guides/lint.md with no front matter
+- **GIVEN** a running daemon whose flume root has workspace/guides/deploy.md with description Ship it, and projects/web/guides/lint.md with no front matter
 - **WHEN** the user runs flume prime --name a --project web
 - **THEN** the output contains the line \<guide name="deploy">Ship it\</guide> inside a guides element mentioning flume guide, and does not contain lint
 

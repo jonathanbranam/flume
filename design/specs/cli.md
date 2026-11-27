@@ -163,7 +163,7 @@ When flume serve is run, it SHALL use as the task root, in this order: the root 
 - **THEN** the exit code is 1 and standard error says flume.yaml dir must be . or one folder name
 
 ### Requirement: Init sets up a workspace  {#r-1d11}
-When flume init [--root PATH] [--dir NAME] [--workflow NAME] is run in a folder (the workspace, which need not be a git repository), flume SHALL create .flume in it (if missing) with a .gitignore holding * and, when --root is given, a config.yaml holding root (relative to the workspace folder when inside it; without --root an existing config.yaml is kept); the task root is --root, else the root in config.yaml, else the current folder's git repository (main checkout). When the task root has no flume.yaml, flume SHALL write one there holding dir: NAME (default flume; NAME is . or one plain folder name, else exit with code 2 and create nothing) and commit it as one commit, and when it has one flume SHALL keep it unchanged and exit with code 1, changing nothing, if --dir names a different folder. Without --workflow (see the workflow-layers spec) flume SHALL NOT copy any workflow into the task root; flume SHALL NOT push, run git init, start the daemon, create task folders, or write anything else in a project or in .flume. When the task root is not a git repository, or there is none, flume SHALL print a message to standard error saying there is no task root, exit with code 1, and create nothing. flume init SHALL NOT accept --force.
+When flume init [--root PATH] [--dir NAME] [--workflow NAME] is run in a folder (the workspace, which need not be a git repository), flume SHALL create .flume in it (if missing) with a .gitignore holding * and, when --root is given, a config.yaml holding root (relative to the workspace folder when inside it; without --root an existing config.yaml is kept); the task root is --root, else the root in config.yaml, else the current folder's git repository (main checkout). When the task root has no flume.yaml, flume SHALL write one there holding dir: NAME (default flume; NAME is . or one plain folder name, else exit with code 2 and create nothing) and commit it as one commit, and when it has one flume SHALL keep it unchanged and exit with code 1, changing nothing, if --dir names a different folder. Without --workflow (see the layers spec) flume SHALL NOT copy any workflow into the task root; flume SHALL NOT push, run git init, start the daemon, create task folders, or write anything else in a project or in .flume. When the task root is not a git repository, or there is none, flume SHALL print a message to standard error saying there is no task root, exit with code 1, and create nothing. flume init SHALL NOT accept --force.
 
 #### Scenario: Init in a workspace  {#s-1d03}
 *Verification*: **executable**
@@ -484,13 +484,13 @@ When flume check is run, it SHALL print the result of the check described in the
 - **THEN** one problem line names that task folder and the exit code is 1
 
 ### Requirement: Check reports bad guides  {#r-353a}
-When flume check is run, it SHALL also report each guide file (base/guides/NAME.md or projects/PROJECT/guides/NAME.md of the flume root) whose front matter is missing, unparsable, not flat, has a name differing from the file name, or has no description, as one problem naming the file.
+When flume check is run, it SHALL also report each guide file (workspace/guides/NAME.md or projects/PROJECT/guides/NAME.md of the flume root) whose front matter is missing, unparsable, not flat, has a name differing from the file name, or has no description, as one problem naming the file.
 
 #### Scenario: Guide without front matter  {#s-0630}
 *Verification*: **executable**
-- **GIVEN** a base/guides/deploy.md with no front matter
+- **GIVEN** a workspace/guides/deploy.md with no front matter
 - **WHEN** flume check is run
-- **THEN** one problem line names base/guides/deploy.md and the exit code is 1
+- **THEN** one problem line names workspace/guides/deploy.md and the exit code is 1
 
 ### Requirement: Status takes --json  {#r-9bef}
 
@@ -533,33 +533,33 @@ When flume preview is run with one of the targets workflow, project, first-promp
 
 #### Scenario: A project's override in the preview  {#s-0117}
 *Verification*: **executable**
-- **GIVEN** no daemon running, a workspace whose base workflow file has a section Extra and a project folder acme whose workflow file replaces Extra
+- **GIVEN** no daemon running, a workspace whose workspace-layer workflow file has a section Extra and a project folder acme whose workflow file replaces Extra
 - **WHEN** flume preview workflow --project acme is run
 - **THEN** standard output holds the whole workflow with the section Extra showing the project's text, and the exit code is 0
 
 #### Scenario: Each other target prints its document  {#s-d4a8}
 *Verification*: **executable**
-- **GIVEN** no daemon running, and a base role file, a base guide and a base template for body
+- **GIVEN** no daemon running, and a workspace role file, a workspace guide and a workspace template for body
 - **WHEN** flume preview role NAME, flume preview guide NAME and flume preview template body are run
 - **THEN** each prints its merged text to standard output and exits with code 0
 
 ### Requirement: Preview marks the source of each section  {#r-7c9b}
-When flume preview is run with --layers, flume SHALL print before each section's heading a line of the form "<!-- from: FILES -->", where FILES names, separated by commas, the files the section's text came from, each named as the layer errors name it (for example flume/base/workflow.md or flume/projects/acme/workflow.md).
+When flume preview is run with --layers, flume SHALL print before each section's heading a line of the form "<!-- from: FILES -->", where FILES names, separated by commas, the files the section's text came from, each named as the layer errors name it (for example flume/workspace/workflow.md or flume/projects/acme/workflow.md).
 
 #### Scenario: Sources of an overridden document  {#s-9c6a}
 *Verification*: **executable**
 - **GIVEN** no daemon running, and the workspace and project of the previous scenario with a project section added
 - **WHEN** flume preview workflow --project acme --layers is run
-- **THEN** the line before the heading Extra names the project's workflow file, and the line before a section only the base file has names the base file, and the exit code is 0
+- **THEN** the line before the heading Extra names the project's workflow file, and the line before a section only the workspace file has names the workspace file, and the exit code is 0
 
 ### Requirement: Preview takes --json  {#r-a44b}
 When flume preview is run with --json, flume SHALL print one JSON object on standard output holding the document's root section, with the fields level, name, text, sources (the list of files its text came from) and children (the same shape, one per sub-section, in order), and exit with code 0.
 
 #### Scenario: Preview as JSON  {#s-abcd}
 *Verification*: **executable**
-- **GIVEN** no daemon running and a workspace whose base workflow file has a section Extra
+- **GIVEN** no daemon running and a workspace whose workspace-layer workflow file has a section Extra
 - **WHEN** flume preview workflow --json is run
-- **THEN** standard output is one JSON object whose children include an object named Extra with a sources list naming the base workflow file, and the exit code is 0
+- **THEN** standard output is one JSON object whose children include an object named Extra with a sources list naming the workspace-layer workflow file, and the exit code is 0
 
 ### Requirement: A layer error stops preview  {#r-1413}
 When flume preview is run and a layer of the previewed document has an error, flume SHALL print each error to standard error with the file, the line and the heading, print nothing to standard output and exit with code 1.

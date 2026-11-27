@@ -6,7 +6,7 @@ ticket fl-fu3v; the OpenSpec model these draw on is in `docs/research/openspec.m
 ## v1, for reference
 
 - v1 built five phases (proposal, design, specs, plan, implement) into flume. Ticket fl-94yx
-  removed them: the workflow is now only text in `base/workflow.md`, which flume does not enforce.
+  removed them: the workflow is now only text in `workspace/workflow.md`, which flume does not enforce.
 - Bringing the workflow back as config, one step at a time, is ticket fl-4k35.
 
 ## Later
@@ -24,7 +24,7 @@ review and revision".
 4. **Steps for a different agent with a role.** "some steps MUST be done by a different agent
    with a specific role". E.g. the design is reviewed by an agent with the `reviewer` role (roles
    are files, fl-3pfa), not by the agent that wrote it; flume refuses the step to the same agent.
-5. **Templates can be overridden.** Moved into v1 (fl-fu3v), the human: "actually, template overridding can happen today; instead of concat, it should just replace." The project template replaces the base one, which replaces the built-in one.
+5. **Templates can be overridden.** Moved into v1 (fl-fu3v), the human: "actually, template overridding can happen today; instead of concat, it should just replace." The project template replaces the workspace one, which replaces the built-in one.
 
 Also deferred from v1 (fl-fu3v), the human's words:
 
@@ -36,6 +36,6 @@ Also deferred from v1 (fl-fu3v), the human's words:
 ## Open (for the human)
 
 - Where a workflow is defined once it is more than a line: a YAML file per workflow in
-  `<flume-root>/base/` and `projects/<p>/` (like OpenSpec's schema.yaml)?
+  `<flume-root>/workspace/` and `projects/<p>/` (like OpenSpec's schema.yaml)?
 - Does the generic continue skill and CLI-generated per-step instructions (OpenSpec's model,
   fl-fu3v Discussion) come with the DAG, or separately?

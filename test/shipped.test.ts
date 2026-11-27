@@ -108,7 +108,7 @@ describe("shipped workflows", { timeout: 30_000 }, () => {
     const repo = project();
     const before = Number(count(repo));
     expect(flume(repo, "workflow", "install", "light").status).toBe(0);
-    expect(read(repo, "base/workflow.md")).toBe(shipped("light/workflow.md"));
+    expect(read(repo, "workspace/workflow.md")).toBe(shipped("light/workflow.md"));
     expect(Number(count(repo))).toBe(before + 1);
     expect(git(repo, "status", "--porcelain")).toBe("");
   });
@@ -122,23 +122,23 @@ describe("shipped workflows", { timeout: 30_000 }, () => {
       files: ["flume/projects/web/workflow.md"],
     });
     expect(read(repo, "projects/web/workflow.md")).toBe(shipped("none/workflow.md"));
-    expect(there(repo, "base/workflow.md")).toBe(false);
+    expect(there(repo, "workspace/workflow.md")).toBe(false);
   });
 
   it("s-4319 a file already there is kept unless forced", () => {
     const repo = project();
-    mkdirSync(join(repo, "flume/base"), { recursive: true });
-    writeFileSync(join(repo, "flume/base/workflow.md"), "# Flume workflow\n");
+    mkdirSync(join(repo, "flume/workspace"), { recursive: true });
+    writeFileSync(join(repo, "flume/workspace/workflow.md"), "# Flume workflow\n");
     git(repo, "add", "-A");
     git(repo, "commit", "-qm", "mine");
     const before = Number(count(repo));
     const r = flume(repo, "workflow", "install", "light");
     expect(r.status).toBe(1);
     expect(r.stderr).toContain("workflow.md");
-    expect(read(repo, "base/workflow.md")).toBe("# Flume workflow\n");
+    expect(read(repo, "workspace/workflow.md")).toBe("# Flume workflow\n");
     expect(Number(count(repo))).toBe(before);
     expect(flume(repo, "workflow", "install", "light", "--force").status).toBe(0);
-    expect(read(repo, "base/workflow.md")).toBe(shipped("light/workflow.md"));
+    expect(read(repo, "workspace/workflow.md")).toBe(shipped("light/workflow.md"));
     expect(Number(count(repo))).toBe(before + 1);
   });
 
@@ -154,7 +154,7 @@ describe("shipped workflows", { timeout: 30_000 }, () => {
   it("s-637a init installs a workflow", () => {
     const repo = repository();
     expect(flume(repo, "init", "--workflow", "light").status).toBe(0);
-    expect(read(repo, "base/workflow.md")).toBe(shipped("light/workflow.md"));
+    expect(read(repo, "workspace/workflow.md")).toBe(shipped("light/workflow.md"));
     expect(git(repo, "status", "--porcelain")).toBe("");
   });
 
@@ -162,12 +162,12 @@ describe("shipped workflows", { timeout: 30_000 }, () => {
     const bogus = repository();
     expect(flume(bogus, "init", "--workflow", "bogus").status).toBe(2);
     const taken = repository();
-    mkdirSync(join(taken, "flume/base"), { recursive: true });
-    writeFileSync(join(taken, "flume/base/workflow.md"), "# Flume workflow\n");
+    mkdirSync(join(taken, "flume/workspace"), { recursive: true });
+    writeFileSync(join(taken, "flume/workspace/workflow.md"), "# Flume workflow\n");
     const r = flume(taken, "init", "--workflow", "none");
     expect(r.status).toBe(1);
     expect(r.stderr).toContain("workflow.md");
-    expect(read(taken, "base/workflow.md")).toBe("# Flume workflow\n");
+    expect(read(taken, "workspace/workflow.md")).toBe("# Flume workflow\n");
     for (const repo of [bogus, taken]) {
       expect(existsSync(join(repo, ".flume"))).toBe(false);
       expect(existsSync(join(repo, "flume.yaml"))).toBe(false);

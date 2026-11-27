@@ -16,11 +16,11 @@ import { locate } from "./project.ts";
 const err = (s: string) => process.stderr.write(`${s}\n`);
 const out = (s: string) => process.stdout.write(`${s}\n`);
 
-/** Refuse a name that is not a shipped workflow (exit 2). */
+/** Refuse a name that is not a built-in workflow (exit 2). */
 export function checkWorkflowName(name: string): void {
   if (!isShippedWorkflow(name)) {
     const names = SHIPPED_WORKFLOWS.map((w) => w.name).join(", ");
-    throw new Usage(`no shipped workflow '${name}'; the shipped workflows are ${names}`);
+    throw new Usage(`no built-in workflow '${name}'; the built-in workflows are ${names}`);
   }
 }
 
@@ -35,7 +35,7 @@ export function existingTargets(root: string, layer: string, name: string): stri
 }
 
 /**
- * Copy a shipped workflow into base/ or projects/PROJECT/ of the flume root and commit it.
+ * Copy a built-in workflow into workspace/ or projects/PROJECT/ of the flume root and commit it.
  * Returns the files, relative to the task root, or undefined after refusing to overwrite.
  */
 export function installWorkflow(
@@ -44,7 +44,7 @@ export function installWorkflow(
   project: string | undefined,
   force: boolean,
 ): string[] | undefined {
-  const layer = project === undefined ? "base" : `projects/${project}`;
+  const layer = project === undefined ? "workspace" : `projects/${project}`;
   const there = existingTargets(flumeRoot(taskRoot), layer, name);
   if (there.length > 0 && !force) {
     err(`flume: already there, nothing changed (--force overwrites): ${there.join(", ")}`);
@@ -102,14 +102,14 @@ function install(cwd: string, name: string | undefined, o: InstallOptions): numb
 
 /** The `flume workflow` command. */
 export function workflowCommand(): CommandUnknownOpts {
-  const group = new Command("workflow").description("install a shipped workflow");
+  const group = new Command("workflow").description("install a built-in workflow");
   group
     .command("install")
-    .description("copy a shipped workflow into the tasks repo and commit it")
+    .description("copy a built-in workflow into the tasks repo and commit it")
     .argument("[name]", "the workflow (see --list)")
     .option("--project <project>", "install for one project (default: the whole workspace)")
     .option("--force", "overwrite existing files")
-    .option("--list", "list the shipped workflows")
+    .option("--list", "list the built-in workflows")
     .option("--json", "print JSON")
     .action(function (name, o) {
       return act(this, () => install(process.cwd(), name, o));

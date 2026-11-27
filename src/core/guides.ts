@@ -57,8 +57,8 @@ export function parseGuide(name: string, text: string): Parsed {
 }
 
 const dirs = (root: string, project: string): string[] => {
-  const base = join(flumeRoot(root), "base", "guides");
-  return project ? [join(flumeRoot(root), "projects", project, "guides"), base] : [base];
+  const workspace = join(flumeRoot(root), "workspace", "guides");
+  return project ? [join(flumeRoot(root), "projects", project, "guides"), workspace] : [workspace];
 };
 
 const names = (dir: string): string[] =>
@@ -84,7 +84,7 @@ export function guideLayers(
 }
 
 /**
- * The guide `name`, its bodies merged by heading (shipped, base, project) and its front matter
+ * The guide `name`, its bodies merged by heading (built-in, workspace, project) and its front matter
  * that of the most specific file; undefined when no layer has it.
  */
 export function readGuide(root: string, project: string, name: string): GuideResult | undefined {
@@ -118,13 +118,13 @@ export function listGuides(root: string, project: string): GuideInfo[] {
 
 /**
  * One problem per guide file with missing or unparsable front matter, and one per merge error in a
- * guide's body, base and every project.
+ * guide's body, workspace and every project.
  */
 export function checkGuides(root: string): { path: string; message: string }[] {
   const out: { path: string; message: string }[] = [];
   const projects = listFiles(join(flumeRoot(root), "projects")).filter((p) => SEGMENT_RE.test(p));
   for (const project of ["", ...projects]) {
-    const dir = project ? `projects/${project}` : "base";
+    const dir = project ? `projects/${project}` : "workspace";
     for (const n of names(join(flumeRoot(root), dir, "guides"))) {
       const path = rel(root, dir, "guides", `${n}.md`);
       const r = parseGuide(n, readFileSync(join(root, path), "utf8"));

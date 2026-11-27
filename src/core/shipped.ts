@@ -2,7 +2,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-/** The named workflows shipped with flume: one folder of layer files each, beside base/. */
+/** The built-in named workflows: one folder of overlay files each, beside the built-in base/. */
 const WORKFLOWS_DIR = fileURLToPath(new URL("../../workflows", import.meta.url));
 
 export const SHIPPED_WORKFLOWS = [
@@ -16,7 +16,7 @@ export const SHIPPED_WORKFLOWS = [
 export const isShippedWorkflow = (name: string): boolean =>
   SHIPPED_WORKFLOWS.some((w) => w.name === name);
 
-/** The files of a shipped workflow: each file's name and text. */
+/** The files of a built-in workflow: each file's name and text. */
 export function shippedFiles(name: string): { doc: string; text: string }[] {
   const dir = join(WORKFLOWS_DIR, name);
   return readdirSync(dir)

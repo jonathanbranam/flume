@@ -211,8 +211,8 @@ interface Prime {
 /**
  * The prime text: one flume_prime element holding the identity lines (built here, first, outside
  * every layer) and then a workflow element (the merged workflow.md,
- * project.md and role, which the daemon builds from flume's shipped files and the flume-root's),
- * then the guides. With no daemon (or a refusal) the workflow element holds the shipped documents
+ * project.md and role, which the daemon builds from the built-in files and the flume-root's),
+ * then the guides. With no daemon (or a refusal) the workflow element holds the built-in documents
  * alone, followed by a server_not_running element (a workspace was found), a flume_not_set_up
  * element (none was) or a workflow_missing element (refused) saying why the rest is missing.
  * Throws when a layered file has an error.
@@ -235,7 +235,7 @@ async function primeText(name: string, project: string, role: string): Promise<P
       after.push(`${g}</guides>\n`);
     }
   } else {
-    // Shipped files only: no project name goes into a path.
+    // Built-in files only: no project name goes into a path.
     docs = primeDocuments(undefined, "", "");
     if (project) docs.project = documentText(undefined, "", "project.md");
     if (r) {

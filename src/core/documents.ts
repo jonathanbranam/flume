@@ -5,10 +5,10 @@ import { BrokenLayers, type Layer, mergeLayers, renderSection, sectionBody } fro
 import { flumeRoot, rel } from "./layout.ts";
 import { SEGMENT_RE } from "./prime.ts";
 
-/** The base documents shipped with flume, read at run time. */
+/** The built-in layer: the documents flume ships, read at run time. */
 export const SHIPPED_DIR = fileURLToPath(new URL("../../base", import.meta.url));
 
-/** How errors and sources name a shipped file. */
+/** How errors and sources name a built-in file. */
 const SHIPPED = "flume's own base";
 
 export function plainName(what: string, v: string): void {
@@ -17,7 +17,7 @@ export function plainName(what: string, v: string): void {
 
 /**
  * The existing files of the document `doc` (such as workflow.md or roles/worker.md), lowest layer
- * first: shipped, workspace (base/), project (projects/PROJECT/). With no root, shipped only.
+ * first: built-in, workspace (workspace/), project (projects/PROJECT/). With no root, built-in only.
  */
 export function documentFiles(
   root: string | undefined,
@@ -27,7 +27,7 @@ export function documentFiles(
   plainName("project", project);
   const all = [{ path: join(SHIPPED_DIR, doc), file: `${SHIPPED}/${doc}` }];
   if (root !== undefined) {
-    const dirs = ["base", ...(project ? [`projects/${project}`] : [])];
+    const dirs = ["workspace", ...(project ? [`projects/${project}`] : [])];
     for (const d of dirs)
       all.push({ path: join(flumeRoot(root), d, doc), file: rel(root, d, doc) });
   }
@@ -66,7 +66,7 @@ export interface PrimeDocuments {
 
 /**
  * The documents prime and the launcher use, placeholders unfilled. Every error of every one of
- * them is reported together. With no root, flume's shipped documents only.
+ * them is reported together. With no root, the built-in documents only.
  */
 export function primeDocuments(
   root: string | undefined,
@@ -111,14 +111,14 @@ export function listFiles(dir: string): string[] {
 const TOP = ["workflow.md", "project.md", "first-prompt.md"];
 
 /**
- * Every layered document file of the tasks repo (base/ and each project's folder), by the name it
- * merges under and the project whose chain it ends ("" for base/). Guides are listed separately.
+ * Every layered document file of the tasks repo (workspace/ and each project's folder), by the name it
+ * merges under and the project whose chain it ends ("" for workspace/). Guides are listed separately.
  */
 export function layeredDocs(root: string): { project: string; doc: string }[] {
   const out: { project: string; doc: string }[] = [];
   const projects = listFiles(join(flumeRoot(root), "projects")).filter((p) => SEGMENT_RE.test(p));
   for (const project of ["", ...projects]) {
-    const dir = join(flumeRoot(root), project ? `projects/${project}` : "base");
+    const dir = join(flumeRoot(root), project ? `projects/${project}` : "workspace");
     const inFolder = (folder: string) =>
       listFiles(join(dir, folder))
         .filter((f) => f.endsWith(".md") && SEGMENT_RE.test(f))
@@ -133,7 +133,7 @@ export function layeredDocs(root: string): { project: string; doc: string }[] {
 export function checkDocuments(root: string): { file: string; errors: BrokenLayers["errors"] }[] {
   return layeredDocs(root).map(({ project, doc }) => {
     // Report each file's own errors only: lower files are checked in their own turn.
-    const file = rel(root, project ? `projects/${project}` : "base", doc);
+    const file = rel(root, project ? `projects/${project}` : "workspace", doc);
     const r = mergeLayers(layersOf(root, project, doc));
     return { file, errors: r.errors.filter((e) => e.file === file) };
   });

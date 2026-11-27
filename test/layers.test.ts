@@ -286,7 +286,7 @@ describe("layers through the commands", () => {
   it("s-2b4e a broken file stops prime, agent, template and guide", async () => {
     const GUIDE = "---\nname: g\ndescription: d\n---\n# G\n\nx\n";
     const w = await workspace({
-      "base/guides/g.md": GUIDE,
+      "workspace/guides/g.md": GUIDE,
       "projects/web/guides/g.md": "---\nname: g\ndescription: d\n---\n# G\n\n## Nope\n\ny\n",
       "projects/web/workflow.md": "# Flume workflow\n\n## Nope\n\ny\n",
       "projects/web/templates/body.md": "# Body\n\n## Nope\n\ny\n",
@@ -309,8 +309,8 @@ describe("layers through the commands", () => {
   it("s-4703 check reports every layered file's errors with file, line and heading", async () => {
     const x = "# X\n\n## Nope @append\n\ny\n";
     const w = await workspace({
-      "base/workflow.md": "no heading\n",
-      "base/roles/worker.md": x,
+      "workspace/workflow.md": "no heading\n",
+      "workspace/roles/worker.md": x,
       "projects/web/project.md": "# Project\n\n## Nope\n\ny\n",
       "projects/web/first-prompt.md": "# First prompt @bogus\n\ny\n",
       "projects/web/templates/plan.md": "# Plan\n\n## Nope @remove\n",
@@ -323,8 +323,8 @@ describe("layers through the commands", () => {
     );
     expect(found).toEqual(
       expect.arrayContaining([
-        "flume/base/workflow.md line 1",
-        "flume/base/roles/worker.md line 3",
+        "flume/workspace/workflow.md line 1",
+        "flume/workspace/roles/worker.md line 3",
         "flume/projects/web/project.md line 3",
         "flume/projects/web/first-prompt.md line 1",
         "flume/projects/web/templates/plan.md line 3",
@@ -339,7 +339,7 @@ describe("layers through the commands", () => {
 
   it("s-cac1 guides merge by heading and keep the project's front matter", async () => {
     const w = await workspace({
-      "base/guides/g.md": "---\nname: g\ndescription: base\n---\n# G\n\n## A\n\nBASE A\n",
+      "workspace/guides/g.md": "---\nname: g\ndescription: workspace\n---\n# G\n\n## A\n\nBASE A\n",
       "projects/web/guides/g.md":
         "---\nname: g\ndescription: web\n---\n# G\n\n## B @add\n\nWEB B\n",
     });

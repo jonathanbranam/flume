@@ -27,9 +27,9 @@ function repo(files: Record<string, string>): string {
 const preview = (d: string, ...args: string[]) =>
   spawnSync("node", [bin, "preview", ...args], { cwd: d, encoding: "utf8", env });
 
-/** The base adds Extra; the acme project replaces it. */
+/** The workspace layer adds Extra; the acme project replaces it. */
 const OVERRIDE = {
-  "base/workflow.md": "# Flume workflow\n\n## Extra @add\n\nBase text.\n",
+  "workspace/workflow.md": "# Flume workflow\n\n## Extra @add\n\nBase text.\n",
   "projects/acme/workflow.md": "# Flume workflow\n\n## Extra\n\nProject text.\n",
 };
 
@@ -45,9 +45,9 @@ describe("preview prints a merged document", () => {
 
   it("s-d4a8 each other target prints its document", () => {
     const d = repo({
-      "base/roles/worker.md": "# Worker\n\nRole text.\n",
-      "base/guides/g.md": "---\nname: g\ndescription: a guide\n---\n# G\n\nGuide text.\n",
-      "base/templates/body.md": "# Body\n\nTemplate text.\n",
+      "workspace/roles/worker.md": "# Worker\n\nRole text.\n",
+      "workspace/guides/g.md": "---\nname: g\ndescription: a guide\n---\n# G\n\nGuide text.\n",
+      "workspace/templates/body.md": "# Body\n\nTemplate text.\n",
     });
     const role = preview(d, "role", "worker");
     const guide = preview(d, "guide", "g");
@@ -78,7 +78,7 @@ describe("preview prints a merged document", () => {
     };
     expect(root.name).toBe("Flume workflow");
     const extra = root.children.find((c) => c.name === "Extra");
-    expect(extra?.sources).toEqual(["flume/base/workflow.md"]);
+    expect(extra?.sources).toEqual(["flume/workspace/workflow.md"]);
   }, 30_000);
 
   it("s-830d a broken project layer prints file, line and heading and exits 1", () => {

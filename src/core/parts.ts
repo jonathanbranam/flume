@@ -88,8 +88,8 @@ export function removePart(root: string, ref: string, part: string): TaskEntry {
 }
 
 /**
- * The template for a part: templates/<part>.md merged by heading over flume's shipped one, the
- * workspace's (base/) and the project's; "" when no layer has one. Throws BrokenLayers.
+ * The template for a part: templates/<part>.md merged by heading over the built-in one, the
+ * workspace's (workspace/) and the project's; "" when no layer has one. Throws BrokenLayers.
  */
 export function templateFor(root: string, project: string, part: string): string {
   return documentText(root, project, `templates/${mustPartName(part)}.md`);

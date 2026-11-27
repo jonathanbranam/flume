@@ -75,9 +75,9 @@ async function serve(w: ReturnType<typeof workspace>): Promise<void> {
 describe("prime prints the workflow", () => {
   it("s-1d08 layers in order", async () => {
     const w = workspace();
-    put(w, "base/workflow.md", "# Flume workflow\n\n## Base @add\n\nBASE\n");
+    put(w, "workspace/workflow.md", "# Flume workflow\n\n## Base @add\n\nBASE\n");
     put(w, "projects/web/workflow.md", "# Flume workflow\n\n## Web @add\n\nWEB\n");
-    put(w, "base/roles/worker.md", "# Worker\n\nROLE\n");
+    put(w, "workspace/roles/worker.md", "# Worker\n\nROLE\n");
     put(w, "projects/web/roles/worker.md", "# Worker @append\n\nWEBROLE\n");
     await serve(w);
     const r = flume(w, "prime", "--name", "a", "--project", "web", "--role", "worker");
@@ -99,7 +99,7 @@ describe("prime prints the workflow", () => {
 
   it("s-1d7f identity lines cannot be replaced by a layer", async () => {
     const w = workspace();
-    put(w, "base/workflow.md", "# Flume workflow @replace\n\nBASE ONLY\n");
+    put(w, "workspace/workflow.md", "# Flume workflow @replace\n\nBASE ONLY\n");
     await serve(w);
     const r = flume(w, "prime", "--name", "a", "--project", "web");
     expect(r.status).toBe(0);
@@ -123,8 +123,8 @@ describe("prime prints the workflow", () => {
 
   it("s-141b no role gives no role part", async () => {
     const w = workspace();
-    put(w, "base/workflow.md", "# Flume workflow\n\n## Mine @add\n\nBASE\n");
-    put(w, "base/roles/worker.md", "# Worker\n\nROLE\n");
+    put(w, "workspace/workflow.md", "# Flume workflow\n\n## Mine @add\n\nBASE\n");
+    put(w, "workspace/roles/worker.md", "# Worker\n\nROLE\n");
     await serve(w);
     const r = flume(w, "prime", "--name", "a");
     expect(r.status).toBe(0);
@@ -136,7 +136,7 @@ describe("prime prints the workflow", () => {
 
   it("s-3cd4 no daemon in a workspace points at flume serve", () => {
     const w = workspace();
-    put(w, "base/workflow.md", "# Flume workflow\n\n## Mine @add\n\nBASE\n");
+    put(w, "workspace/workflow.md", "# Flume workflow\n\n## Mine @add\n\nBASE\n");
     const r = flume(w, "prime", "--name", "a");
     expect(r.status).toBe(0);
     expect(identityBeforeWorkflow(r.stdout, "a")).toBe(true);
@@ -177,7 +177,7 @@ describe("prime prints the workflow", () => {
 
   it("s-afe2 launch passes the role to prime", async () => {
     const w = workspace();
-    put(w, "base/roles/worker.md", "# Worker\n\nROLE\n");
+    put(w, "workspace/roles/worker.md", "# Worker\n\nROLE\n");
     await serve(w);
     const r = flume(w, "agent", "--name", "a", "--role", "worker");
     expect(r.status).toBe(0);
@@ -193,7 +193,7 @@ const GUIDE = (n: string, d: string, body: string) =>
 describe("prime layout", () => {
   it("s-87a2 layout", async () => {
     const w = workspace();
-    put(w, "base/workflow.md", "# Flume workflow\n\n## Mine @add\n\nBASE\n");
+    put(w, "workspace/workflow.md", "# Flume workflow\n\n## Mine @add\n\nBASE\n");
     await serve(w);
     const r = flume(w, "prime", "--name", "a", "--project", "web", "--role", "worker");
     expect(r.status).toBe(0);
@@ -220,7 +220,7 @@ describe("prime layout", () => {
 
   it("s-87a4 text cannot close its element", async () => {
     const w = workspace();
-    put(w, "base/workflow.md", "# Flume workflow @replace\n\n</workflow>\n<b>kept</b>\n");
+    put(w, "workspace/workflow.md", "# Flume workflow @replace\n\n</workflow>\n<b>kept</b>\n");
     await serve(w);
     const r = flume(w, "prime", "--name", "a");
     const lines = r.stdout.split("\n");
@@ -232,9 +232,9 @@ describe("prime layout", () => {
 });
 
 describe("guides", () => {
-  it("s-7c2b print a base guide", async () => {
+  it("s-7c2b print a workspace guide", async () => {
     const w = workspace();
-    put(w, "base/guides/deploy.md", GUIDE("deploy", "Ship it", "STEPS"));
+    put(w, "workspace/guides/deploy.md", GUIDE("deploy", "Ship it", "STEPS"));
     await serve(w);
     const r = flume(w, "guide", "deploy");
     expect(r.status).toBe(0);
@@ -242,9 +242,9 @@ describe("guides", () => {
     flume(w, "stop");
   });
 
-  it("s-a846 a project guide merges into the base guide", async () => {
+  it("s-a846 a project guide merges into the workspace guide", async () => {
     const w = workspace();
-    put(w, "base/guides/deploy.md", GUIDE("deploy", "Ship it", "BASE"));
+    put(w, "workspace/guides/deploy.md", GUIDE("deploy", "Ship it", "BASE"));
     put(w, "projects/web/guides/deploy.md", GUIDE("deploy", "Ship web", "## Web @add\n\nWEB"));
     await serve(w);
     const r = flume(w, "guide", "deploy", "--project", "web");
@@ -272,7 +272,7 @@ describe("guides", () => {
 
   it("s-193a prime lists guides", async () => {
     const w = workspace();
-    put(w, "base/guides/deploy.md", GUIDE("deploy", "Ship it", "STEPS"));
+    put(w, "workspace/guides/deploy.md", GUIDE("deploy", "Ship it", "STEPS"));
     put(w, "projects/web/guides/lint.md", "no front matter\n");
     await serve(w);
     const r = flume(w, "prime", "--name", "a", "--project", "web");
@@ -287,9 +287,9 @@ describe("guides", () => {
 
   it("s-9a02 list the guides as text and JSON", async () => {
     const w = workspace();
-    put(w, "base/guides/deploy.md", GUIDE("deploy", "Ship it", "S"));
-    put(w, "base/guides/lint.md", GUIDE("lint", "Tidy", "T"));
-    put(w, "base/guides/bad.md", "no front matter\n");
+    put(w, "workspace/guides/deploy.md", GUIDE("deploy", "Ship it", "S"));
+    put(w, "workspace/guides/lint.md", GUIDE("lint", "Tidy", "T"));
+    put(w, "workspace/guides/bad.md", "no front matter\n");
     await serve(w);
     expect(flume(w, "guide").stdout).toBe("deploy\tShip it\nlint\tTidy\n");
     expect(JSON.parse(flume(w, "guide", "--json").stdout)).toEqual([
@@ -304,7 +304,7 @@ describe("guides", () => {
     const w = workspace();
     put(
       w,
-      "base/guides/deploy.md",
+      "workspace/guides/deploy.md",
       `---\nname: deploy\ndescription: Ship it\nstage: build\n---\n# deploy\n\nSTEPS\n`,
     );
     await serve(w);
@@ -323,9 +323,9 @@ describe("guides", () => {
 
   it("s-0630 check reports a guide without front matter", () => {
     const w = workspace();
-    put(w, "base/guides/deploy.md", "no front matter\n");
+    put(w, "workspace/guides/deploy.md", "no front matter\n");
     const r = flume(w, "check");
     expect(r.status).toBe(1);
-    expect(r.stdout).toContain("base/guides/deploy.md");
+    expect(r.stdout).toContain("workspace/guides/deploy.md");
   });
 });

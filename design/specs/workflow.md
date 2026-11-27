@@ -127,7 +127,7 @@ When flume task write ID PART is run, flume SHALL replace the text of the part, 
 - **THEN** show prints the text written and its parts line lists body, release-notes, and the last two writes exit with code 1 and change nothing
 
 ### Requirement: Templates are looked up by part name  {#r-e3d9}
-When flume task template PART is run, flume SHALL print the template of the part: the document templates/PART.md merged by heading (the workflow-layers spec) from the one flume ships (for body, design, spec and plan), base/templates/PART.md of the flume root and, when --project PROJECT is given, projects/PROJECT/templates/PART.md; when none of these exists it SHALL print nothing and exit with code 0, and for a name that is not plain it SHALL exit with code 1.
+When flume task template PART is run, flume SHALL print the template of the part: the document templates/PART.md merged by heading (the layers spec) from the built-in document (for body, design, spec and plan), workspace/templates/PART.md of the flume root and, when --project PROJECT is given, projects/PROJECT/templates/PART.md; when none of these exists it SHALL print nothing and exit with code 0, and for a name that is not plain it SHALL exit with code 1.
 
 #### Scenario: Built-in templates  {#s-3a2d}
 *Verification*: **executable**
@@ -137,13 +137,13 @@ When flume task template PART is run, flume SHALL print the template of the part
 
 #### Scenario: Template layers merge  {#s-dd9e}
 *Verification*: **executable**
-- **GIVEN** a base template for design replacing the text of its Context section with BASE, and a project template for design in project web replacing the whole document with WEB
+- **GIVEN** a workspace template for design replacing the text of its Context section with BASE, and a project template for design in project web replacing the whole document with WEB
 - **WHEN** flume task template design is run with no project, and with --project web, and flume task template spec with --project web
-- **THEN** the first prints the shipped design template with BASE under Context, the second the heading Design and WEB alone, and the third the shipped spec template
+- **THEN** the first prints the built-in design template with BASE under Context, the second the heading Design and WEB alone, and the third the built-in spec template
 
 #### Scenario: A part with no template, or one of its own  {#s-2677}
 *Verification*: **executable**
-- **GIVEN** a base template for the part risks holding RISKS and no template for the part notes
+- **GIVEN** a workspace template for the part risks holding RISKS and no template for the part notes
 - **WHEN** flume task template is run for notes, for risks, and for ../escape
 - **THEN** the first prints nothing and exits 0, the second prints RISKS, and the third exits with code 1
 
@@ -193,11 +193,11 @@ When flume task done ID ITEM... is run, flume SHALL mark those items done in the
 - **THEN** the first two exit with code 1, the third with code 2, and the plan is unchanged
 
 ### Requirement: A plan group names guides  {#r-4b01}
-A plan group MAY list guides with lines "Guide: NAME" under its heading, before its items (blank lines allowed between them); flume task write ID plan SHALL refuse with exit code 1, changing nothing, a plan with a Guide line after the group's first item, with a name that is not a plain name, or naming a guide that does not exist for the task's project (the project's guide, else the base guide), the message naming the group and the guide. The Guide lines SHALL be kept when the plan is printed and when items are marked done or skipped.
+A plan group MAY list guides with lines "Guide: NAME" under its heading, before its items (blank lines allowed between them); flume task write ID plan SHALL refuse with exit code 1, changing nothing, a plan with a Guide line after the group's first item, with a name that is not a plain name, or naming a guide that does not exist for the task's project (the project's guide, else the workspace guide), the message naming the group and the guide. The Guide lines SHALL be kept when the plan is printed and when items are marked done or skipped.
 
 #### Scenario: Guide lines are checked and kept  {#s-4b02}
 *Verification*: **executable**
-- **GIVEN** a running daemon whose flume root has the base guides testing and api-conventions, and a new task
+- **GIVEN** a running daemon whose flume root has the workspace guides testing and api-conventions, and a new task
 - **WHEN** a plan whose group 1 has the lines Guide: api-conventions and Guide: testing before its items is written, then item 1.1 is marked done, and then plans are written whose group names the guide nope, or has a Guide line after an item
 - **THEN** the first write exits with code 0, flume task show ID plan prints the Guide lines under the group 1 heading both before and after 1.1 is marked done, and the later writes exit with code 1 (the first naming nope) and leave the plan as it was
 
@@ -206,7 +206,7 @@ When flume task next ID prints a plan group that is not complete, flume SHALL pr
 
 #### Scenario: The group's guides follow it  {#s-0b7c}
 *Verification*: **executable**
-- **GIVEN** a running daemon whose flume root has the base guides api-conventions (with a stage key build, which is ignored) and testing, and a task whose plan has group 1 naming both and group 2 naming nothing
+- **GIVEN** a running daemon whose flume root has the workspace guides api-conventions (with a stage key build, which is ignored) and testing, and a task whose plan has group 1 naming both and group 2 naming nothing
 - **WHEN** flume task next is run, then with --json, then the file of testing is removed and next is run again, then all of group 1 is marked done and next is run
 - **THEN** the first prints group 1 followed by guide elements api-conventions and testing, neither with a stage attribute; the JSON guides list has both with their bodies; the third prints a guide_missing element naming testing and exits 0; and the last prints group 2 with no guide element
 
@@ -220,7 +220,7 @@ When flume task list is run, each line SHALL hold the ID, kind, state, assignee 
 - **THEN** they list the first task and then the second, each line has five columns, the JSON list has the keys assignee and agent and no key phase, and the last exits with code 2
 
 ### Requirement: The prime text teaches the workflow  {#r-745b}
-The workflow document flume ships SHALL tell the agent to use only flume commands for tasks, say that the human is in control and that flume does not enforce the workflow, describe in order the phases proposal, design, specs, plan and implement, and name the commands flume task claim, flume task show, flume task template, flume task write, flume task next, flume task done, flume task skip, flume task close, flume task assign ID human, flume task comment and flume guide; and it SHALL NOT name any path in the tasks repository.
+The built-in workflow document SHALL tell the agent to use only flume commands for tasks, say that the human is in control and that flume does not enforce the workflow, describe in order the phases proposal, design, specs, plan and implement, and name the commands flume task claim, flume task show, flume task template, flume task write, flume task next, flume task done, flume task skip, flume task close, flume task assign ID human, flume task comment and flume guide; and it SHALL NOT name any path in the tasks repository.
 
 #### Scenario: Prime names the workflow commands and phases  {#s-0865}
 *Verification*: **executable**

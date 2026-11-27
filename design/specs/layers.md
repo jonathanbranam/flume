@@ -1,19 +1,23 @@
-# Workflow layers
+# Layers
 
-flume's workflow text is made of Markdown documents that ship with flume and that the tasks repository can change, heading by heading. This spec covers the documents, the layers, the merge rule and the check. Where each document is shown is in the agent, workflow and api specs. Shipped named workflows that can be installed as layers are at the end. Tickets: fl-mv4r, fl-vpvk.
+flume's workflow text is made of Markdown documents that are built in to flume and that the tasks repository can change, heading by heading.
+
+Terms: the built-in layer is the documents flume ships (each of them a built-in document); the workspace layer is the folder workspace of the flume root; the project layer is the folder projects/PROJECT of the flume root. An overlay is a workspace or project file that changes the same document in the layer below. A layered document is the built-in document with every overlay applied.
+
+This spec covers the documents, the layers, the merge rule and the check. Where each document is shown is in the agent, workflow and api specs. Built-in named workflows that can be installed as overlays are at the end. Tickets: fl-mv4r, fl-vpvk.
 
 Assumptions (recorded on fl-mv4r): flume enforces the rules below and does not run a Markdown linter; a heading is a line starting with number signs (underlined headings are errors); comment lines above the H1 are allowed and dropped; one blank line separates the parts of a merged document; a guide's front matter is not merged.
 
 ## Requirements
 
 ### Requirement: The documents and their layers  {#r-8072}
-flume SHALL ship the documents workflow.md, project.md, first-prompt.md and templates/PART.md (PART being body, design, spec or plan), and for each of these, for templates/PART.md of any other plain part name and for roles/ROLE.md and guides/NAME.md SHALL merge the files of that name that exist, in this order, each into the result of those before it: the one flume ships, the one in base of the flume root, and the one in projects/PROJECT of the flume root (when a project is known). With no file in the flume root, flume SHALL use the shipped document word for word.
+flume SHALL have the built-in documents workflow.md, project.md, first-prompt.md and templates/PART.md (PART being body, design, spec or plan), and for each of these, for templates/PART.md of any other plain part name and for roles/ROLE.md and guides/NAME.md SHALL merge the files of that name that exist, in this order, each into the result of those before it: the built-in document, the one in the workspace layer, and the one in the project layer (when a project is known). With no file in the flume root, flume SHALL use the built-in document word for word.
 
-#### Scenario: Shipped documents alone  {#s-0df4}
+#### Scenario: Built-in documents alone  {#s-0df4}
 *Verification*: **executable**
 - **GIVEN** a running daemon whose flume root has no layered files
-- **WHEN** the user runs flume prime for project web, flume task template for each shipped part, and flume agent with no prompt
-- **THEN** each shows the shipped documents word for word (placeholders filled), and claude's last argument is the text under the H1 of the shipped first prompt
+- **WHEN** the user runs flume prime for project web, flume task template for each built-in part, and flume agent with no prompt
+- **THEN** each shows the built-in documents word for word (placeholders filled), and claude's last argument is the text under the H1 of the built-in first prompt
 
 ### Requirement: Replace is the default  {#r-2cff}
 When a heading of a layer has no tag, flume SHALL match it against the layers below by its path (the H1, then the H2 under it, and so on), ignoring case and surrounding spaces; its own text (between it and its first sub-heading) SHALL replace the matched section's own text, its sub-headings SHALL be handled one by one by the same rules, and sections below that it does not mention SHALL stay.
@@ -67,13 +71,13 @@ flume SHALL, for each error about a layer's H1, state the rule (every layer file
 - **THEN** each error's text states that every layer file has exactly one H1, the same as the H1 of the layer below ("Doc"), states the problem in that layer, and gives both fixes: start the file with "Doc" and put sections under it as H2s, or put the replace tag on the H1
 
 ### Requirement: A project's workflow replaces and adds  {#r-8323}
-When a project's files override the shipped documents, flume SHALL show the project's agents the merged result.
+When a project's files override the built-in documents, flume SHALL show the project's agents the merged result.
 
 #### Scenario: A replaced and an extended workflow  {#s-47cb}
 *Verification*: **executable**
 - **GIVEN** a project docs whose workflow.md replaces the whole document, and a project web whose workflow.md replaces the Guides section and adds a Review section, with its own first-prompt.md
 - **WHEN** flume prime is run for docs and for web, flume agent for web with no prompt, and flume check
-- **THEN** the docs prime holds only its own workflow text (and the project text), the web prime holds the shipped workflow with its Guides section and then its Review section, claude's prompt is the project's first prompt with {name} and {project} filled, and check passes
+- **THEN** the docs prime holds only its own workflow text (and the project text), the web prime holds the built-in workflow with its Guides section and then its Review section, claude's prompt is the project's first prompt with {name} and {project} filled, and check passes
 
 ### Requirement: A broken layer stops the command  {#r-fe99}
 When a layered file that flume prime, flume agent, flume task template or flume guide needs has an error, flume SHALL print the errors (file, line and heading) to standard error, print nothing on standard output and exit with code 1.
@@ -85,25 +89,25 @@ When a layered file that flume prime, flume agent, flume task template or flume 
 - **THEN** each exits with code 1, names its file, line and heading on standard error and prints nothing else, and claude is not started
 
 ### Requirement: Check reads every layered file  {#r-ba09}
-When flume check is run, it SHALL check every layered file in base and in each project's folder of the flume root by the rules above, against the layers below it, and report each error as one problem whose path is the file and whose message holds the line and the heading.
+When flume check is run, it SHALL check every overlay file in the workspace layer and in each project layer of the flume root by the rules above, against the layers below it, and report each error as one problem whose path is the file and whose message holds the line and the heading.
 
 #### Scenario: Errors from every kind of file  {#s-4703}
 *Verification*: **executable**
-- **GIVEN** errors in a base workflow.md and role, and a project's project.md, first-prompt.md, plan template and guide
+- **GIVEN** errors in a workspace workflow.md and role, and a project's project.md, first-prompt.md, plan template and guide
 - **WHEN** flume check --json and flume check are run
 - **THEN** each file is reported with its line, and the text form names the heading
 
 ### Requirement: Guides merge by heading  {#r-873d}
-When a guide is in both base and a project, flume SHALL merge the project guide's text into the base guide's by these rules and use the project guide's front matter.
+When a guide is in both the workspace layer and a project layer, flume SHALL merge the project guide's text into the workspace guide's by these rules and use the project guide's front matter.
 
 #### Scenario: A project adds to a guide  {#s-cac1}
 *Verification*: **executable**
-- **GIVEN** a base guide with a section A and a project guide of the same name adding a section B
+- **GIVEN** a workspace guide with a section A and a project guide of the same name adding a section B
 - **WHEN** flume guide is run for the guide and for the list, with the project
 - **THEN** the guide holds A and then B, and the list shows the project's description
 
-### Requirement: Shipped named workflows  {#r-2ee0}
-flume SHALL ship, besides its standard workflow, the named workflows none and light (each a workflow.md only), each file's first heading tagged @replace so that, once installed, the layers below it are not read.
+### Requirement: Built-in named workflows  {#r-2ee0}
+flume SHALL have, besides its standard workflow, the built-in named workflows none and light (each a workflow.md only), each file's first heading tagged @replace so that, once installed, the layers below it are not read.
 
 #### Scenario: Each installed workflow is what prime shows  {#s-322f}
 *Verification*: **executable**
@@ -111,8 +115,8 @@ flume SHALL ship, besides its standard workflow, the named workflows none and li
 - **WHEN** the none workflow is installed and flume prime is run, then light is installed with --force and flume prime is run
 - **THEN** each prime holds the installed workflow text and none of the standard text, no tag is shown, and flume check passes
 
-### Requirement: Listing the shipped workflows  {#r-cbe7}
-When flume workflow install --list is run, in any folder and with no daemon, flume SHALL print one line per shipped workflow holding its name, a tab and a one-line description, and with --json one JSON array of objects with name and description; it SHALL exit with code 2 when --list is given with a name, --project or --force.
+### Requirement: Listing the built-in workflows  {#r-cbe7}
+When flume workflow install --list is run, in any folder and with no daemon, flume SHALL print one line per built-in workflow holding its name, a tab and a one-line description, and with --json one JSON array of objects with name and description; it SHALL exit with code 2 when --list is given with a name, --project or --force.
 
 #### Scenario: List as text and JSON  {#s-b84a}
 *Verification*: **executable**
@@ -120,26 +124,26 @@ When flume workflow install --list is run, in any folder and with no daemon, flu
 - **WHEN** flume workflow install --list and flume workflow install --list --json are run
 - **THEN** both name none and light with a description each and exit with code 0
 
-### Requirement: Installing a shipped workflow  {#r-4433}
-When flume workflow install NAME [--project PROJECT] is run in a workspace, flume SHALL copy the files of the shipped workflow NAME, word for word, into projects/PROJECT of the flume root, or into base without --project, commit them in the tasks repository as one commit, and print the files (with --json, one object holding workflow and files, the paths relative to the tasks repository); it SHALL NOT need or start the daemon and SHALL NOT push. When any of those files exists, flume SHALL change nothing, name it on standard error and exit with code 1, unless --force is given, in which case it SHALL overwrite the workflow's files, leaving other files as they are. With no name, an unknown name or a project that is not a plain name it SHALL change nothing and exit with code 2.
+### Requirement: Installing a built-in workflow  {#r-4433}
+When flume workflow install NAME [--project PROJECT] is run in a workspace, flume SHALL copy the files of the built-in workflow NAME, word for word, into projects/PROJECT of the flume root, or into workspace of the flume root without --project, commit them in the tasks repository as one commit, and print the files (with --json, one object holding workflow and files, the paths relative to the tasks repository); it SHALL NOT need or start the daemon and SHALL NOT push. When any of those files exists, flume SHALL change nothing, name it on standard error and exit with code 1, unless --force is given, in which case it SHALL overwrite the workflow's files, leaving other files as they are. With no name, an unknown name or a project that is not a plain name it SHALL change nothing and exit with code 2.
 
 #### Scenario: Install light into the workspace  {#s-c080}
 *Verification*: **executable**
 - **GIVEN** a workspace set up with flume init and no daemon running
 - **WHEN** flume workflow install light is run
-- **THEN** base of the flume root holds workflow.md equal to the shipped file, the task repository has one new commit and nothing uncommitted
+- **THEN** workspace of the flume root holds workflow.md equal to the built-in file, the task repository has one new commit and nothing uncommitted
 
 #### Scenario: Install for a project  {#s-cf59}
 *Verification*: **executable**
 - **GIVEN** a workspace set up with flume init
 - **WHEN** flume workflow install none --project web --json is run
-- **THEN** projects/web of the flume root holds workflow.md, base holds none, and the output names the workflow and the file
+- **THEN** projects/web of the flume root holds workflow.md, workspace holds none, and the output names the workflow and the file
 
 #### Scenario: A file already there is kept unless forced  {#s-4319}
 *Verification*: **executable**
-- **GIVEN** a workspace whose base workflow.md of the flume root was written by the human
+- **GIVEN** a workspace whose workspace/workflow.md of the flume root was written by the human
 - **WHEN** flume workflow install light is run, then again with --force
-- **THEN** the first exits with code 1, names workflow.md and changes nothing, and the second overwrites it with the shipped file and commits
+- **THEN** the first exits with code 1, names workflow.md and changes nothing, and the second overwrites it with the built-in file and commits
 
 #### Scenario: A name that cannot be installed  {#s-2bce}
 *Verification*: **executable**
@@ -148,16 +152,16 @@ When flume workflow install NAME [--project PROJECT] is run in a workspace, flum
 - **THEN** each exits with code 2 and the task repository has no new commit
 
 ### Requirement: Init can install a workflow  {#r-00d6}
-When flume init --workflow NAME is run, flume SHALL also install the shipped workflow NAME into base of the flume root as flume workflow install NAME does. When NAME is not shipped (exit code 2) or one of its files already exists (exit code 1, naming it), flume SHALL set up and change nothing.
+When flume init --workflow NAME is run, flume SHALL also install the built-in workflow NAME into workspace of the flume root as flume workflow install NAME does. When NAME is not a built-in workflow (exit code 2) or one of its files already exists (exit code 1, naming it), flume SHALL set up and change nothing.
 
 #### Scenario: Init installs a workflow  {#s-637a}
 *Verification*: **executable**
 - **GIVEN** a git repository
 - **WHEN** flume init --workflow light is run in it
-- **THEN** flume/base holds light's file, committed, and git status lists nothing
+- **THEN** flume/workspace holds light's file, committed, and git status lists nothing
 
 #### Scenario: Init refuses and sets up nothing  {#s-6ef1}
 *Verification*: **executable**
-- **GIVEN** a git repository, and another whose flume/base/workflow.md exists
+- **GIVEN** a git repository, and another whose flume/workspace/workflow.md exists
 - **WHEN** flume init --workflow bogus is run in the first and flume init --workflow none in the second
 - **THEN** they exit with codes 2 and 1, no .flume folder or flume.yaml is made, and the existing file is unchanged

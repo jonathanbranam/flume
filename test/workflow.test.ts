@@ -267,7 +267,7 @@ describe("task parts and templates", { timeout: 30_000 }, () => {
 
   it("s-2677 a part with no template, or one of its own", async () => {
     const repo = await project();
-    const f = join(repo, "flume/base/templates/risks.md");
+    const f = join(repo, "flume/workspace/templates/risks.md");
     mkdirSync(dirname(f), { recursive: true });
     writeFileSync(f, "# Risks\n\nRISKS\n");
     const t = (p: string) => flume(repo, ["task", "template", p]);
@@ -297,7 +297,7 @@ describe("task parts and templates", { timeout: 30_000 }, () => {
     };
     const t = (...a: string[]) => flume(repo, ["task", "template", ...a]).stdout;
     const builtin = t("spec");
-    w("base/templates/design.md", "# Design\n\n## Context\n\nBASE\n");
+    w("workspace/templates/design.md", "# Design\n\n## Context\n\nBASE\n");
     w("projects/web/templates/design.md", "# Design @replace\n\nWEB\n");
     expect(t("design")).toContain("## Context\n\nBASE\n\n## Goals / Non-goals\n");
     expect(t("design", "--project", "web")).toBe("# Design\n\nWEB\n");
