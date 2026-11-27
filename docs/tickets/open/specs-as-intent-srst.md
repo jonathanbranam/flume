@@ -8,7 +8,7 @@ repos: [flume]
 changes: []
 specs: []
 blocked_by: []
-related: []
+related: [fl-xp8s, fl-b2yb]
 ---
 
 ## The ask
@@ -68,7 +68,8 @@ A project rule, spec-why-and-provenance, for workers, reviewers and the manager:
 ### Backfill
 
 One docs ticket per spec, starting with agent.md: write the *Why* of each requirement and seed
-provenance from the tickets the spec names (their Discussion sections hold the human's words).
+provenance only for requirements that need it or where we have it now, from the tickets the spec
+names (their Discussion sections hold the human's words).
 Where the why cannot be found, write "Why: not recorded" and list it for the human, rather than
 inventing one.
 
@@ -102,3 +103,7 @@ needs the reason to apply a requirement; the history it does not), and the spec'
 paragraph serves as the area intent instead of separate docs/intent files. Mapping to Fowler's
 idea as advisor understands it: requirement plus why is the intent, scenarios with their tests are
 the evaluations, provenance is the record of how they came to be.
+
+The human, 2026-11-27, verbatim (clarifying): "And just to be clear, in case I overstated that,
+the provenance for every requirement that needs provenance or that we have provenance for right
+now"
