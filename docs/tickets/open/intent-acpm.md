@@ -184,6 +184,24 @@ Where each intent item in [agents](../intent/agents.md) came from. For reference
   That is definitely true."
 - 2026-11-27 (fl-acpm review): "for agent names that are unique on the machine, this should also
   say that they're unique so that remote code and remote control sessions also have unique names."
+- 2026-11-27 (fl-acpm review), on how agents are named (not decided; ideas for later, not intent):
+  - Bridle names agents after roles; only some agents get a name besides the role, so how many of
+    each there are is implied. "It is useful, though, in Bridle: when I say "talk to the aid on
+    that project" or "talk to the orchestrator on that machine," Bridle knows immediately what I'm
+    talking about and can find that agent. It's easier than remembering a unique name for each
+    agent that's serving the same role on a different project."
+  - For flume: "because it needs to be project-configurable, Flume itself will probably not
+    enforce anything here beyond the fact that agent names need to be unique."
+  - At work: "I have a list of unique agent names for each project, and I just assign them when I
+    create new agents. It would be possible for Flume itself to pull from that agent list and find
+    an unused name in that list."
+  - What names are for: tracking which agent is working on which thing; unique messaging; and the
+    human's memory: "I tend to remember that the agent named Series is working on some particular
+    task right now, and it just sticks in my mind that way. I find that somewhat useful."
+  - Likely practice, not a requirement: a name holding the project and the role ("Project XYZ
+    manager"), "and then maybe a unique identifier for that particular agent if I need one
+    specifically for workers and interactive sessions."
+  - "I haven't made a firm decision on agent naming here yet, for sure."
 
 ## i-ad05 Flume tracks only the agents it launched
 
@@ -334,3 +352,7 @@ not intent. I don't want resume." "3: no, don't update that, and then don't mark
 managed through the CLI. Yes, there are CLI commands for the human to interact with the registry,
 and yes, I do prefer even configuration to be human-readable. ... Let's say that the Flume
 configuration as well should all be human-readable and editable."
+
+The human, 2026-11-27, verbatim: "We're writing a provenance at the same time. We should definitely
+be doing that." Then the agent naming notes, recorded under i-631d in the provenance draft: "This
+is just provenance and ideas for the future, not anything we're doing today."
