@@ -99,6 +99,16 @@ human to start it.
 Why: in an enterprise sandbox a server started by an agent would be refused or sandboxed (P4),
 and the human decides what runs on their machine (P2).
 
+## i-ac8f Flume remembers an agent
+
+When an agent is launched, flume records it in the registry with its name, project and role, and
+ties it to the terminal pane it runs in. When the agent exits, its session ends but the record
+stays. Relaunched later from the same terminal pane, it comes back as the same agent with the same
+settings.
+
+Why: an agent outlives any one session; the human can stop and restart it without saying again
+who it is (i-8716).
+
 ## i-8716 Launching is short for the common case
 
 Most launches never give a name, a project, a role or a prompt: the human relaunches the agent,
@@ -199,6 +209,13 @@ Where each intent item in [agents](../intent/agents.md) came from. For reference
 - 2026-11-17 (fl-qgr7): "don't start a daemon ever" and "a daemon started by claude would be
   refused or sandboxes".
 
+## i-ac8f Flume remembers an agent
+
+- 2026-11-27 (fl-acpm review): "when an agent is launched from the CLI, Flume stores an
+  association with that agent and its role and project in the registry. If the agent is exited,
+  that session is ended. Later, if it is relaunched from the same terminal (or CLI, or same
+  terminal window), it will come back as the same agent with the same settings."
+
 ## i-8716 Launching is short for the common case
 
 - 2026-11-17 (fl-xv3z): "I don't want a CLI guessing about the meaning of a parameter based on
@@ -219,7 +236,7 @@ Where each intent item in [agents](../intent/agents.md) came from. For reference
 
 ### Also in this change
 
-- docs/intent/.ids: the eleven IDs above, one per line.
+- docs/intent/.ids: the twelve IDs above, one per line.
 - No *Intent* lines in design/specs/agent.md yet: that follows the rules of fl-srst.
 
 ### Open for the human
@@ -268,3 +285,12 @@ name is resolved from... That's fine to say where it was last run, I guess. That
 vague, but it's resolved from the registry as well as its project, role, and optional prompt.
 Let's just make sure that's clear. 90% of the time, we can just say "Flume agent" is what we're
 getting at here, and everything about that is known from that Tmux pane."
+
+The human, 2026-11-27 (review), verbatim: "Yeah, don't worry about the prompts thing, and it's fine
+how it is. Let's maybe update this, look through this, and give some other ideas here. I think we
+can try to come up with a general intent for Flume remembering an agent that doesn't necessarily
+specify too much with it, but I think the CLI is something where it's okay to specify. I would say
+that when an agent is launched from the CLI, Flume stores an association with that agent and its
+role and project in the registry. If the agent is exited, that session is ended. Later, if it is
+relaunched from the same terminal (or CLI, or same terminal window), it will come back as the same
+agent with the same settings."
