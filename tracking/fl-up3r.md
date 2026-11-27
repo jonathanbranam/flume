@@ -2,9 +2,9 @@
 id = "fl-up3r"
 title = "Guides: remove the stage field"
 kind = "fix"
-state = "open"
+state = "planned"
 created_at = "2026-11-27T16:02:47.986Z"
-updated_at = "2026-11-27T16:03:01.971154Z"
+updated_at = "2026-11-27T16:09:44.294788309Z"
 created_by = "external:advisor"
 watchers = ["external:advisor"]
 ticket = "up3r"
