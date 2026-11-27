@@ -111,8 +111,8 @@ them.
 
 ## P3 Workflows are dynamic
 
-The workflow is not hard-coded in flume: it is fully configurable or overridable. Each workspace and
-project can specify its own workflow, and in time each task. Flume provides the mechanics (tasks,
+The workflow is not hard-coded in flume: it is fully configurable or overridable. Each workspace,
+project and task can specify its own workflow. Flume provides the mechanics (tasks,
 parts, comments, assignment, history, plans) and enforces a workflow rule only when the workflow's
 own configuration asks for it.
 
@@ -374,3 +374,8 @@ Flume agents interact with Flume through the CLI, and that Flume does track and 
 ... I think tracking the agents is a good thing to say for sure. Regardless of the sandbox
 restrictions, Flume should be at least observing the agents and tracking them, even if it's not
 maybe actively managing them."
+
+The human, 2026-11-27, verbatim: "No, that's fine. Flume only tracks agents that it spawned. Under
+P3, workflows are dynamic. I want these intents to these principles to live forever, so drop and,
+in time, just put each task. Okay, I'm good with this. ... Seems like we can just directly copy
+this into the documents with my authority and then mark the ticket as done."
