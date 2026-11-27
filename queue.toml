@@ -51,3 +51,6 @@ tasks = [
     "fl-b2yb",
     "fl-up3r",
 ]
+
+[[tier]]
+tasks = ["fl-zujz"]
