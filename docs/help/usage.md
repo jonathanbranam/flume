@@ -59,7 +59,7 @@ holds the merged workflow, project and role documents (see below).
 
 ## Changing the workflow
 
-The built-in layer holds `workflow.md` (the workflow, as text), `project.md`, `first-prompt.md`
+The base layer holds `workflow.md` (the workflow, as text), `project.md`, `first-prompt.md`
 and `templates/{body,design,spec,plan}.md`. A file of the same name in the workspace layer
 (the flume-root's `workspace/`), then in the project layer (`projects/<project>/`), is an overlay:
 it merges into the one below by heading. `roles/<role>.md` and `guides/<name>.md` merge the same

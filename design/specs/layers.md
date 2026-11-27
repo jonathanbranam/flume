@@ -2,7 +2,7 @@
 
 flume's workflow text is made of Markdown documents that are built in to flume and that the tasks repository can change, heading by heading.
 
-Terms: the built-in layer is the documents flume ships (each of them a built-in document); the workspace layer is the folder workspace of the flume root; the project layer is the folder projects/PROJECT of the flume root. An overlay is a workspace or project file that changes the same document in the layer below. A layered document is the built-in document with every overlay applied.
+Terms: the base layer is the documents flume ships (each of them a base document); the workspace layer is the folder workspace of the flume root; the project layer is the folder projects/PROJECT of the flume root. An overlay is a workspace or project file that changes the same document in the layer below. A layered document is the base document with every overlay applied.
 
 This spec covers the documents, the layers, the merge rule and the check. Where each document is shown is in the agent, workflow and api specs. Built-in named workflows that can be installed as overlays are at the end. Tickets: fl-mv4r, fl-vpvk.
 
@@ -11,13 +11,13 @@ Assumptions (recorded on fl-mv4r): flume enforces the rules below and does not r
 ## Requirements
 
 ### Requirement: The documents and their layers  {#r-8072}
-flume SHALL have the built-in documents workflow.md, project.md, first-prompt.md and templates/PART.md (PART being body, design, spec or plan), and for each of these, for templates/PART.md of any other plain part name and for roles/ROLE.md and guides/NAME.md SHALL merge the files of that name that exist, in this order, each into the result of those before it: the built-in document, the one in the workspace layer, and the one in the project layer (when a project is known). With no file in the flume root, flume SHALL use the built-in document word for word.
+flume SHALL have the base documents workflow.md, project.md, first-prompt.md and templates/PART.md (PART being body, design, spec or plan), and for each of these, for templates/PART.md of any other plain part name and for roles/ROLE.md and guides/NAME.md SHALL merge the files of that name that exist, in this order, each into the result of those before it: the base document, the one in the workspace layer, and the one in the project layer (when a project is known). With no file in the flume root, flume SHALL use the base document word for word.
 
-#### Scenario: Built-in documents alone  {#s-0df4}
+#### Scenario: Base documents alone  {#s-0df4}
 *Verification*: **executable**
 - **GIVEN** a running daemon whose flume root has no layered files
 - **WHEN** the user runs flume prime for project web, flume task template for each built-in part, and flume agent with no prompt
-- **THEN** each shows the built-in documents word for word (placeholders filled), and claude's last argument is the text under the H1 of the built-in first prompt
+- **THEN** each shows the base documents word for word (placeholders filled), and claude's last argument is the text under the H1 of the built-in first prompt
 
 ### Requirement: Replace is the default  {#r-2cff}
 When a heading of a layer has no tag, flume SHALL match it against the layers below by its path (the H1, then the H2 under it, and so on), ignoring case and surrounding spaces; its own text (between it and its first sub-heading) SHALL replace the matched section's own text, its sub-headings SHALL be handled one by one by the same rules, and sections below that it does not mention SHALL stay.
@@ -71,7 +71,7 @@ flume SHALL, for each error about a layer's H1, state the rule (every layer file
 - **THEN** each error's text states that every layer file has exactly one H1, the same as the H1 of the layer below ("Doc"), states the problem in that layer, and gives both fixes: start the file with "Doc" and put sections under it as H2s, or put the replace tag on the H1
 
 ### Requirement: A project's workflow replaces and adds  {#r-8323}
-When a project's files override the built-in documents, flume SHALL show the project's agents the merged result.
+When a project's files override the base documents, flume SHALL show the project's agents the merged result.
 
 #### Scenario: A replaced and an extended workflow  {#s-47cb}
 *Verification*: **executable**

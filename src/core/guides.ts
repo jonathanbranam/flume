@@ -84,7 +84,7 @@ export function guideLayers(
 }
 
 /**
- * The guide `name`, its bodies merged by heading (built-in, workspace, project) and its front matter
+ * The guide `name`, its bodies merged by heading (base, workspace, project) and its front matter
  * that of the most specific file; undefined when no layer has it.
  */
 export function readGuide(root: string, project: string, name: string): GuideResult | undefined {

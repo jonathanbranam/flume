@@ -36,6 +36,8 @@
 
 ### Changed
 
+- Layer wording (fl-2962): the built-in layer and built-in documents are now the base layer and base documents, in the specs, `docs/help/usage.md` and code comments; wording only, no behaviour change.
+
 - Layers use the agreed terms (fl-8g3x): the flume root's `base/` folder is now `workspace/` (read by `prime`, `init`, `workflow install`, guides, templates and `check`; an old `base/` is not read, and there is no migration or warning), `design/specs/workflow-layers.md` is now `layers.md`, and specs and help say built-in, workspace and project layer, overlay and layered document.
 
 - Guides drop the `stage` field (fl-up3r): front matter holds name and description; a stage key in an existing guide is ignored, and `flume guide`, `flume guide --json`, prime, `flume task next` and `GET /api/prime` no longer show it. Guide relations to workflow steps are revisited in fl-4k35. Specs: `design/specs/agent.md`, `design/specs/workflow.md`, `design/specs/api.md`.

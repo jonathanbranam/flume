@@ -5,7 +5,7 @@ import { BrokenLayers, type Layer, mergeLayers, renderSection, sectionBody } fro
 import { flumeRoot, rel } from "./layout.ts";
 import { SEGMENT_RE } from "./prime.ts";
 
-/** The built-in layer: the documents flume ships, read at run time. */
+/** The base layer: the documents flume ships, read at run time. */
 export const SHIPPED_DIR = fileURLToPath(new URL("../../base", import.meta.url));
 
 /** How errors and sources name a built-in file. */
@@ -17,7 +17,7 @@ export function plainName(what: string, v: string): void {
 
 /**
  * The existing files of the document `doc` (such as workflow.md or roles/worker.md), lowest layer
- * first: built-in, workspace (workspace/), project (projects/PROJECT/). With no root, built-in only.
+ * first: base, workspace (workspace/), project (projects/PROJECT/). With no root, base only.
  */
 export function documentFiles(
   root: string | undefined,
@@ -66,7 +66,7 @@ export interface PrimeDocuments {
 
 /**
  * The documents prime and the launcher use, placeholders unfilled. Every error of every one of
- * them is reported together. With no root, the built-in documents only.
+ * them is reported together. With no root, the base documents only.
  */
 export function primeDocuments(
   root: string | undefined,

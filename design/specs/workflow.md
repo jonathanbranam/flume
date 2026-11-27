@@ -127,7 +127,7 @@ When flume task write ID PART is run, flume SHALL replace the text of the part, 
 - **THEN** show prints the text written and its parts line lists body, release-notes, and the last two writes exit with code 1 and change nothing
 
 ### Requirement: Templates are looked up by part name  {#r-e3d9}
-When flume task template PART is run, flume SHALL print the template of the part: the document templates/PART.md merged by heading (the layers spec) from the built-in document (for body, design, spec and plan), workspace/templates/PART.md of the flume root and, when --project PROJECT is given, projects/PROJECT/templates/PART.md; when none of these exists it SHALL print nothing and exit with code 0, and for a name that is not plain it SHALL exit with code 1.
+When flume task template PART is run, flume SHALL print the template of the part: the document templates/PART.md merged by heading (the layers spec) from the base document (for body, design, spec and plan), workspace/templates/PART.md of the flume root and, when --project PROJECT is given, projects/PROJECT/templates/PART.md; when none of these exists it SHALL print nothing and exit with code 0, and for a name that is not plain it SHALL exit with code 1.
 
 #### Scenario: Built-in templates  {#s-3a2d}
 *Verification*: **executable**
