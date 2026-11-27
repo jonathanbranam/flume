@@ -101,12 +101,16 @@ and the human decides what runs on their machine (P2).
 
 ## i-8716 Launching is short for the common case
 
-Most launches give neither a name nor a prompt: the name comes from where the agent was last
-run. A prompt is given as is; a name, which is rare, must be named as such. Flume never guesses
-what an argument means from how it looks.
+Most launches never give a name, a project, a role or a prompt: the human relaunches the agent,
+with nothing more, in the terminal pane it last ran in. Flume resolves the agent's name from that
+pane, and its project and role from the agent's record in the registry; with no prompt the agent
+gets the start-up prompt (i-899c). A name, project, role or prompt is given only to set or change
+it; a prompt is given as is, and a name, which is rare, must be named as such. Flume never
+guesses what an argument means from how it looks.
 
-Why: the human's use: about 80% bare relaunches, 20% with a prompt, and a new name rarely. A
-command that guesses from content (spaces, quotes) surprises.
+Why: about 90% of launches are a bare relaunch in the same pane, so that must be the shortest
+command, with everything else known. A command that guesses from content (spaces, quotes)
+surprises.
 
 ## i-899c Every launch starts work
 
@@ -201,6 +205,9 @@ Where each intent item in [agents](../intent/agents.md) came from. For reference
   whether it has spaces in it or not." "80% of the time, I'm running Claude as bare because I've
   already set the agent name in the session. ... 20% of the time, I'm giving it a specific prompt.
   ... very rarely, I'm giving the agent a name."
+- 2026-11-27 (fl-acpm review): "Most launches never give a name, a project, a role, or a prompt."
+  "90% of the time, we can just say "Flume agent" is what we're getting at here, and everything
+  about that is known from that Tmux pane."
 
 ## i-899c Every launch starts work
 
@@ -254,3 +261,10 @@ could just be "agent," or it could be the name "General." Yeah, that's right." (
 The human, 2026-11-27 (review), verbatim: "I don't know if an agent can work in the workspace
 itself, but an agent then would be given the name of the workspace. If there's a single project
 setup, then every agent is just given the name of the project."
+
+The human, 2026-11-27 (review), verbatim: "For "launching is short for the common case," please
+expand this to say: "Most launches never give a name, a project, a role, or a prompt." The agent's
+name is resolved from... That's fine to say where it was last run, I guess. That's a little bit
+vague, but it's resolved from the registry as well as its project, role, and optional prompt.
+Let's just make sure that's clear. 90% of the time, we can just say "Flume agent" is what we're
+getting at here, and everything about that is known from that Tmux pane."
